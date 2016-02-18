@@ -1,0 +1,20 @@
+# Interface for publishing joint/cartesian commands to the low level controllers
+execution_interface:
+  command_mode: joint_publisher # method for publishing commands from this node to low level controller
+  cartesian_command_topic: /hilgendorf/cartesian_controller/cartesian_command # command output from this node
+  joint_trajectory_topic: /hilgendorf/cartesian_controller/command # command output from this node
+  save_traj_to_file: false # debug mode for creating a CSV for use with Matlab
+  save_traj_to_file_path: /home/dave/ros/current/ws_swri/src/trajectory_data/ # debug
+  visualize_trajectory_line: false # show in RViz a series of markers visualizing path
+  visualize_trajectory_path: false # show in RViz the robot moving on the trajectory path
+  check_for_waypoint_jumps: false # ensure that any trajectory that is published does not have huge discontinuties in joint space
+
+# MoveIt Boilerplate Base Functionality
+moveit_base:
+  joint_state_topic: /hilgendorf/joint_states # location to recieve updates of the robot's pose
+  joint_model_group: arm # the main planning group to control
+  planning_scene_topic: /swri/planning_scene  # topic for communicating the collision obj in the env with other nodes
+  rviz:
+    markers_topic: /hilgendorf/markers
+    robot_state_topic: /hilgendorf/robot_state
+    trajectory_topic: /hilgendorf/display_trajectory
