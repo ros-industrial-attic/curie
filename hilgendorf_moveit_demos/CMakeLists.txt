@@ -50,14 +50,14 @@ include_directories(
 # )
 
 # Main program
-add_executable(${PROJECT_NAME}_hilgendorg_demos
+add_executable(${PROJECT_NAME}_hilgendorf_demos
   src/hilgendorg_demos.cpp
 )
 # Rename C++ executable without namespace
-set_target_properties(${PROJECT_NAME}_hilgendorg_demos
-  PROPERTIES OUTPUT_NAME hilgendorg_demos PREFIX "")
+set_target_properties(${PROJECT_NAME}_hilgendorf_demos
+  PROPERTIES OUTPUT_NAME hilgendorf_demos PREFIX "")
 # Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}_hilgendorg_demos
+target_link_libraries(${PROJECT_NAME}_hilgendorf_demos
   #${PROJECT_NAME}
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
@@ -75,7 +75,7 @@ roslint_cpp()
 #############
 
 ## Mark executables and/or libraries for installation
-install(TARGETS ${PROJECT_NAME}_hilgendorg_demos
+install(TARGETS ${PROJECT_NAME}_hilgendorf_demos
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

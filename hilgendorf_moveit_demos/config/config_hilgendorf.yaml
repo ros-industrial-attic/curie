@@ -12,7 +12,7 @@ execution_interface:
 # MoveIt Boilerplate Base Functionality
 moveit_base:
   joint_state_topic: /hilgendorf/joint_states # location to recieve updates of the robot's pose
-  joint_model_group: arm # the main planning group to control
+  joint_model_group: whole_body # the main planning group to control
   planning_scene_topic: /swri/planning_scene  # topic for communicating the collision obj in the env with other nodes
   rviz:
     markers_topic: /hilgendorf/markers

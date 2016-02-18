@@ -60,6 +60,7 @@ public:
    */
   HilgendorfDemos()
     : MoveItBase()
+    , nh_("~")
   {
     // Load rosparams
     ros::NodeHandle rpnh(nh_, name_);

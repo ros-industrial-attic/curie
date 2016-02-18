@@ -46,6 +46,10 @@ Start simulated ros_control:
 
     roslaunch hilgendorf_moveit_demos hilgendorf_simulation.launch
 
+Run example demo:
+
+m    roslaunch hilgendorf_moveit_demos hilgendorf_demo.launch
+
 ## Testing and Linting
 
 To run [roslint](http://wiki.ros.org/roslint), use the following command with [catkin-tools](https://catkin-tools.readthedocs.org/):

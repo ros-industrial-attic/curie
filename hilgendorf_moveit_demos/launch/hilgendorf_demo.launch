@@ -13,25 +13,14 @@
   <arg     if="$(arg debug)" name="launch_prefix"
        value="gdb -x $(find hilgendorf_moveit_demos)/launch/debug_settings.gdb --ex run --args" />
 
-  <!-- Command line arguments -->
-  <!-- <arg name="auto_step" default="false" /> -->
-  <!-- <arg name="full_auto" default="true" /> -->
-  <!-- <arg name="id" default="0" /> -->
-  <!-- <arg name="fake_execution" default="0"/> -->
-  <arg name="pose" default=""/>
-  <arg name="play_traj" default="false"/>
-
   <!-- Planning Functionality -->
   <include ns="hilgendorf" file="$(find hilgendorf_moveit_config)/launch/planning_pipeline.launch.xml">
     <arg name="pipeline" value="ompl" />
   </include>
 
   <!-- Main process -->
-  <node name="hilgendorf" pkg="hilgendorf_moveit_demos" type="hilgendorf_demo" respawn="false"
-    launch-prefix="$(arg launch_prefix)" output="screen"
-    args="-play_traj=$(arg play_traj) --pose=$(arg pose)">
-          <!-- - -full_auto=$(arg full_auto) - -auto_step=$(arg auto_step) -->
-          <!-- - -id $(arg id)"> -->
+  <node name="hilgendorf" pkg="hilgendorf_moveit_demos" type="hilgendorf_demos" respawn="false"
+    launch-prefix="$(arg launch_prefix)" output="screen">
 
     <!-- Robot-specific settings -->
     <rosparam command="load" file="$(find hilgendorf_moveit_demos)/config/config_hilgendorf.yaml"/>
