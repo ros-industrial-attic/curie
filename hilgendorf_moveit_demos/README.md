@@ -38,7 +38,13 @@ See [Class Reference](http://docs.ros.org/jade/api/hilgendorg_demos/html/)
 
 ## Usage
 
-TODO
+Start Rviz:
+
+    roslaunch hilgendorf_moveit_demos hilgendorf_visualize.launch
+
+Start simulated ros_control:
+
+    roslaunch hilgendorf_moveit_demos hilgendorf_simulation.launch
 
 ## Testing and Linting
 
