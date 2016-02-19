@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(hilgendorf_moveit_demos)
 
 # C++ 11
-set(CMAKE_CXX_FLAGS "-std=c++11 -Wall ${CMAKE_CXX_FLAGS}")
+#set(CMAKE_CXX_FLAGS "-std=c++11 -Wall ${CMAKE_CXX_FLAGS}")
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -10,18 +10,25 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_boilerplate
   moveit_core
   moveit_visual_tools
+  moveit_ompl
   rosparam_shortcuts
+  ompl_visual_tools
 )
 
 find_package(Boost REQUIRED)
+find_package(Boost REQUIRED system serialization)
 
 catkin_package(
   CATKIN_DEPENDS
+    roscpp
     moveit_boilerplate
     moveit_core
     moveit_visual_tools
-    roscpp
+    moveit_ompl
     rosparam_shortcuts
+    ompl_visual_tools
+  DEPENDS
+    Eigen
   INCLUDE_DIRS
     include
   LIBRARIES
@@ -31,6 +38,11 @@ catkin_package(
 ###########
 ## Build ##
 ###########
+
+include_directories(SYSTEM
+  ${Boost_INCLUDE_DIR}
+  ${EIGEN_INCLUDE_DIRS}
+)
 
 include_directories(
   include
@@ -51,7 +63,7 @@ include_directories(
 
 # Main program
 add_executable(${PROJECT_NAME}_hilgendorf_demos
-  src/hilgendorg_demos.cpp
+  src/hilgendorf_demos.cpp
 )
 # Rename C++ executable without namespace
 set_target_properties(${PROJECT_NAME}_hilgendorf_demos

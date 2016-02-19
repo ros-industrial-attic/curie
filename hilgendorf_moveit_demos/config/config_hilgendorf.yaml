@@ -18,3 +18,14 @@ moveit_base:
     markers_topic: /hilgendorf/markers
     robot_state_topic: /hilgendorf/robot_state
     trajectory_topic: /hilgendorf/display_trajectory
+
+hilgendorf_demos:
+  use_experience: true
+  experience_planner: bolt
+  visualize:
+    playback_trajectory: true
+  debug:
+    print_trajectory: false
+
+moveit_ompl:
+  saving_enabled: true

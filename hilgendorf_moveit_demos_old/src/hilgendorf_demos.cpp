@@ -1,4 +1,4 @@
-/*********************************************************************
+b/*********************************************************************
  * Software License Agreement (BSD License)
  *
  *  Copyright (c) 2016, University of Colorado, Boulder
@@ -550,7 +550,7 @@ public:
       ROS_INFO("Visualizing the trajectory");
       //visual_tools_->hideRobot(); // hide the other robot so that we can see the trajectory TODO bug?
       bool wait_for_trajetory = false;
-      //visual_tools_->publishTrajectoryPath(response.trajectory, wait_for_trajetory);
+      visual_tools_->publishTrajectoryPath(response.trajectory, current_state_, wait_for_trajetory);
 
     }
     else
@@ -560,7 +560,6 @@ public:
 
     return true;
   }
-
 
   bool checkPathSolution(const planning_scene::PlanningSceneConstPtr& planning_scene,
                          const planning_interface::MotionPlanRequest& req,
