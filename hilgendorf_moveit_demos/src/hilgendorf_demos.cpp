@@ -88,7 +88,10 @@ public:
     goal_state_.reset(new moveit::core::RobotState(*current_state_));
 
     // Get the two arms jmg
-    both_arms_ = robot_model_->getJointModelGroup("both_arms");
+    //both_arms_ = robot_model_->getJointModelGroup("both_arms");
+    both_arms_ = robot_model_->getJointModelGroup("right_arm");
+
+    //showJointLimits(both_arms_);
 
     ROS_INFO_STREAM_NAMED(name_, "HilgendorfDemos Ready.");
   }
@@ -104,7 +107,7 @@ public:
     std::set<planning_interface::PlanningContextPtr> planning_context_handles;
 
     ompl::tools::ExperienceSetupPtr experience_setup;
-    moveit_ompl::ModelBasedStateSpacePtr model_state_space;
+    //moveit_ompl::ModelBasedStateSpacePtr model_state_space;
 
     while (ros::ok())
     {
@@ -230,7 +233,7 @@ public:
     }
 
     // Attempt to solve
-    try
+    //try
     {
       ROS_INFO_STREAM_NAMED(name_, "Getting planning context");
       context = planner_manager_->getPlanningContext(planning_scene, request, result.error_code_);
@@ -248,16 +251,16 @@ public:
         return false;
       }
     }
-    catch (std::runtime_error& ex)
-    {
-      ROS_ERROR("Exception caught: '%s'", ex.what());
-      return false;
-    }
-    catch (...)
-    {
-      ROS_ERROR("Unknown exception thrown by planner");
-      return false;
-    }
+    // catch (std::runtime_error& ex)
+    // {
+    //   ROS_ERROR("Exception caught: '%s'", ex.what());
+    //   return false;
+    // }
+    // catch (...)
+    // {
+    //   ROS_ERROR("Unknown exception thrown by planner");
+    //   return false;
+    // }
 
     // Verify path is good
     return true;  // checkPathSolution(planning_scene, request, result);
