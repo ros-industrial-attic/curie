@@ -1,3 +1,13 @@
+# Main program
+hilgendorf_demos:
+  planning_runs: 1
+  use_experience: true
+  experience_planner: bolt
+  visualize:
+    playback_trajectory: true
+  debug:
+    print_trajectory: false
+
 # Interface for publishing joint/cartesian commands to the low level controllers
 execution_interface:
   command_mode: joint_publisher # method for publishing commands from this node to low level controller
@@ -18,14 +28,6 @@ moveit_base:
     markers_topic: /hilgendorf/markers
     robot_state_topic: /hilgendorf/robot_state
     trajectory_topic: /hilgendorf/display_trajectory
-
-hilgendorf_demos:
-  use_experience: true
-  experience_planner: bolt
-  visualize:
-    playback_trajectory: true
-  debug:
-    print_trajectory: false
 
 moveit_ompl:
   saving_enabled: true

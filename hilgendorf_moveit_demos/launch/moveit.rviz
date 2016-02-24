@@ -6,8 +6,8 @@ Panels:
       Expanded:
         - /Grid1/Offset1
         - /OMPL Robot State1/Status1
-        - /Trajectory Markers1/Namespaces1
-        - /Trajectory1
+        - /OMPL Markers1
+        - /OMPL Markers1/Namespaces1
         - /PlanningScene1/Scene Geometry1
         - /TF1/Frames1
         - /Pose1
@@ -980,7 +980,7 @@ Visualization Manager:
       Name: OMPL Robot State
       Robot Alpha: 1
       Robot Description: hilgendorf/robot_description
-      Robot State Topic: /moveit_ompl/display_robot_state
+      Robot State Topic: /hilgendorf/goal_state
       Show All Links: true
       Show Highlights: true
       Value: false
@@ -995,13 +995,13 @@ Visualization Manager:
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: false
-      Marker Topic: /hilgendorf/trajectory_markers
-      Name: Trajectory Markers
+      Enabled: true
+      Marker Topic: /hilgendorf/start_markers
+      Name: OMPL Markers
       Namespaces:
-        {}
+        Arrow: true
       Queue Size: 100
-      Value: false
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /hilgendorf/display_contacts
@@ -1342,6 +1342,16 @@ Visualization Manager:
       Shape: Axes
       Topic: /hilgendorf/cartesian_controller/cartesian_command
       Value: false
+    - Angle Tolerance: 0.1
+      Class: rviz/Odometry
+      Color: 255; 25; 0
+      Enabled: true
+      Keep: 100
+      Length: 1
+      Name: Odometry
+      Position Tolerance: 0.1
+      Topic: ""
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 45; 53; 53
@@ -1368,10 +1378,10 @@ Visualization Manager:
         Z: -5.96046e-07
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.339797
+      Pitch: 0.354797
       Target Frame: robot_table_link
       Value: XYOrbit (rviz)
-      Yaw: 6.2468
+      Yaw: 6.1768
     Saved: ~
 Window Geometry:
   Displays:

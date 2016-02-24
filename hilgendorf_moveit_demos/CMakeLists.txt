@@ -75,6 +75,20 @@ target_link_libraries(${PROJECT_NAME}_hilgendorf_demos
   ${Boost_LIBRARIES}
 )
 
+# Main program
+add_executable(${PROJECT_NAME}_memory_demo
+  src/memory_demo.cpp
+)
+# Rename C++ executable without namespace
+set_target_properties(${PROJECT_NAME}_memory_demo
+  PROPERTIES OUTPUT_NAME memory_demo PREFIX "")
+# Specify libraries to link a library or executable target against
+target_link_libraries(${PROJECT_NAME}_memory_demo
+  #${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
+
 #############
 ## Testing ##
 #############
