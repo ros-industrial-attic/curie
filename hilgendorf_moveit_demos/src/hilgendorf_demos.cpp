@@ -77,9 +77,12 @@ public:
     error += !rosparam_shortcuts::get(name_, rpnh, "use_experience", use_experience_);
     error += !rosparam_shortcuts::get(name_, rpnh, "experience_planner", experience_planner_);
     error += !rosparam_shortcuts::get(name_, rpnh, "planning_runs", planning_runs_);
-    //error += !rosparam_shortcuts::get(name_, rpnh, "expand_neighborhood_rate", expand_neighborhood_rate_);
+    error += !rosparam_shortcuts::get(name_, rpnh, "sparse_delta", sparse_delta_);
+    error += !rosparam_shortcuts::get(name_, rpnh, "save_database", save_database_);
+    error += !rosparam_shortcuts::get(name_, rpnh, "skip_solving", skip_solving_);
     // Visualize
-    error += !rosparam_shortcuts::get(name_, rpnh, "visualize/playback_trajectory", viz_playback_trajectory_);
+    error += !rosparam_shortcuts::get(name_, rpnh, "visualize/playback_trajectory", visualize_playback_trajectory_);
+    error += !rosparam_shortcuts::get(name_, rpnh, "visualize/grid_generation", visualize_grid_generation_);
     // Debug
     error += !rosparam_shortcuts::get(name_, rpnh, "debug/print_trajectory", debug_print_trajectory_);
     rosparam_shortcuts::shutdownIfError(name_, error);
@@ -100,6 +103,10 @@ public:
 
     // showJointLimits(both_arms_);
 
+    double vm1, rss1;
+    process_mem_usage(vm1, rss1);
+    ROS_INFO_STREAM_NAMED(name_, "Current memory consumption - VM: " << vm1 << " MB | RSS: " << rss1 << " MB");
+
     ROS_INFO_STREAM_NAMED(name_, "HilgendorfDemos Ready.");
   }
 
@@ -107,6 +114,7 @@ public:
   {
     // Load planning
 
+    // Start solving multiple times
     for (std::size_t run_id = 0; run_id < planning_runs_; ++run_id)
     {
       ROS_INFO_STREAM_NAMED(name_, "Starting planning run " << run_id);
@@ -120,19 +128,11 @@ public:
       visual_goal_->publishRobotState(goal_state_, rvt::ORANGE);
 
       // Plan from start to goal
-      if (!generatePlan(start_state_, goal_state_))
-      {
+      generatePlan(start_state_, goal_state_);
+
+      // Check if time to end loop
+      if (!ros::ok())
         return;
-      }
-
-      // Error check
-      if (!planning_context_)
-      {
-        ROS_ERROR_STREAM_NAMED(name_, "No planning context handle point available");
-      }
-
-      // Wait for next run
-      ros::Duration(2.0).sleep();
     }
   }
 
@@ -149,11 +149,10 @@ public:
     double tolerance_pose = 0.001;
     moveit_msgs::Constraints goal_constraint =
       kinematic_constraints::constructGoalConstraints(*goal_state, both_arms_, tolerance_pose);
-    std::cout << "goal_constraint: \n" << goal_constraint << std::endl;
     request.goal_constraints.push_back(goal_constraint);
 
     // Other settings
-    request.planner_id = "RRTConnectkConfigDefault";
+    //request.planner_id = "RRTConnectkConfigDefault";
     //ROS_INFO_STREAM_NAMED(name_, "Planning with planner " << request.planner_id);
     request.group_name = both_arms_->getName();
     request.num_planning_attempts = 1;   // this must be one else it threads and doesn't use lightning/thunder correctly
@@ -161,7 +160,7 @@ public:
     request.use_experience = use_experience_;
     request.experience_method = experience_planner_;
 
-    std::cout << "request:\n" << request << std::endl;
+    //std::cout << "request:\n" << request << std::endl;
     // Set planning space
     setWorkspace(request);
 
@@ -180,16 +179,17 @@ public:
       planWithoutPipeline(planning_scene2, request, result, dummy_pipeline);
     }
 
+    // Check if time to end
+    if (!ros::ok())
+      exit(0);
+
     // Check that the planning was successful
     if (result.error_code_.val != result.error_code_.SUCCESS)
     {
-      ROS_ERROR("Could not compute plan successfully =============================================");
+      ROS_ERROR("Could not compute plan successfully");
       return false;
     }
-
-    std::cout << std::endl;
     ROS_INFO_STREAM_NAMED(name_, "Computed Plan Successfully! ---------------------------------");
-    std::cout << std::endl;
 
     // Get the trajectory
     moveit_msgs::MotionPlanResponse response;
@@ -198,17 +198,22 @@ public:
 
     // Debug Output trajectory
     if (debug_print_trajectory_)
-    {
       std::cout << "Trajectory debug:\n " << response.trajectory << std::endl;
-    }
 
     // Visualize the trajectory
-    if (viz_playback_trajectory_)
+    if (visualize_playback_trajectory_)
     {
       ROS_INFO("Visualizing the trajectory");
-      bool wait_for_trajetory = true;
+      const bool wait_for_trajetory = true;
       visual_tools_->publishTrajectoryPath(response.trajectory, current_state_, wait_for_trajetory);
     }
+
+    // Process the popularity
+    experience_setup_->doPostProcessing();
+
+    // Setup
+    ROS_INFO_STREAM_NAMED(name_,"Saving experience db...");
+    experience_setup_->saveIfChanged();
 
     return true;
   }
@@ -247,37 +252,53 @@ public:
 
     // Set state space
     visual_ompl1_->setStateSpace(mb_state_space_);
+    visual_ompl2_->setStateSpace(mb_state_space_);
+    visual_ompl3_->setStateSpace(mb_state_space_);
 
     // Set visualization callbacks
-    bolt_setup.getExperienceDB()->setViz2Callbacks(visual_ompl1_->getVizStateCallback(),
-                                                    visual_ompl1_->getVizEdgeCallback(),
-                                                    visual_ompl1_->getVizTriggerCallback());
+    bolt_setup.getExperienceDB()->setViz2Callbacks(visual_ompl3_->getVizStateCallback(),
+                                                   visual_ompl3_->getVizEdgeCallback(),
+                                                   visual_ompl3_->getVizTriggerCallback());
+    bolt_setup.getRetrieveRepairPlanner().setVizCallbacks(visual_ompl3_->getVizStateCallback(),
+                                                          visual_ompl3_->getVizEdgeCallback(),
+                                                          visual_ompl3_->getVizTriggerCallback());
 
     // Set planner settings
-    // TODO
+    bolt_setup.getExperienceDB()->sparseDelta_ = sparse_delta_;
+    bolt_setup.getExperienceDB()->visualizeGridGeneration_ = visualize_grid_generation_;
+    bolt_setup.getExperienceDB()->setSavingEnabled(save_database_);
+
+    double vm1, rss1;
+    process_mem_usage(vm1, rss1);
+    ROS_INFO_STREAM_NAMED(name_, "Current memory consumption - VM: " << vm1 << " MB | RSS: " << rss1 << " MB");
 
     // Load database or generate new grid
     ROS_INFO_STREAM_NAMED(name_, "Loading or generating grid");
     bolt_setup.loadOrGenerate();
+    bolt_setup.saveIfChanged();
 
-    double vm, rss;
-    process_mem_usage(vm, rss);
-    std::cout << "VM: " << vm << " MB    |    RSS: " << rss << " MB" << std::endl;
+    double vm2, rss2;
+    process_mem_usage(vm2, rss2);
+    ROS_INFO_STREAM_NAMED(name_, "Current memory consumption - VM: " << vm2 << " MB | RSS: " << rss2 << " MB");
+    ROS_INFO_STREAM_NAMED(name_, "Current memory diff        - VM: "
+                          << vm2 - vm1 << " MB | RSS: " << rss2 - rss1 << " MB");
 
     // Solve
-    ROS_INFO_STREAM_NAMED(name_, "Starting to solve");
-    if (!planning_context_->solve(result))
+    if (skip_solving_)
     {
-      ROS_ERROR_STREAM_NAMED(name_, "Unable to solve problem");
-      return false;
+      ROS_INFO_STREAM_NAMED(name_, "Skipping solving. Spinning...");
+      ros::spin();
+      exit(0);
     }
-
-    // Process the popularity
-    experience_setup_->doPostProcessing();
-
-    // Setup
-    ROS_INFO_STREAM_NAMED(name_,"Saving experience db...");
-    experience_setup_->saveIfChanged();
+    else
+    {
+      ROS_INFO_STREAM_NAMED(name_, "Starting to solve");
+      if (!planning_context_->solve(result))
+      {
+        ROS_ERROR_STREAM_NAMED(name_, "Unable to solve problem");
+        return false;
+      }
+    }
 
     // Verify path is good
     return true;  // checkPathSolution(planning_scene, request, result);
@@ -428,7 +449,7 @@ public:
         current_state_->getVariablePosition("virtual_joint/trans_y") + workspace_size;
     request.workspace_parameters.max_corner.z =
         current_state_->getVariablePosition("virtual_joint/trans_z") + workspace_size;
-    visual_tools_->publishWorkspaceParameters(request.workspace_parameters);
+    //visual_tools_->publishWorkspaceParameters(request.workspace_parameters);
   }
 
   bool getRandomState(moveit::core::RobotStatePtr& robot_state)
@@ -460,23 +481,29 @@ public:
     std::string namesp = nh_.getNamespace();
     visual_ompl1_.reset(
         new ompl_visual_tools::OmplVisualTools(robot_model_->getModelFrame(), namesp + "/start_markers", robot_model_));
-    visual_ompl1_->deleteAllMarkers();
+    //visual_ompl1_->deleteAllMarkers();
     visual_ompl1_->setPlanningSceneMonitor(planning_scene_monitor_);
     visual_ompl1_->loadRobotStatePub(namesp + "/start_state");
-    visual_ompl1_->setAlpha(0.8);
     visual_ompl1_->setManualSceneUpdating(true);
     visual_ompl1_->hideRobot();  // show that things have been reset
     visual_start_ = visual_ompl1_;
 
     visual_ompl2_.reset(
         new ompl_visual_tools::OmplVisualTools(robot_model_->getModelFrame(), namesp + "/goal_markers", robot_model_));
-    visual_ompl2_->deleteAllMarkers();
+    //visual_ompl2_->deleteAllMarkers();
     visual_ompl2_->setPlanningSceneMonitor(planning_scene_monitor_);
     visual_ompl2_->loadRobotStatePub(namesp + "/goal_state");
-    visual_ompl2_->setAlpha(0.8);
     visual_ompl2_->setManualSceneUpdating(true);
     visual_ompl2_->hideRobot();  // show that things have been reset
     visual_goal_ = visual_ompl2_; // copy for use by Moveit
+
+    visual_ompl3_.reset(
+        new ompl_visual_tools::OmplVisualTools(robot_model_->getModelFrame(), namesp + "/ompl_markers", robot_model_));
+    visual_ompl3_->deleteAllMarkers();
+    visual_ompl3_->setPlanningSceneMonitor(planning_scene_monitor_);
+    visual_ompl3_->loadRobotStatePub(namesp + "/ompl_state");
+    visual_ompl3_->setManualSceneUpdating(true);
+    visual_ompl3_->hideRobot();  // show that things have been reset
   }
 
 private:
@@ -491,6 +518,7 @@ private:
   // For visualizing things in rviz
   ompl_visual_tools::OmplVisualToolsPtr visual_ompl1_;
   ompl_visual_tools::OmplVisualToolsPtr visual_ompl2_;
+  ompl_visual_tools::OmplVisualToolsPtr visual_ompl3_;
   moveit_visual_tools::MoveItVisualToolsPtr visual_start_; // Clone of ompl1
   moveit_visual_tools::MoveItVisualToolsPtr visual_goal_; // Clone of ompl2
 
@@ -509,10 +537,13 @@ private:
   bool use_experience_;
   std::string experience_planner_;
   std::size_t planning_runs_;
-  //double expand_neighborhood_rate_;
+  double sparse_delta_;
+  bool save_database_;
+  bool skip_solving_;
 
   // Debug and Display preferences
-  bool viz_playback_trajectory_;
+  bool visualize_playback_trajectory_;
+  bool visualize_grid_generation_;
   bool debug_print_trajectory_;
 
   // Remember the planning context even after solving is done
