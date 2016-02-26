@@ -5,6 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Grid1/Offset1
+        - /Trajectory1
         - /PlanningScene1/Scene Geometry1
         - /TF1/Frames1
       Splitter Ratio: 0.561969
@@ -281,7 +282,7 @@ Visualization Manager:
       Marker Topic: /hilgendorf/markers
       Name: visual_tools
       Namespaces:
-        Planning_Workspace: true
+        {}
       Queue Size: 100
       Value: true
     - Attached Body Color: 150; 50; 150
@@ -1319,22 +1320,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 2.27357
+      Distance: 2.43797
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.245657
-        Y: -0.456301
+        X: 0.0728286
+        Y: -0.650078
         Z: -8.79168e-07
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.659798
+      Pitch: 0.814798
       Target Frame: robot_table_link
       Value: XYOrbit (rviz)
-      Yaw: 5.25677
+      Yaw: 5.17676
     Saved: ~
 Window Geometry:
   Displays:
@@ -1352,5 +1353,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1788
-  X: 1024
+  X: 1014
   Y: 14

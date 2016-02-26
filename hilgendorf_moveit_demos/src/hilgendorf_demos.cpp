@@ -69,7 +69,8 @@ public:
   /**
    * \brief Constructor
    */
-  HilgendorfDemos() : MoveItBase(), nh_("~"), name_("hilgendorf_demos")
+  HilgendorfDemos() : MoveItBase(), nh_("~"), name_("hilgendorf_demos"), total_duration_(0.0), total_runs_(0)
+
   {
     // Load rosparams
     ros::NodeHandle rpnh(nh_, name_);
@@ -110,9 +111,108 @@ public:
     ROS_INFO_STREAM_NAMED(name_, "HilgendorfDemos Ready.");
   }
 
+  bool loadPlanningContext()
+  {
+    // Note: we create a fake planning request in order to get the desired planning context
+
+    // Create motion planning request
+    planning_interface::MotionPlanRequest request;
+    planning_interface::MotionPlanResponse result;
+
+    // Start state
+    moveit::core::robotStateToRobotStateMsg(*current_state_, request.start_state);
+
+    // Goal constraint
+    double tolerance_pose = 0.001;
+    moveit_msgs::Constraints goal_constraint =
+      kinematic_constraints::constructGoalConstraints(*current_state_, both_arms_, tolerance_pose);
+    request.goal_constraints.push_back(goal_constraint);
+
+    // Other settings
+    request.group_name = both_arms_->getName();
+    request.use_experience = use_experience_;
+    request.experience_method = experience_planner_;
+
+    // Set planning space
+    setWorkspace(request);
+
+    // Load correct planning plugin
+    if (!loadPlanningPlugin())
+    {
+      ROS_ERROR_STREAM_NAMED(name_, "Unable to load planner manager, cannot plan.");
+      return false;
+    }
+
+    // Create the planning scene - TODO use our global one?
+    planning_scene::PlanningScenePtr temp_planning_scene;
+    temp_planning_scene.reset(new planning_scene::PlanningScene(robot_model_));
+
+    // Get planning context
+    ROS_INFO_STREAM_NAMED(name_, "Getting planning context");
+    planning_context_ = planner_manager_->getPlanningContext(temp_planning_scene, request); //, result.error_code_);
+
+    // Error check
+    if (!planning_context_)
+    {
+      ROS_ERROR_STREAM_NAMED(name_, "Count not find planning_context_");
+      return false;
+    }
+
+    // Get references to various parts of the Bolt framework
+    mb_planning_context_ =
+      boost::dynamic_pointer_cast<moveit_ompl::ModelBasedPlanningContext>(planning_context_);
+    experience_setup_ =
+      boost::dynamic_pointer_cast<ompl::tools::ExperienceSetup>(mb_planning_context_->getOMPLSimpleSetup());
+    mb_state_space_ = mb_planning_context_->getOMPLStateSpace();
+    bolt_setup_ = boost::dynamic_pointer_cast<ompl::tools::Bolt>(experience_setup_);
+
+    // Set state space
+    visual_ompl1_->setStateSpace(mb_state_space_);
+    visual_ompl2_->setStateSpace(mb_state_space_);
+    visual_ompl3_->setStateSpace(mb_state_space_);
+
+    // Set visualization callbacks
+    bolt_setup_->getExperienceDB()->setViz2Callbacks(visual_ompl3_->getVizStateCallback(),
+                                                   visual_ompl3_->getVizEdgeCallback(),
+                                                   visual_ompl3_->getVizTriggerCallback());
+    bolt_setup_->getRetrieveRepairPlanner().setVizCallbacks(visual_ompl3_->getVizStateCallback(),
+                                                          visual_ompl3_->getVizEdgeCallback(),
+                                                          visual_ompl3_->getVizTriggerCallback());
+
+    // Set planner settings
+    bolt_setup_->getExperienceDB()->sparseDelta_ = sparse_delta_;
+    bolt_setup_->getExperienceDB()->visualizeGridGeneration_ = visualize_grid_generation_;
+    bolt_setup_->getExperienceDB()->setSavingEnabled(save_database_);
+
+    double vm1, rss1;
+    process_mem_usage(vm1, rss1);
+    ROS_INFO_STREAM_NAMED(name_, "Current memory consumption - VM: " << vm1 << " MB | RSS: " << rss1 << " MB");
+
+    // Load database or generate new grid
+    ROS_INFO_STREAM_NAMED(name_, "Loading or generating grid");
+    bolt_setup_->loadOrGenerate();
+    bolt_setup_->saveIfChanged();
+
+    double vm2, rss2;
+    process_mem_usage(vm2, rss2);
+    ROS_INFO_STREAM_NAMED(name_, "Current memory consumption - VM: " << vm2 << " MB | RSS: " << rss2 << " MB");
+    ROS_INFO_STREAM_NAMED(name_, "Current memory diff        - VM: "
+                          << vm2 - vm1 << " MB | RSS: " << rss2 - rss1 << " MB");
+
+    // Show database
+    //bolt_setup_->getExperienceDB()->displayDatabase();
+
+    return true;
+  }
+
   void run()
   {
     // Load planning
+    if (!loadPlanningContext())
+    {
+      ROS_ERROR_STREAM_NAMED(name_, "Unable to load planning context");
+      return;
+    }
 
     // Start solving multiple times
     for (std::size_t run_id = 0; run_id < planning_runs_; ++run_id)
@@ -128,15 +228,22 @@ public:
       visual_goal_->publishRobotState(goal_state_, rvt::ORANGE);
 
       // Plan from start to goal
-      generatePlan(start_state_, goal_state_);
+      generateRequest(start_state_, goal_state_);
 
       // Check if time to end loop
       if (!ros::ok())
         return;
     }
+
+    // Finishing up
+    ROS_INFO_STREAM_NAMED(name_,"Saving experience db...");
+    experience_setup_->saveIfChanged();
+
+    // Stats
+    ROS_ERROR_STREAM_NAMED(name_, "Average solving time: " << (total_duration_ / total_runs_));
   }
 
-  bool generatePlan(robot_state::RobotStatePtr start_state, robot_state::RobotStatePtr goal_state)
+  bool generateRequest(robot_state::RobotStatePtr start_state, robot_state::RobotStatePtr goal_state)
   {
     // Create motion planning request
     planning_interface::MotionPlanRequest request;
@@ -151,33 +258,31 @@ public:
       kinematic_constraints::constructGoalConstraints(*goal_state, both_arms_, tolerance_pose);
     request.goal_constraints.push_back(goal_constraint);
 
-    // Other settings
-    //request.planner_id = "RRTConnectkConfigDefault";
-    //ROS_INFO_STREAM_NAMED(name_, "Planning with planner " << request.planner_id);
+    // Other request properties
     request.group_name = both_arms_->getName();
     request.num_planning_attempts = 1;   // this must be one else it threads and doesn't use lightning/thunder correctly
     request.allowed_planning_time = 20;  // second
     request.use_experience = use_experience_;
     request.experience_method = experience_planner_;
 
-    //std::cout << "request:\n" << request << std::endl;
+    bool verbose = false;
+    if (verbose)
+      std::cout << "Planning request:\n" << request << std::endl;
+
     // Set planning space
     setWorkspace(request);
 
-    // Call pipeline
-    std::vector<std::size_t> dummy_pipeline;
+    // Benchmark runtime
+    ros::Time start_time = ros::Time::now();
 
     // SOLVE
-    {
-      // Create the planning scene
-      planning_scene::PlanningScenePtr planning_scene2;
-      planning_scene2.reset(new planning_scene::PlanningScene(robot_model_));
+    planWithContext(planning_scene_, request, result);
 
-      // Lock the planning scene
-      // boost::scoped_ptr<psm::LockedPlanningSceneRO> ls;
-      // ls.reset(new psm::LockedPlanningSceneRO(planning_scene_monitor_));
-      planWithoutPipeline(planning_scene2, request, result, dummy_pipeline);
-    }
+    // Benchmark runtime
+    double duration = (ros::Time::now() - start_time).toSec();
+    total_duration_ += duration;
+    total_runs_++;
+    ROS_INFO_STREAM_NAMED(name_, "planWithContext() total time: " << duration << " sec, average: " << total_duration_ / total_runs_);
 
     // Check if time to end
     if (!ros::ok())
@@ -196,6 +301,10 @@ public:
     response.trajectory = moveit_msgs::RobotTrajectory();
     result.getMessage(response);
 
+    // Clear Rviz
+    visual_ompl3_->hideRobot();
+    visual_ompl3_->deleteAllMarkers();
+
     // Debug Output trajectory
     if (debug_print_trajectory_)
       std::cout << "Trajectory debug:\n " << response.trajectory << std::endl;
@@ -206,31 +315,23 @@ public:
       ROS_INFO("Visualizing the trajectory");
       const bool wait_for_trajetory = true;
       visual_tools_->publishTrajectoryPath(response.trajectory, current_state_, wait_for_trajetory);
+      ros::Duration(2).sleep();
     }
 
     // Process the popularity
     experience_setup_->doPostProcessing();
 
-    // Setup
-    ROS_INFO_STREAM_NAMED(name_,"Saving experience db...");
-    experience_setup_->saveIfChanged();
+    // Visualize the doneness
+    std::cout << std::endl;
 
     return true;
   }
 
-  bool planWithoutPipeline(const planning_scene::PlanningSceneConstPtr& planning_scene,
+  bool planWithContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
                            const planning_interface::MotionPlanRequest& request,
-                           planning_interface::MotionPlanResponse& result,
-                           std::vector<std::size_t>& adapter_added_state_index)
+                           planning_interface::MotionPlanResponse& result)
   {
-    // Load correct plugin
-    if (!loadPlanningPlugin())
-    {
-      ROS_ERROR_STREAM_NAMED(name_, "Unable to load planner manager, cannot plan.");
-      return false;
-    }
-
-    // Get planning context
+    // Update the planning context (should return same one)
     ROS_INFO_STREAM_NAMED(name_, "Getting planning context");
     planning_context_ = planner_manager_->getPlanningContext(planning_scene, request, result.error_code_);
 
@@ -241,63 +342,11 @@ public:
       return false;
     }
 
-    // Get references to various parts of the Bolt framework
-    mb_planning_context_ =
-      boost::dynamic_pointer_cast<moveit_ompl::ModelBasedPlanningContext>(planning_context_);
-    experience_setup_ =
-      boost::dynamic_pointer_cast<ompl::tools::ExperienceSetup>(mb_planning_context_->getOMPLSimpleSetup());
-    mb_state_space_ = mb_planning_context_->getOMPLStateSpace();
-    ompl::tools::Bolt &bolt_setup = static_cast<ompl::tools::Bolt &>(*experience_setup_);
-    ompl::geometric::BoltRetrieveRepair &bolt_retireve_repair = bolt_setup.getRetrieveRepairPlanner();
-
-    // Set state space
-    visual_ompl1_->setStateSpace(mb_state_space_);
-    visual_ompl2_->setStateSpace(mb_state_space_);
-    visual_ompl3_->setStateSpace(mb_state_space_);
-
-    // Set visualization callbacks
-    bolt_setup.getExperienceDB()->setViz2Callbacks(visual_ompl3_->getVizStateCallback(),
-                                                   visual_ompl3_->getVizEdgeCallback(),
-                                                   visual_ompl3_->getVizTriggerCallback());
-    bolt_setup.getRetrieveRepairPlanner().setVizCallbacks(visual_ompl3_->getVizStateCallback(),
-                                                          visual_ompl3_->getVizEdgeCallback(),
-                                                          visual_ompl3_->getVizTriggerCallback());
-
-    // Set planner settings
-    bolt_setup.getExperienceDB()->sparseDelta_ = sparse_delta_;
-    bolt_setup.getExperienceDB()->visualizeGridGeneration_ = visualize_grid_generation_;
-    bolt_setup.getExperienceDB()->setSavingEnabled(save_database_);
-
-    double vm1, rss1;
-    process_mem_usage(vm1, rss1);
-    ROS_INFO_STREAM_NAMED(name_, "Current memory consumption - VM: " << vm1 << " MB | RSS: " << rss1 << " MB");
-
-    // Load database or generate new grid
-    ROS_INFO_STREAM_NAMED(name_, "Loading or generating grid");
-    bolt_setup.loadOrGenerate();
-    bolt_setup.saveIfChanged();
-
-    double vm2, rss2;
-    process_mem_usage(vm2, rss2);
-    ROS_INFO_STREAM_NAMED(name_, "Current memory consumption - VM: " << vm2 << " MB | RSS: " << rss2 << " MB");
-    ROS_INFO_STREAM_NAMED(name_, "Current memory diff        - VM: "
-                          << vm2 - vm1 << " MB | RSS: " << rss2 - rss1 << " MB");
-
-    // Solve
-    if (skip_solving_)
+    ROS_INFO_STREAM_NAMED(name_, "Starting to solve");
+    if (!planning_context_->solve(result))
     {
-      ROS_INFO_STREAM_NAMED(name_, "Skipping solving. Spinning...");
-      ros::spin();
-      exit(0);
-    }
-    else
-    {
-      ROS_INFO_STREAM_NAMED(name_, "Starting to solve");
-      if (!planning_context_->solve(result))
-      {
-        ROS_ERROR_STREAM_NAMED(name_, "Unable to solve problem");
-        return false;
-      }
+      ROS_ERROR_STREAM_NAMED(name_, "Unable to solve problem");
+      return false;
     }
 
     // Verify path is good
@@ -551,7 +600,11 @@ private:
   planning_interface::PlanningContextPtr planning_context_;
   moveit_ompl::ModelBasedPlanningContextPtr mb_planning_context_;
   moveit_ompl::ModelBasedStateSpacePtr mb_state_space_;
+  ompl::tools::BoltPtr bolt_setup_;
 
+  // Average planning time
+  double total_duration_;
+  std::size_t total_runs_;
 };  // end class
 
 // Create boost pointers for this class

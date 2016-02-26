@@ -48,7 +48,7 @@ Start simulated ros_control:
 
 Run example demo:
 
-m    roslaunch hilgendorf_moveit_demos hilgendorf_demo.launch
+    roslaunch hilgendorf_moveit_demos hilgendorf_demo.launch
 
 ## Testing and Linting
 
