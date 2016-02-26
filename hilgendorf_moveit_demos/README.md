@@ -1,4 +1,4 @@
-# Hilgendorg Demos
+# Hilgendorf Demos
 
 Description: Demonstrate dual arm manipulation using a combination of free space and Cartesian planning
 
@@ -10,9 +10,9 @@ Developed by [Dave Coleman](http://dav.ee/) at the University of Colorado Boulde
 
 Status:
 
- * [![Build Status](https://travis-ci.org/davetcoleman/hilgendorg_demos.svg)](https://travis-ci.org/davetcoleman/hilgendorg_demos) Travis - Continuous Integration
- * [![Build Status](http://build.ros.org/buildStatus/icon?job=Jsrc_uT__hilgendorg_demos__ubuntu_trusty__source)](http://build.ros.org/view/Jsrc_uT/job/Jsrc_uT__hilgendorg_demos__ubuntu_trusty__source/) ROS Buildfarm - Trusty Devel Source Build
- * [![Build Status](http://build.ros.org/buildStatus/icon?job=Jbin_uT64__hilgendorg_demos__ubuntu_trusty_amd64__binary)](http://build.ros.org/view/Jbin_uT64/job/Jbin_uT64__hilgendorg_demos__ubuntu_trusty_amd64__binary/) ROS Buildfarm - AMD64 Trusty Debian Build
+ * [![Build Status](https://travis-ci.org/davetcoleman/hilgendorf_demos.svg)](https://travis-ci.org/davetcoleman/hilgendorf_demos) Travis - Continuous Integration
+ * [![Build Status](http://build.ros.org/buildStatus/icon?job=Jsrc_uT__hilgendorf_demos__ubuntu_trusty__source)](http://build.ros.org/view/Jsrc_uT/job/Jsrc_uT__hilgendorf_demos__ubuntu_trusty__source/) ROS Buildfarm - Trusty Devel Source Build
+ * [![Build Status](http://build.ros.org/buildStatus/icon?job=Jbin_uT64__hilgendorf_demos__ubuntu_trusty_amd64__binary)](http://build.ros.org/view/Jbin_uT64/job/Jbin_uT64__hilgendorf_demos__ubuntu_trusty_amd64__binary/) ROS Buildfarm - AMD64 Trusty Debian Build
 
 ![](resources/screenshot.png)
 
@@ -22,7 +22,7 @@ Status:
 
 > Note: this package has not been released yet
 
-    sudo apt-get install ros-jade-hilgendorg-demos
+    sudo apt-get install ros-jade-hilgendorf-demos
 
 ### Build from Source
 
@@ -34,7 +34,7 @@ To build this package, ``git clone`` this repo into a [catkin workspace](http://
 
 > Note: this package has not been released yet
 
-See [Class Reference](http://docs.ros.org/jade/api/hilgendorg_demos/html/)
+See [Class Reference](http://docs.ros.org/jade/api/hilgendorf_demos/html/)
 
 ## Usage
 
