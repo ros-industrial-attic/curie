@@ -1,12 +1,13 @@
 # Main program
 hilgendorf_demos:
-  planning_runs: 10
+  planning_runs: 100
   use_experience: true
   experience_planner: bolt
   sparse_delta: 0.5
   save_database: true
   skip_solving: false  # just load/generate database
   visualize:
+    start_goal_states: true
     playback_trajectory: true
     grid_generation: false
   debug:

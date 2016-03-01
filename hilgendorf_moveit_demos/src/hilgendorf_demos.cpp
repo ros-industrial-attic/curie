@@ -69,7 +69,7 @@ public:
   /**
    * \brief Constructor
    */
-  HilgendorfDemos() : MoveItBase(), nh_("~"), name_("hilgendorf_demos"), total_duration_(0.0), total_runs_(0)
+  HilgendorfDemos() : MoveItBase(), nh_("~"), name_("hilgendorf_demos"), total_duration_(0.0), total_runs_(0), total_failures_(0)
 
   {
     // Load rosparams
@@ -84,6 +84,7 @@ public:
     // Visualize
     error += !rosparam_shortcuts::get(name_, rpnh, "visualize/playback_trajectory", visualize_playback_trajectory_);
     error += !rosparam_shortcuts::get(name_, rpnh, "visualize/grid_generation", visualize_grid_generation_);
+    error += !rosparam_shortcuts::get(name_, rpnh, "visualize/start_goal_states", visualize_start_goal_states_);
     // Debug
     error += !rosparam_shortcuts::get(name_, rpnh, "debug/print_trajectory", debug_print_trajectory_);
     rosparam_shortcuts::shutdownIfError(name_, error);
@@ -97,16 +98,24 @@ public:
     // Load 2 more robot states
     start_state_.reset(new moveit::core::RobotState(*current_state_));
     goal_state_.reset(new moveit::core::RobotState(*current_state_));
+    from_state_.reset(new moveit::core::RobotState(*current_state_));
+    to_state_.reset(new moveit::core::RobotState(*current_state_));
 
     // Get the two arms jmg
-    // both_arms_ = robot_model_->getJointModelGroup("both_arms");
-    both_arms_ = robot_model_->getJointModelGroup("right_arm");
-
-    // showJointLimits(both_arms_);
+    // right_arm_ = robot_model_->getJointModelGroup("both_arms");
+    right_arm_ = robot_model_->getJointModelGroup("right_arm");
+    ee_link_ = robot_model_->getLinkModel("right_robotiq_85_right_finger_tip_link");
 
     double vm1, rss1;
     process_mem_usage(vm1, rss1);
     ROS_INFO_STREAM_NAMED(name_, "Current memory consumption - VM: " << vm1 << " MB | RSS: " << rss1 << " MB");
+
+    // Load planning
+    if (!loadPlanningContext())
+    {
+      ROS_ERROR_STREAM_NAMED(name_, "Unable to load planning context");
+      return;
+    }
 
     ROS_INFO_STREAM_NAMED(name_, "HilgendorfDemos Ready.");
   }
@@ -125,11 +134,11 @@ public:
     // Goal constraint
     double tolerance_pose = 0.001;
     moveit_msgs::Constraints goal_constraint =
-      kinematic_constraints::constructGoalConstraints(*current_state_, both_arms_, tolerance_pose);
+      kinematic_constraints::constructGoalConstraints(*current_state_, right_arm_, tolerance_pose);
     request.goal_constraints.push_back(goal_constraint);
 
     // Other settings
-    request.group_name = both_arms_->getName();
+    request.group_name = right_arm_->getName();
     request.use_experience = use_experience_;
     request.experience_method = experience_planner_;
 
@@ -161,10 +170,16 @@ public:
     // Get references to various parts of the Bolt framework
     mb_planning_context_ =
       boost::dynamic_pointer_cast<moveit_ompl::ModelBasedPlanningContext>(planning_context_);
-    experience_setup_ =
-      boost::dynamic_pointer_cast<ompl::tools::ExperienceSetup>(mb_planning_context_->getOMPLSimpleSetup());
     mb_state_space_ = mb_planning_context_->getOMPLStateSpace();
-    bolt_setup_ = boost::dynamic_pointer_cast<ompl::tools::Bolt>(experience_setup_);
+    if (use_experience_)
+    {
+      experience_setup_ =
+        boost::dynamic_pointer_cast<ompl::tools::ExperienceSetup>(mb_planning_context_->getOMPLSimpleSetup());
+      bolt_setup_ = boost::dynamic_pointer_cast<ompl::tools::Bolt>(experience_setup_);
+    }
+
+    // Add custom distance function
+    mb_state_space_->setDistanceFunction(boost::bind(&HilgendorfDemos::customDisanceFunction, this, _1, _2));
 
     // Set state space
     visual_ompl1_->setStateSpace(mb_state_space_);
@@ -172,26 +187,32 @@ public:
     visual_ompl3_->setStateSpace(mb_state_space_);
 
     // Set visualization callbacks
-    bolt_setup_->getExperienceDB()->setViz2Callbacks(visual_ompl3_->getVizStateCallback(),
-                                                   visual_ompl3_->getVizEdgeCallback(),
-                                                   visual_ompl3_->getVizTriggerCallback());
-    bolt_setup_->getRetrieveRepairPlanner().setVizCallbacks(visual_ompl3_->getVizStateCallback(),
-                                                          visual_ompl3_->getVizEdgeCallback(),
-                                                          visual_ompl3_->getVizTriggerCallback());
+    if (use_experience_)
+    {
+      bolt_setup_->getExperienceDB()->setViz2Callbacks(visual_ompl3_->getVizStateCallback(),
+                                                       visual_ompl3_->getVizEdgeCallback(),
+                                                       visual_ompl3_->getVizTriggerCallback());
+      bolt_setup_->getRetrieveRepairPlanner().setVizCallbacks(visual_ompl3_->getVizStateCallback(),
+                                                              visual_ompl3_->getVizEdgeCallback(),
+                                                              visual_ompl3_->getVizTriggerCallback());
 
-    // Set planner settings
-    bolt_setup_->getExperienceDB()->sparseDelta_ = sparse_delta_;
-    bolt_setup_->getExperienceDB()->visualizeGridGeneration_ = visualize_grid_generation_;
-    bolt_setup_->getExperienceDB()->setSavingEnabled(save_database_);
+      // Set planner settings
+      bolt_setup_->getExperienceDB()->sparseDelta_ = sparse_delta_;
+      bolt_setup_->getExperienceDB()->visualizeGridGeneration_ = visualize_grid_generation_;
+      bolt_setup_->getExperienceDB()->setSavingEnabled(save_database_);
+    }
 
     double vm1, rss1;
     process_mem_usage(vm1, rss1);
     ROS_INFO_STREAM_NAMED(name_, "Current memory consumption - VM: " << vm1 << " MB | RSS: " << rss1 << " MB");
 
     // Load database or generate new grid
-    ROS_INFO_STREAM_NAMED(name_, "Loading or generating grid");
-    bolt_setup_->loadOrGenerate();
-    bolt_setup_->saveIfChanged();
+    if (use_experience_)
+    {
+      ROS_INFO_STREAM_NAMED(name_, "Loading or generating grid");
+      bolt_setup_->loadOrGenerate();
+      bolt_setup_->saveIfChanged();
+    }
 
     double vm2, rss2;
     process_mem_usage(vm2, rss2);
@@ -205,15 +226,40 @@ public:
     return true;
   }
 
-  void run()
+  void testRandomStates()
   {
-    // Load planning
-    if (!loadPlanningContext())
+    ompl::base::State *random_state = mb_state_space_->allocState();
+
+    std::size_t successful_connections = 0;
+    for (std::size_t run_id = 0; run_id < planning_runs_; ++run_id)
     {
-      ROS_ERROR_STREAM_NAMED(name_, "Unable to load planning context");
-      return;
+      std::cout << std::endl;
+      std::cout << "-------------------------------------------------------" << std::endl;
+      ROS_INFO_STREAM_NAMED(name_, "Testing random state " << run_id);
+
+      // Generate random state
+      getRandomState(start_state_);
+
+      // Visualize
+      visual_start_->publishRobotState(start_state_, rvt::GREEN);
+
+      // Convert to ompl
+      mb_state_space_->copyToOMPLState(random_state, *start_state_);
+
+      // Test
+      const ompl::base::PlannerTerminationCondition ptc = ompl::base::timedPlannerTerminationCondition(60.0);
+      bool result = bolt_setup_->getRetrieveRepairPlanner().canConnect(random_state, ptc);
+      if (result)
+        successful_connections++;
+
+      ROS_ERROR_STREAM_NAMED(name_, "Percent connnected: " << successful_connections / double(run_id + 1) * 100.0);
     }
 
+    mb_state_space_->freeState(random_state);
+  }
+
+  void runRandomProblems()
+  {
     // Start solving multiple times
     for (std::size_t run_id = 0; run_id < planning_runs_; ++run_id)
     {
@@ -224,8 +270,8 @@ public:
       getRandomState(goal_state_);
 
       // Visualize
-      visual_start_->publishRobotState(start_state_, rvt::GREEN);
-      visual_goal_->publishRobotState(goal_state_, rvt::ORANGE);
+      if (visualize_start_goal_states_)
+        visualizeStartGoal();
 
       // Plan from start to goal
       generateRequest(start_state_, goal_state_);
@@ -236,8 +282,11 @@ public:
     }
 
     // Finishing up
-    ROS_INFO_STREAM_NAMED(name_,"Saving experience db...");
-    experience_setup_->saveIfChanged();
+    if (use_experience_)
+    {
+      ROS_INFO_STREAM_NAMED(name_,"Saving experience db...");
+      experience_setup_->saveIfChanged();
+    }
 
     // Stats
     ROS_ERROR_STREAM_NAMED(name_, "Average solving time: " << (total_duration_ / total_runs_));
@@ -255,11 +304,11 @@ public:
     // Goal constraint
     double tolerance_pose = 0.001;
     moveit_msgs::Constraints goal_constraint =
-      kinematic_constraints::constructGoalConstraints(*goal_state, both_arms_, tolerance_pose);
+      kinematic_constraints::constructGoalConstraints(*goal_state, right_arm_, tolerance_pose);
     request.goal_constraints.push_back(goal_constraint);
 
     // Other request properties
-    request.group_name = both_arms_->getName();
+    request.group_name = right_arm_->getName();
     request.num_planning_attempts = 1;   // this must be one else it threads and doesn't use lightning/thunder correctly
     request.allowed_planning_time = 20;  // second
     request.use_experience = use_experience_;
@@ -276,13 +325,16 @@ public:
     ros::Time start_time = ros::Time::now();
 
     // SOLVE
-    planWithContext(planning_scene_, request, result);
+    if (!planWithContext(planning_scene_, request, result))
+      total_failures_++;
 
     // Benchmark runtime
     double duration = (ros::Time::now() - start_time).toSec();
     total_duration_ += duration;
     total_runs_++;
-    ROS_INFO_STREAM_NAMED(name_, "planWithContext() total time: " << duration << " sec, average: " << total_duration_ / total_runs_);
+    ROS_WARN_STREAM_NAMED(name_, "planWithContext() total time: " << duration
+                          << " sec, average: " << total_duration_ / total_runs_
+                          << ", precent failure: " << double(total_failures_) / total_runs_ * 100.0 << "%");
 
     // Check if time to end
     if (!ros::ok())
@@ -319,7 +371,10 @@ public:
     }
 
     // Process the popularity
-    experience_setup_->doPostProcessing();
+    if (use_experience_)
+    {
+      experience_setup_->doPostProcessing();
+    }
 
     // Visualize the doneness
     std::cout << std::endl;
@@ -346,6 +401,11 @@ public:
     if (!planning_context_->solve(result))
     {
       ROS_ERROR_STREAM_NAMED(name_, "Unable to solve problem");
+
+      // Show the unsolvable problem, if its not already showing
+      if (!visualize_start_goal_states_)
+        visualizeStartGoal();
+
       return false;
     }
 
@@ -506,7 +566,7 @@ public:
     static const std::size_t MAX_ATTEMPTS = 100;
     for (std::size_t i = 0; i < MAX_ATTEMPTS; ++i)
     {
-      robot_state->setToRandomPositions(both_arms_);
+      robot_state->setToRandomPositions(right_arm_);
       robot_state->update();
 
       // Error check
@@ -514,12 +574,13 @@ public:
       if (planning_scene_->isStateValid(*robot_state, "", check_verbose))  // second argument is what planning group to
                                                                            // collision check, "" is everything
       {
-        ROS_DEBUG_STREAM_NAMED(name_, "Found valid random robot state after " << i << " attempts");
+        //ROS_DEBUG_STREAM_NAMED(name_, "Found valid random robot state after " << i << " attempts");
         return true;
       }
     }
 
     ROS_ERROR_STREAM_NAMED(name_, "Unable to find valid random robot state");
+    exit(-1);
     return false;
   }
 
@@ -555,6 +616,31 @@ public:
     visual_ompl3_->hideRobot();  // show that things have been reset
   }
 
+  void visualizeStartGoal()
+  {
+    visual_start_->publishRobotState(start_state_, rvt::GREEN);
+    visual_goal_->publishRobotState(goal_state_, rvt::ORANGE);
+
+    // Show values and limits
+    std::cout << "Start: " << std::endl;
+    visual_start_->showJointLimits(start_state_);
+    std::cout << "Goal: " << std::endl;
+    visual_start_->showJointLimits(goal_state_);
+  }
+
+  double customDisanceFunction(const ompl::base::State *state1, const ompl::base::State *state2)
+  {
+    mb_state_space_->copyToRobotState(*from_state_, state1);
+    mb_state_space_->copyToRobotState(*to_state_, state2);
+
+    const Eigen::Affine3d from_pose = from_state_->getGlobalLinkTransform(ee_link_);
+    const Eigen::Affine3d to_pose = to_state_->getGlobalLinkTransform(ee_link_);
+
+    const double distance = (from_pose.translation() - to_pose.translation()).norm();
+    //std::cout << "Cartesian distance: " << distance << std::endl;
+    return distance;
+  }
+
 private:
   // --------------------------------------------------------
 
@@ -574,9 +660,12 @@ private:
   // Robot states
   moveit::core::RobotStatePtr start_state_;
   moveit::core::RobotStatePtr goal_state_;
+  moveit::core::RobotStatePtr from_state_;
+  moveit::core::RobotStatePtr to_state_;
 
   // Planning groups
-  moveit::core::JointModelGroup* both_arms_;
+  moveit::core::JointModelGroup* right_arm_;
+  moveit::core::LinkModel *ee_link_;
 
   // Planning Plugin Components
   boost::shared_ptr<pluginlib::ClassLoader<planning_interface::PlannerManager> > planner_plugin_loader_;
@@ -593,6 +682,7 @@ private:
   // Debug and Display preferences
   bool visualize_playback_trajectory_;
   bool visualize_grid_generation_;
+  bool visualize_start_goal_states_;
   bool debug_print_trajectory_;
 
   // Remember the planning context even after solving is done
@@ -605,6 +695,7 @@ private:
   // Average planning time
   double total_duration_;
   std::size_t total_runs_;
+  std::size_t total_failures_;
 };  // end class
 
 // Create boost pointers for this class
@@ -625,7 +716,8 @@ int main(int argc, char** argv)
 
   // Initialize main class
   hilgendorf_moveit_demos::HilgendorfDemos server;
-  server.run();
+  server.runRandomProblems();
+  //server.testRandomStates();
 
   // Shutdown
   ROS_INFO_STREAM_NAMED("main", "Shutting down.");
