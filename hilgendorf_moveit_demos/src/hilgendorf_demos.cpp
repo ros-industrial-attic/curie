@@ -179,7 +179,7 @@ public:
     }
 
     // Add custom distance function
-    mb_state_space_->setDistanceFunction(boost::bind(&HilgendorfDemos::customDisanceFunction, this, _1, _2));
+    mb_state_space_->setDistanceFunction(boost::bind(&HilgendorfDemos::customDistanceFunction, this, _1, _2));
 
     // Set state space
     visual_ompl1_->setStateSpace(mb_state_space_);
@@ -260,6 +260,12 @@ public:
 
   void runRandomProblems()
   {
+    if (skip_solving_)
+    {
+      ROS_INFO_STREAM_NAMED(name_, "Skipping solving by request of rosparam");
+      return;
+    }
+
     // Start solving multiple times
     for (std::size_t run_id = 0; run_id < planning_runs_; ++run_id)
     {
@@ -352,6 +358,14 @@ public:
     moveit_msgs::MotionPlanResponse response;
     response.trajectory = moveit_msgs::RobotTrajectory();
     result.getMessage(response);
+    moveit_msgs::RobotTrajectory &traj = response.trajectory;
+
+    // Parameterize trajectory
+    for (std::size_t i = 1; i < traj.joint_trajectory.points.size(); ++i)
+    {
+      traj.joint_trajectory.points[i].time_from_start =
+        traj.joint_trajectory.points[i-1].time_from_start + ros::Duration(0.25);
+    }
 
     // Clear Rviz
     visual_ompl3_->hideRobot();
@@ -359,14 +373,14 @@ public:
 
     // Debug Output trajectory
     if (debug_print_trajectory_)
-      std::cout << "Trajectory debug:\n " << response.trajectory << std::endl;
+      std::cout << "Trajectory debug:\n " << traj << std::endl;
 
     // Visualize the trajectory
     if (visualize_playback_trajectory_)
     {
       ROS_INFO("Visualizing the trajectory");
       const bool wait_for_trajetory = true;
-      visual_tools_->publishTrajectoryPath(response.trajectory, current_state_, wait_for_trajetory);
+      visual_tools_->publishTrajectoryPath(traj, current_state_, wait_for_trajetory);
       ros::Duration(2).sleep();
     }
 
@@ -628,17 +642,47 @@ public:
     visual_start_->showJointLimits(goal_state_);
   }
 
-  double customDisanceFunction(const ompl::base::State *state1, const ompl::base::State *state2)
+  double customDistanceFunction(const ompl::base::State *state1, const ompl::base::State *state2)
   {
+    std::cout << "no one should call this " << std::endl;
+    exit(-1);
+
     mb_state_space_->copyToRobotState(*from_state_, state1);
     mb_state_space_->copyToRobotState(*to_state_, state2);
 
     const Eigen::Affine3d from_pose = from_state_->getGlobalLinkTransform(ee_link_);
     const Eigen::Affine3d to_pose = to_state_->getGlobalLinkTransform(ee_link_);
 
-    const double distance = (from_pose.translation() - to_pose.translation()).norm();
-    //std::cout << "Cartesian distance: " << distance << std::endl;
-    return distance;
+    return getPoseDistance(from_pose, to_pose);
+  }
+
+  double getPoseDistance(const Eigen::Affine3d &from_pose, const Eigen::Affine3d &to_pose)
+  {
+    const double translation_dist = (from_pose.translation() - to_pose.translation()).norm();
+    //const double distance_wrist_to_finger = 0.25; // meter
+
+    const Eigen::Quaterniond from(from_pose.rotation());
+    const Eigen::Quaterniond to(to_pose.rotation());
+
+    //std::cout << "From: " << from.x() << ", " << from.y() << ", " << from.z() << ", " << from.w() << std::endl;
+    //std::cout << "To: " << to.x() << ", " << to.y() << ", " << to.z() << ", " << to.w() << std::endl;
+
+    double rotational_dist = arcLength(from, to); // * distance_wrist_to_finger;
+
+    std::cout << "  Translation_Dist: " << std::fixed << std::setprecision(4) << translation_dist
+              << " rotational_dist: " << rotational_dist << std::endl;
+
+    return rotational_dist + translation_dist;
+  }
+
+  double arcLength(const Eigen::Quaterniond &from, const Eigen::Quaterniond &to)
+  {
+    static const double MAX_QUATERNION_NORM_ERROR = 1e-9;
+    double dq = fabs(from.x() * to.x() + from.y() * to.y() + from.z() * to.z() + from.w() * to.w());
+    if (dq > 1.0 - MAX_QUATERNION_NORM_ERROR)
+      return 0.0;
+    else
+      return acos(dq);
   }
 
 private:
@@ -679,7 +723,7 @@ private:
   bool save_database_;
   bool skip_solving_;
 
-  // Debug and Display preferences
+  // Debug and display preferences
   bool visualize_playback_trajectory_;
   bool visualize_grid_generation_;
   bool visualize_start_goal_states_;
@@ -716,7 +760,7 @@ int main(int argc, char** argv)
 
   // Initialize main class
   hilgendorf_moveit_demos::HilgendorfDemos server;
-  server.runRandomProblems();
+  //server.runRandomProblems();
   //server.testRandomStates();
 
   // Shutdown

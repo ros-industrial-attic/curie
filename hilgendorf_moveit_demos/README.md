@@ -50,6 +50,13 @@ Run example demo:
 
     roslaunch hilgendorf_moveit_demos hilgendorf_demo.launch
 
+## Distance between poses
+
+Test code
+
+    rosrun tf_keyboard_cal tf_interactive_marker.py world thing 0 0 0 0 0 0 1
+
+    rosrun hilgendorf_moveit_demos test_pose_distance
 ## Testing and Linting
 
 To run [roslint](http://wiki.ros.org/roslint), use the following command with [catkin-tools](https://catkin-tools.readthedocs.org/):

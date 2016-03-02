@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ompl
   rosparam_shortcuts
   ompl_visual_tools
+  tf_conversions
 )
 
 find_package(Boost REQUIRED)
@@ -85,6 +86,19 @@ set_target_properties(${PROJECT_NAME}_memory_demo
 # Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_memory_demo
   #${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
+
+# Main program
+add_executable(${PROJECT_NAME}_test_pose_distance
+  src/test_pose_distance.cpp
+)
+# Rename C++ executable without namespace
+set_target_properties(${PROJECT_NAME}_test_pose_distance
+  PROPERTIES OUTPUT_NAME test_pose_distance PREFIX "")
+# Specify libraries to link a library or executable target against
+target_link_libraries(${PROJECT_NAME}_test_pose_distance
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
 )

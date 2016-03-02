@@ -8,6 +8,7 @@ Panels:
         - /Trajectory1
         - /PlanningScene1/Scene Geometry1
         - /TF1/Frames1
+        - /InteractiveMarkers1
       Splitter Ratio: 0.561969
     Tree Height: 603
   - Class: rviz/Help
@@ -282,7 +283,7 @@ Visualization Manager:
       Marker Topic: /hilgendorf/markers
       Name: visual_tools
       Namespaces:
-        {}
+        Text: true
       Queue Size: 100
       Value: true
     - Attached Body Color: 150; 50; 150
@@ -1011,8 +1012,7 @@ Visualization Manager:
       Marker Topic: /hilgendorf/ompl_markers
       Name: ompl3 - markers
       Namespaces:
-        Arrow: true
-        Line: true
+        {}
       Queue Size: 100
       Value: true
     - Attached Body Color: 150; 50; 150
@@ -1527,13 +1527,13 @@ Visualization Manager:
       Value: false
     - Class: rviz/InteractiveMarkers
       Enable Transparency: true
-      Enabled: false
+      Enabled: true
       Name: InteractiveMarkers
       Show Axes: false
       Show Descriptions: true
       Show Visual Aids: false
-      Update Topic: /hilgendorf/interactive_marker/update
-      Value: false
+      Update Topic: /posestamped_im/update
+      Value: true
     - Class: rviz/Axes
       Enabled: false
       Length: 1
@@ -1567,10 +1567,10 @@ Visualization Manager:
         Z: -1.2368e-06
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.190399
+      Pitch: 0.505399
       Target Frame: robot_table_link
       Value: XYOrbit (rviz)
-      Yaw: 5.96359
+      Yaw: 5.49358
     Saved: ~
 Window Geometry:
   Displays:
@@ -1588,5 +1588,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1788
-  X: 1004
+  X: 994
   Y: 14

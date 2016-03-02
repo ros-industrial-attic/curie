@@ -5,7 +5,7 @@ hilgendorf_demos:
   experience_planner: bolt
   sparse_delta: 0.5
   save_database: true
-  skip_solving: false  # just load/generate database
+  skip_solving: true  # just load/generate database
   visualize:
     start_goal_states: true
     playback_trajectory: true

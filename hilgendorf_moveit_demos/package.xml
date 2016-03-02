@@ -27,6 +27,7 @@
   <depend>eigen</depend>
   <depend>cmake_modules</depend>
   <depend>pluginlib</depend>
+  <depend>tf_conversions</depend>
 
   <export>
   </export>
