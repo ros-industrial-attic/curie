@@ -64,6 +64,7 @@ include_directories(
 
 # Main program
 add_executable(${PROJECT_NAME}_hilgendorf_demos
+  src/state_validity_checker.cpp
   src/hilgendorf_demos.cpp
 )
 # Rename C++ executable without namespace

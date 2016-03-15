@@ -1,15 +1,18 @@
 # Main program
 hilgendorf_demos:
-  planning_runs: 100
-  use_experience: true
+  planning_runs: 1
   experience_planner: bolt
   sparse_delta: 0.5
   save_database: true
-  skip_solving: true  # just load/generate database
+  skip_solving: false  # just load/generate database
+  planning_group_name: right_arm
   visualize:
+    astar: false # show node expansions and openings
+    astar_speed: 0.05 # how many seconds to wait between each vertex
     start_goal_states: true
     playback_trajectory: true
     grid_generation: false
+    time_between_plans: 1
   debug:
     print_trajectory: false
 

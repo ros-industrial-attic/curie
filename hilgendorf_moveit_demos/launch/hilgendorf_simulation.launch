@@ -21,7 +21,7 @@
     <rosparam file="$(find hilgendorf_moveit_demos)/config/hilgendorf_controllers.yaml" command="load"/>
 
     <!-- Load SIMULATION hardware interface -->
-    <node name="hilgendorf_hw_interface" pkg="moveit_sim_controller"
+    <node name="hilgendorf_hw_interface" pkg="moveit_sim_controller" respawn="false"
       type="moveit_sim_hw_main" output="screen" launch-prefix="$(arg launch_prefix)"/>
 
     <!-- Load controller manager -->
