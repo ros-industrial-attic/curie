@@ -33,6 +33,7 @@ catkin_package(
   INCLUDE_DIRS
     include
   LIBRARIES
+    ${PROJECT_NAME}_cart_path_planner
     ${PROJECT_NAME}
 )
 
@@ -50,34 +51,43 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-# # Library
-# add_library(${PROJECT_NAME}
-#   src/MY_LIBRARY.cpp
-# )
-# # Rename C++ executable without namespace
-# set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
-# # Specify libraries to link a library or executable target against
-# target_link_libraries(${PROJECT_NAME}
-#   ${catkin_LIBRARIES}
-#   ${Boost_LIBRARIES}
-# )
-
-# Main program
-add_executable(${PROJECT_NAME}_hilgendorf_demos
-  src/state_validity_checker.cpp
-  src/hilgendorf_demos.cpp
+# Library
+add_library(${PROJECT_NAME}_cart_path_planner
+  src/cart_path_planner.cpp
 )
-# Rename C++ executable without namespace
-set_target_properties(${PROJECT_NAME}_hilgendorf_demos
-  PROPERTIES OUTPUT_NAME hilgendorf_demos PREFIX "")
 # Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}_hilgendorf_demos
-  #${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME}_cart_path_planner
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
+
+# Library
+add_library(${PROJECT_NAME}
+  src/hilgendorf_demos.cpp
+  src/state_validity_checker.cpp
+)
+# Specify libraries to link a library or executable target against
+target_link_libraries(${PROJECT_NAME}
+  ${PROJECT_NAME}_cart_path_planner
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
 )
 
 # Main program
+add_executable(${PROJECT_NAME}_hilgendorf_demos_main
+  src/hilgendorf_demos_main.cpp
+)
+# Rename C++ executable without namespace
+set_target_properties(${PROJECT_NAME}_hilgendorf_demos_main
+  PROPERTIES OUTPUT_NAME hilgendorf_demos_main PREFIX "")
+# Specify libraries to link a library or executable target against
+target_link_libraries(${PROJECT_NAME}_hilgendorf_demos_main
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
+
+# Demo for memory usage
 add_executable(${PROJECT_NAME}_memory_demo
   src/memory_demo.cpp
 )
@@ -91,7 +101,7 @@ target_link_libraries(${PROJECT_NAME}_memory_demo
   ${Boost_LIBRARIES}
 )
 
-# Main program
+# Demo for distance function
 add_executable(${PROJECT_NAME}_test_pose_distance
   src/test_pose_distance.cpp
 )
@@ -116,7 +126,7 @@ roslint_cpp()
 #############
 
 ## Mark executables and/or libraries for installation
-install(TARGETS ${PROJECT_NAME}_hilgendorf_demos
+install(TARGETS ${PROJECT_NAME}_hilgendorf_demos_main
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
