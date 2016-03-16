@@ -2,7 +2,7 @@
 hilgendorf_demos:
   planning_runs: 1
   experience_planner: bolt
-  sparse_delta: 0.5
+  sparse_delta: 2.0
   save_database: true
   skip_solving: false  # just load/generate database
   planning_group_name: right_arm

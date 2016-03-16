@@ -113,11 +113,11 @@ public:
     ROS_INFO_STREAM_NAMED(name_, "Current memory consumption - VM: " << vm1 << " MB | RSS: " << rss1 << " MB");
 
     // Load planning
-    if (!loadOMPL())
-    {
-      ROS_ERROR_STREAM_NAMED(name_, "Unable to load planning context");
-      return;
-    }
+    // if (!loadOMPL())
+    // {
+    //   ROS_ERROR_STREAM_NAMED(name_, "Unable to load planning context");
+    //   return;
+    // }
 
     ROS_INFO_STREAM_NAMED(name_, "HilgendorfDemos Ready.");
   }
@@ -278,7 +278,7 @@ public:
     experience_setup_->saveIfChanged();
 
     // Stats
-    ROS_ERROR_STREAM_NAMED(name_, "Average solving time: " << (total_duration_ / total_runs_));
+    //ROS_ERROR_STREAM_NAMED(name_, "Average solving time: " << (total_duration_ / total_runs_));
   }
 
   bool plan(robot_state::RobotStatePtr start_state, robot_state::RobotStatePtr goal_state)
@@ -301,7 +301,7 @@ public:
     experience_setup_->setStartAndGoalStates(start, goal);
 
     // Debug - this call is optional, but we put it in to get more output information
-    experience_setup_->print();
+    //experience_setup_->print();
 
     // Solve -----------------------------------------------------------
 
@@ -334,8 +334,27 @@ public:
       experience_setup_->printResultsInfo();
     }
 
-    // Show the trajectory
-    visualizeSolutionPath();
+    // Visualize the trajectory
+    if (visualize_playback_trajectory_)
+    {
+      ROS_INFO("Visualizing the trajectory");
+
+      // Clear Rviz
+      visual_ompl3_->hideRobot();
+      visual_ompl3_->deleteAllMarkers();
+
+      // Show trajectory
+      const bool wait_for_trajectory = true;
+      visual_ompl3_->loadTrajectoryPub("/hilgendorf/display_trajectory");
+      robot_trajectory::RobotTrajectoryPtr traj =
+        visual_ompl3_->publishRobotPath(experience_setup_->getSolutionPath(), planning_group_, wait_for_trajectory);
+
+      // Show trajectory line
+      const bool clear_all_markers = true;
+      visual_ompl1_->publishTrajectoryLine(traj, ee_link_, rvt::RED, clear_all_markers);
+      visual_ompl1_->triggerBatchPublish();
+      ros::Duration(2).sleep();
+    }
 
     // Process the popularity
     experience_setup_->doPostProcessing();
@@ -346,37 +365,25 @@ public:
     return true;
   }
 
-  void visualizeSolutionPath()
+  void genCartesianPath()
   {
-    // New trajectory
-    robot_trajectory::RobotTrajectory traj(robot_model_, planning_group_);
-    moveit::core::RobotState state(*start_state_);
+    ROS_INFO_STREAM_NAMED(name_, "Generating carteisan path");
+    Eigen::Affine3d pose = Eigen::Affine3d::Identity();
+    pose.translation().x() = 0.7;
+    pose.translation().y() = -0.5;
+    pose.translation().z() = 0.5;
+    pose = pose * Eigen::AngleAxisd(M_PI/2.0, Eigen::Vector3d::UnitY());
+    pose = pose * Eigen::AngleAxisd(M_PI/2.0, Eigen::Vector3d::UnitZ());
+    visual_tools_->publishAxis(pose);
 
-    // Get OMPL solution
-    ompl::geometric::PathGeometric path = experience_setup_->getSolutionPath();
+    const Eigen::Affine3d from_pose = current_state_->getGlobalLinkTransform(ee_link_);
+    visual_tools_->publishAxis(from_pose);
 
-    // Convert solution to MoveIt! format, reversing the solution
-    for (std::size_t i = path.getStateCount(); i > 0; --i)
-    {
-      // Convert format
-      space_->copyToRobotState(state, path.getState(i - 1));
+    // Attempt to set robot to new pose
+    current_state_->setFromIK(planning_group_, pose);
+    //current_state_->setToRandomPositions();
 
-      // Add to trajectory
-      traj.addSuffixWayPoint(state, 0.25);
-    }
-
-    // Clear Rviz
-    visual_ompl3_->hideRobot();
-    visual_ompl3_->deleteAllMarkers();
-
-    // Visualize the trajectory
-    if (visualize_playback_trajectory_)
-    {
-      ROS_INFO("Visualizing the trajectory");
-      const bool wait_for_trajetory = true;
-      visual_tools_->publishTrajectoryPath(traj, wait_for_trajetory);
-      ros::Duration(2).sleep();
-    }
+    visual_start_->publishRobotState(current_state_);
   }
 
   bool checkPathSolution(const planning_scene::PlanningSceneConstPtr &planning_scene,
@@ -474,7 +481,6 @@ public:
     std::string namesp = nh_.getNamespace();
     visual_ompl1_.reset(
         new ompl_visual_tools::OmplVisualTools(robot_model_->getModelFrame(), namesp + "/start_markers", robot_model_));
-    // visual_ompl1_->deleteAllMarkers();
     visual_ompl1_->setPlanningSceneMonitor(planning_scene_monitor_);
     visual_ompl1_->loadRobotStatePub(namesp + "/start_state");
     visual_ompl1_->setManualSceneUpdating(true);
@@ -483,7 +489,6 @@ public:
 
     visual_ompl2_.reset(
         new ompl_visual_tools::OmplVisualTools(robot_model_->getModelFrame(), namesp + "/goal_markers", robot_model_));
-    // visual_ompl2_->deleteAllMarkers();
     visual_ompl2_->setPlanningSceneMonitor(planning_scene_monitor_);
     visual_ompl2_->loadRobotStatePub(namesp + "/goal_state");
     visual_ompl2_->setManualSceneUpdating(true);
@@ -492,11 +497,15 @@ public:
 
     visual_ompl3_.reset(
         new ompl_visual_tools::OmplVisualTools(robot_model_->getModelFrame(), namesp + "/ompl_markers", robot_model_));
-    visual_ompl3_->deleteAllMarkers();
     visual_ompl3_->setPlanningSceneMonitor(planning_scene_monitor_);
     visual_ompl3_->loadRobotStatePub(namesp + "/ompl_state");
     visual_ompl3_->setManualSceneUpdating(true);
     visual_ompl3_->hideRobot();  // show that things have been reset
+
+    visual_tools_->deleteAllMarkers();
+    visual_ompl1_->deleteAllMarkers();
+    visual_ompl2_->deleteAllMarkers();
+    visual_ompl3_->deleteAllMarkers();
   }
 
   void visualizeStartGoal()
@@ -674,8 +683,9 @@ int main(int argc, char **argv)
 
   // Initialize main class
   hilgendorf_moveit_demos::HilgendorfDemos server;
-  server.runRandomProblems();
+  //server.runRandomProblems();
   // server.testRandomStates();
+  server.genCartesianPath();
 
   // Shutdown
   ROS_INFO_STREAM_NAMED("main", "Shutting down.");
