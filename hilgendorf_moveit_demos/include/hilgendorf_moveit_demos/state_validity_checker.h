@@ -79,11 +79,11 @@ public:
 protected:
 
   std::string group_name_;
+  TSStateStorage tss_;
   planning_scene::PlanningSceneConstPtr planning_scene_;
   moveit_ompl::ModelBasedStateSpacePtr mb_state_space_;
 
   ompl::base::SpaceInformationPtr si_;
-  TSStateStorage tss_;
   collision_detection::CollisionRequest collision_request_simple_;
   collision_detection::CollisionRequest collision_request_with_distance_;
   collision_detection::CollisionRequest collision_request_simple_verbose_;

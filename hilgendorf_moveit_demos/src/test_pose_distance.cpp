@@ -121,8 +121,6 @@ public:
 
     const double translation_dist = (from_pose.translation() - to_pose.translation()).norm();
 
-    const double distance_wrist_to_finger = 0.25; // meter
-
     const Eigen::Quaterniond from(from_pose.rotation());
     const Eigen::Quaterniond to(to_pose.rotation());
 

@@ -283,7 +283,7 @@ Visualization Manager:
       Marker Topic: /hilgendorf/markers
       Name: visual_tools
       Namespaces:
-        Text: true
+        Axis: true
       Queue Size: 100
       Value: true
     - Attached Body Color: 150; 50; 150
@@ -1483,7 +1483,7 @@ Visualization Manager:
       Show Robot Collision: true
       Show Robot Visual: false
       Show Trail: false
-      State Display Time: 0.05 s
+      State Display Time: REALTIME
       Trajectory Topic: /hilgendorf/display_trajectory
       Value: true
     - Class: moveit_rviz_plugin/PlanningScene
@@ -1555,22 +1555,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 3.00025
+      Distance: 1.72262
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.0796831
-        Y: 0.0333174
-        Z: -1.2368e-06
+        X: 0.328032
+        Y: -0.331557
+        Z: -4.02335e-07
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.505399
+      Pitch: 0.2054
       Target Frame: robot_table_link
       Value: XYOrbit (rviz)
-      Yaw: 5.49358
+      Yaw: 6.03856
     Saved: ~
 Window Geometry:
   Displays:
@@ -1588,5 +1588,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1788
-  X: 994
+  X: 886
   Y: 14

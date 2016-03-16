@@ -39,6 +39,9 @@
 #ifndef HILGENDORF_MOVEIT_DEMOS_HILGENDORF_DEMOS_H
 #define HILGENDORF_MOVEIT_DEMOS_HILGENDORF_DEMOS_H
 
+// C++
+#include <thread>
+
 // ROS
 #include <ros/ros.h>
 
@@ -105,8 +108,8 @@ public:
     //to_state_.reset(new moveit::core::RobotState(*current_state_));
 
     // Get the two arms jmg
-    planning_group_ = robot_model_->getJointModelGroup(planning_group_name_);
-    ee_link_ = robot_model_->getLinkModel("right_robotiq_85_right_finger_tip_link");
+    jmg_ = robot_model_->getJointModelGroup(planning_group_name_);
+    ee_link_ = robot_model_->getLinkModel("right_gripper_target");
 
     double vm1, rss1;
     process_mem_usage(vm1, rss1);
@@ -119,12 +122,14 @@ public:
     //   return;
     // }
 
+    imarker_thread_ = std::thread(&HilgendorfDemos::imarkerThread, this);
+
     ROS_INFO_STREAM_NAMED(name_, "HilgendorfDemos Ready.");
   }
 
   bool loadOMPL()
   {
-    moveit_ompl::ModelBasedStateSpaceSpecification mbss_spec(robot_model_, planning_group_);
+    moveit_ompl::ModelBasedStateSpaceSpecification mbss_spec(robot_model_, jmg_);
 
     // Construct the state space we are planning in
     space_.reset(new moveit_ompl::ModelBasedStateSpace(mbss_spec));
@@ -347,7 +352,7 @@ public:
       const bool wait_for_trajectory = true;
       visual_ompl3_->loadTrajectoryPub("/hilgendorf/display_trajectory");
       robot_trajectory::RobotTrajectoryPtr traj =
-        visual_ompl3_->publishRobotPath(experience_setup_->getSolutionPath(), planning_group_, wait_for_trajectory);
+        visual_ompl3_->publishRobotPath(experience_setup_->getSolutionPath(), jmg_, wait_for_trajectory);
 
       // Show trajectory line
       const bool clear_all_markers = true;
@@ -365,25 +370,111 @@ public:
     return true;
   }
 
-  void genCartesianPath()
+  void imarkerThread()
   {
-    ROS_INFO_STREAM_NAMED(name_, "Generating carteisan path");
-    Eigen::Affine3d pose = Eigen::Affine3d::Identity();
-    pose.translation().x() = 0.7;
-    pose.translation().y() = -0.5;
-    pose.translation().z() = 0.5;
-    pose = pose * Eigen::AngleAxisd(M_PI/2.0, Eigen::Vector3d::UnitY());
-    pose = pose * Eigen::AngleAxisd(M_PI/2.0, Eigen::Vector3d::UnitZ());
-    visual_tools_->publishAxis(pose);
+    Eigen::Affine3d pose;
+    Eigen::Affine3d prev_pose;
 
-    const Eigen::Affine3d from_pose = current_state_->getGlobalLinkTransform(ee_link_);
-    visual_tools_->publishAxis(from_pose);
+    ros::Rate rate(30.0);
+    while (ros::ok())
+    {
+      rate.sleep();
 
-    // Attempt to set robot to new pose
-    current_state_->setFromIK(planning_group_, pose);
-    //current_state_->setToRandomPositions();
+      if (!getTFTransform("world", "right_ee", pose))
+      {
+        ROS_INFO_STREAM_NAMED(name_, "Waiting to recieve /tf for 'right_ee'");
+        continue;
+      }
 
-    visual_start_->publishRobotState(current_state_);
+      // Check if poses have changed value at all
+      if (visual_tools_->posesEqual(prev_pose, pose))
+      {
+        continue;
+      }
+
+      // Attempt to set robot to new pose
+      ROS_DEBUG_STREAM_THROTTLE_NAMED(1, name_, "Setting from IK");
+      if (current_state_->setFromIK(jmg_, pose))
+      {
+        visual_start_->publishRobotState(current_state_);
+
+        // Save current pose
+        prev_pose = pose;
+      }
+      else
+        ROS_DEBUG_STREAM_NAMED(name_, "Failed to set IK");
+    }
+  }
+
+  bool computePath()
+  {
+    // Plan cartesian path
+    std::vector<moveit::core::RobotStatePtr> traj;
+    Eigen::Vector3d rotated_direction;
+    rotated_direction << 0, -1, 0;
+    double desired_distance = 0.5; // Distance to move
+    double max_step = 0.01; // Resolution of trajectory, the maximum distance in Cartesian space between consecutive points on the resulting path
+
+    // this is the Cartesian pose we start from, and we move in the direction indicated
+    Eigen::Affine3d start_pose = current_state_->getGlobalLinkTransform(ee_link_);
+    traj.push_back(moveit::core::RobotStatePtr(new moveit::core::RobotState(*current_state_)));
+
+    //The target pose is built by applying a translation to the start pose for the desired direction and distance
+    Eigen::Affine3d target_pose = start_pose;
+    target_pose.translation() += rotated_direction * desired_distance;
+
+    // Create new state
+    moveit::core::RobotState robot_state(*current_state_);
+    // Decide how many steps we will need for this trajectory
+    double distance = (target_pose.translation() - start_pose.translation()).norm();
+    unsigned int steps = 5 + (unsigned int)floor(distance / max_step);
+
+    std::vector<double> dist_vector;
+    double total_dist = 0.0;
+    double last_valid_percentage = 0.0;
+    Eigen::Quaterniond start_quaternion(start_pose.rotation());
+    Eigen::Quaterniond target_quaternion(target_pose.rotation());
+
+    visual_tools_->enableBatchPublishing();
+    visual_tools_->deleteAllMarkers();
+    for (unsigned int i = 1; i <= steps ; ++i)
+    {
+      double percentage = (double)i / (double)steps;
+
+      Eigen::Affine3d pose(start_quaternion.slerp(percentage, target_quaternion));
+      pose.translation() = percentage * target_pose.translation() + (1 - percentage) * start_pose.translation();
+
+      // Visualize
+      visual_tools_->publishArrow(pose, rvt::RED, rvt::REGULAR, 0.1, i);
+
+      if (robot_state.setFromIK(jmg_, pose, ee_link_->getName(), 1, 0.0))
+      {
+        traj.push_back(moveit::core::RobotStatePtr(new moveit::core::RobotState(robot_state)));
+
+        // compute the distance to the previous point (infinity norm)
+        double dist_prev_point = traj.back()->distance(*traj[traj.size() - 2], jmg_);
+        dist_vector.push_back(dist_prev_point);
+        total_dist += dist_prev_point;
+      }
+      else
+        break;
+      last_valid_percentage = percentage;
+    }
+    visual_tools_->triggerBatchPublishAndDisable();
+
+    //std::cout << "last_valid_percentage: " << last_valid_percentage << std::endl;
+
+    if (!last_valid_percentage)
+    {
+      ROS_WARN_STREAM_NAMED(name_, "No solution found");
+      return false;
+    }
+
+    // Visualize path
+    double speed = 0.001;
+    bool blocking = true;
+    visual_tools_->publishTrajectoryPath(traj, jmg_, speed, blocking);
+    return true;
   }
 
   bool checkPathSolution(const planning_scene::PlanningSceneConstPtr &planning_scene,
@@ -456,7 +547,7 @@ public:
     static const std::size_t MAX_ATTEMPTS = 100;
     for (std::size_t i = 0; i < MAX_ATTEMPTS; ++i)
     {
-      robot_state->setToRandomPositions(planning_group_);
+      robot_state->setToRandomPositions(jmg_);
       robot_state->update();
 
       // Error check
@@ -614,11 +705,11 @@ public:
 private:
   // --------------------------------------------------------
 
-  // The short name of this class
-  std::string name_;
-
   // A shared node handle
   ros::NodeHandle nh_;
+
+  // The short name of this class
+  std::string name_;
 
   // For visualizing things in rviz
   ompl_visual_tools::OmplVisualToolsPtr visual_ompl1_;
@@ -635,7 +726,7 @@ private:
 
   // Planning groups
   std::string planning_group_name_;
-  moveit::core::JointModelGroup *planning_group_;
+  moveit::core::JointModelGroup *jmg_;
   moveit::core::LinkModel *ee_link_;
 
   // Operation settings
@@ -663,6 +754,8 @@ private:
   double total_duration_;
   std::size_t total_runs_;
   std::size_t total_failures_;
+
+  std::thread imarker_thread_;
 };  // end class
 
 // Create boost pointers for this class
@@ -685,7 +778,16 @@ int main(int argc, char **argv)
   hilgendorf_moveit_demos::HilgendorfDemos server;
   //server.runRandomProblems();
   // server.testRandomStates();
-  server.genCartesianPath();
+
+  ros::Duration(1.0).sleep();
+  ros::Rate rate(10);
+  while (ros::ok())
+  {
+    server.computePath();
+    rate.sleep();
+  }
+
+  ros::spin();
 
   // Shutdown
   ROS_INFO_STREAM_NAMED("main", "Shutting down.");

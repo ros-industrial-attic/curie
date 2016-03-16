@@ -1,0 +1,9 @@
+<launch>
+  <!-- Manual calibration of right_ee -->
+  <node pkg="tf_keyboard_cal" type="tf_interactive_marker.py"
+  	    name="tf_im_world_to_right_ee" output="screen"
+  	    args="world right_ee 0.8103 -0.5165 0.438 -0.0207 -0.7061 0.0101 -0.7077">
+  	    <!-- args="world right_ee 1.0 0.0 1.0 0.0 0.0 90.0 deg"> -->
+  </node>
+
+</launch>

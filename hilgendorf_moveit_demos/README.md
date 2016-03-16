@@ -46,6 +46,10 @@ Start simulated ros_control:
 
     roslaunch hilgendorf_moveit_demos hilgendorf_simulation.launch
 
+Start interactive marker control:
+
+    roslaunch hilgendorf_moveit_demos tf_interactive_marker.launch
+
 Run example demo:
 
     roslaunch hilgendorf_moveit_demos hilgendorf_demo.launch
