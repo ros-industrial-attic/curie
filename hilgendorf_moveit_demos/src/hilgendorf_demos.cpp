@@ -63,6 +63,8 @@ HilgendorfDemos::HilgendorfDemos()
   error += !rosparam_shortcuts::get(name_, rpnh, "visualize/start_goal_states", visualize_start_goal_states_);
   error += !rosparam_shortcuts::get(name_, rpnh, "visualize/astar", visualize_astar_);
   error += !rosparam_shortcuts::get(name_, rpnh, "visualize/time_between_plans", visualize_time_between_plans_);
+  error += !rosparam_shortcuts::get(name_, rpnh, "visualize/cart_neighbors", visualize_cart_neighbors_);
+  error += !rosparam_shortcuts::get(name_, rpnh, "visualize/cart_path", visualize_cart_path_);
   // Debug
   error += !rosparam_shortcuts::get(name_, rpnh, "debug/print_trajectory", debug_print_trajectory_);
   rosparam_shortcuts::shutdownIfError(name_, error);
@@ -93,6 +95,7 @@ HilgendorfDemos::HilgendorfDemos()
   imarker_start_.reset(new IMarkerRobotState(planning_scene_monitor_, "start", jmg_, rvt::GREEN));
   imarker_goal_.reset(new IMarkerRobotState(planning_scene_monitor_, "goal", jmg_, rvt::ORANGE));
 
+  ros::Duration(1.0).sleep();
   ros::spin();
   exit(0);
 
@@ -134,20 +137,25 @@ bool HilgendorfDemos::loadOMPL()
   experience_setup_->getExperienceDB()->setViz2Callbacks(visual_ompl2_->getVizStateCallback(),
                                                          visual_ompl2_->getVizEdgeCallback(),
                                                          visual_ompl2_->getVizTriggerCallback());
+  experience_setup_->getRetrieveRepairPlanner().setVizCallbacks(visual_ompl3_->getVizStateCallback(),
+                                                                 visual_ompl3_->getVizEdgeCallback(),
+                                                                 visual_ompl3_->getVizTriggerCallback());
 
   // Set planner settings
   experience_setup_->getExperienceDB()->visualizeAstar_ = visualize_astar_;
   experience_setup_->getExperienceDB()->sparseDelta_ = sparse_delta_;
   experience_setup_->getExperienceDB()->visualizeGridGeneration_ = visualize_grid_generation_;
   experience_setup_->getExperienceDB()->setSavingEnabled(save_database_);
+  experience_setup_->getExperienceDB()->visualizeCartNeighbors_ = visualize_cart_neighbors_;
+  experience_setup_->getExperienceDB()->visualizeCartPath_ = visualize_cart_path_;
 
   // Auto setup parameters (optional actually)
   // experience_setup_->enablePlanningFromRecall(use_recall_);
   // experience_setup_->enablePlanningFromScratch(use_scratch_);
 
   // Set state validity checking for this space
-  experience_setup_->setStateValidityChecker(ob::StateValidityCheckerPtr(
-      new moveit_ompl::StateValidityChecker(planning_group_name_, si_, *current_state_, planning_scene_, space_)));
+  //experience_setup_->setStateValidityChecker(ob::StateValidityCheckerPtr(
+  //new moveit_ompl::StateValidityChecker(planning_group_name_, si_, *current_state_, planning_scene_, space_)));
 
   // The interval in which obstacles are checked for between states
   // seems that it default to 0.01 but doesn't do a good job at that level
@@ -288,6 +296,10 @@ bool HilgendorfDemos::plan(robot_state::RobotStatePtr start_state, robot_state::
   space_->copyToOMPLState(start.get(), *start_state);
   space_->copyToOMPLState(goal.get(), *goal_state);
 
+  // Convert the goal state to level 2
+  const int level = 2;
+  //space_->setLevel(goal.get(), level);
+
   // Set the start and goal states
   experience_setup_->setStartAndGoalStates(start, goal);
 
@@ -298,10 +310,6 @@ bool HilgendorfDemos::plan(robot_state::RobotStatePtr start_state, robot_state::
 
   // Optionally create cartesian path
   generateRandCartesianPath();
-
-  ROS_WARN_STREAM_NAMED(name_, "Exiting for now");
-  return false;
-
 
   // Solve -----------------------------------------------------------
 
@@ -342,17 +350,33 @@ bool HilgendorfDemos::plan(robot_state::RobotStatePtr start_state, robot_state::
     visual_ompl3_->hideRobot();
     visual_ompl3_->deleteAllMarkers();
 
-    // Show trajectory
-    const bool wait_for_trajectory = true;
+    // Get solution
+    og::PathGeometric path = experience_setup_->getSolutionPath();
+
+    // Add start to solution
+    path.prepend(start.get());
+
+    // Add more states between
+    std::cout << "path.getStateCount() " << path.getStateCount() << std::endl;
+    path.interpolate();
+    std::cout << "path.getStateCount() " << path.getStateCount() << std::endl;
+
+    // Convert trajectory
     visual_ompl3_->loadTrajectoryPub("/hilgendorf/display_trajectory");
-    robot_trajectory::RobotTrajectoryPtr traj =
-        visual_ompl3_->publishRobotPath(experience_setup_->getSolutionPath(), jmg_, wait_for_trajectory);
+    robot_trajectory::RobotTrajectoryPtr traj;
+    const double speed = 0.05;
+    visual_ompl3_->convertPath(path, jmg_, traj, speed);
 
     // Show trajectory line
     const bool clear_all_markers = true;
     mvt::MoveItVisualToolsPtr visual_moveit3 = boost::dynamic_pointer_cast<mvt::MoveItVisualTools>(visual_ompl3_);
     visual_moveit3->publishTrajectoryLine(traj, ee_link_, rvt::RED, clear_all_markers);
     visual_moveit3->triggerBatchPublish();
+
+    // Show trajectory
+    const bool wait_for_trajectory = true;
+    visual_moveit3->publishTrajectoryPath(traj, wait_for_trajectory);
+
     ros::Duration(2).sleep();
   }
 

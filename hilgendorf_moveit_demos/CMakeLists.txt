@@ -34,6 +34,7 @@ catkin_package(
     include
   LIBRARIES
     ${PROJECT_NAME}_cart_path_planner
+    ${PROJECT_NAME}_imarker_robot_state
     ${PROJECT_NAME}
 )
 
@@ -52,11 +53,22 @@ include_directories(
 )
 
 # Library
+add_library(${PROJECT_NAME}_imarker_robot_state
+  src/imarker_robot_state.cpp
+)
+# Specify libraries to link a library or executable target against
+target_link_libraries(${PROJECT_NAME}_imarker_robot_state
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
+
+# Library
 add_library(${PROJECT_NAME}_cart_path_planner
   src/cart_path_planner.cpp
 )
 # Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_cart_path_planner
+  ${PROJECT_NAME}_imarker_robot_state
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
 )

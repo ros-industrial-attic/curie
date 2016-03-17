@@ -7,7 +7,7 @@ Panels:
         - /Grid1/Offset1
         - /ompl1 - markers1/Status1
         - /ompl1 - markers1/Namespaces1
-        - /InteractiveMarkers1
+        - /Trajectory1
       Splitter Ratio: 0.561969
     Tree Height: 603
   - Class: rviz/Help
@@ -1485,6 +1485,14 @@ Visualization Manager:
       State Display Time: REALTIME
       Trajectory Topic: /hilgendorf/display_trajectory
       Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /hilgendorf/cartesian_trajectory
+      Name: Cartesian Trajectory
+      Namespaces:
+        Arrow: true
+      Queue Size: 100
+      Value: true
     - Class: rviz/Group
       Displays:
         - Class: rviz/InteractiveMarkers
@@ -2235,22 +2243,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 2.04655
+      Distance: 2.9439
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.473676
-        Y: -0.362336
+        X: -0.0769353
+        Y: 0.007002
         Z: -4.02335e-07
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.399797
+      Pitch: 0.614797
       Target Frame: robot_table_link
       Value: XYOrbit (rviz)
-      Yaw: 5.7284
+      Yaw: 6.10833
     Saved: ~
 Window Geometry:
   Displays:

@@ -10,9 +10,11 @@ hilgendorf_demos:
     astar: false # show node expansions and openings
     astar_speed: 0.05 # how many seconds to wait between each vertex
     start_goal_states: false
-    playback_trajectory: true
+    playback_trajectory: false
     grid_generation: false
     time_between_plans: 1
+    cart_path: false
+    cart_neighbors: false
   debug:
     print_trajectory: false
 

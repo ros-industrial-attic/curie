@@ -73,14 +73,7 @@ void processIMarkerPose(const visualization_msgs::InteractiveMarkerFeedbackConst
    * \param trajectory to populate
    * \return true on success
    */
-  bool getTrajectory(std::vector<moveit::core::RobotStatePtr>& trajectory)
-  {
-    if (trajectory_.empty())
-      return false;
-
-    trajectory = trajectory_;
-    return true;
-  }
+  bool getTrajectory(std::vector<moveit::core::RobotStatePtr>& trajectory);
 
 private:
 
