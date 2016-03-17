@@ -41,7 +41,7 @@
 #include <hilgendorf_moveit_demos/hilgendorf_demos.h>
 
 // ROS parameter loading
-#include <rosparam_shortcuts/rosparam_shortcuts.h>
+//#include <rosparam_shortcuts/rosparam_shortcuts.h>
 
 // moveit_boilerplate
 #include <moveit_boilerplate/namespaces.h>
@@ -54,71 +54,34 @@ namespace hilgendorf_moveit_demos
     , nh_("~")
     , parent_(parent)
   {
-    // Load rosparams
-    //ros::NodeHandle rpnh(nh_, name_);
-    //std::size_t error = 0;
-    //error += !rosparam_shortcuts::get(name_, rpnh, "control_rate", control_rate_);
-    // add more parameters here to load if desired
-    //rosparam_shortcuts::shutdownIfError(name_, error);
-
     // Load planning state
     imarker_state_.reset(new moveit::core::RobotState(*parent_->start_state_));
 
-    // Load thread for user feedback
-    imarker_thread_ = std::thread(&CartPathPlanner::imarkerThread, this);
+    // Create cartesian start pose interactive marker
+    imarker_cartesian_.reset(new IMarkerRobotState(parent_->getPlanningSceneMonitor(), "cart", parent_->jmg_, rvt::BLUE));
+    imarker_cartesian_->setIMarkerCallback(
+                                    std::bind(&CartPathPlanner::processIMarkerPose, this, std::placeholders::_1, std::placeholders::_2));
+
+    // Set visual tools
+    imarker_cartesian_->getVisualTools()->setMarkerTopic(nh_.getNamespace() + "/cartesian_trajectory");
+    imarker_cartesian_->getVisualTools()->loadMarkerPub(true);
+    imarker_cartesian_->getVisualTools()->deleteAllMarkers();
+    imarker_cartesian_->getVisualTools()->setManualSceneUpdating(true);
 
     ROS_INFO_STREAM_NAMED(name_,"CartPathPlanner Ready.");
   }
 
-  CartPathPlanner::~CartPathPlanner()
-  {
-    is_shutting_down_ = true;
-    //std::cout << "Waiting to join interactive marker thread... " << std::endl;
-    imarker_thread_.join();
-  }
-
-  void CartPathPlanner::imarkerThread()
-  {
-    Eigen::Affine3d pose;
-    Eigen::Affine3d prev_pose;
-
-    ros::Rate rate(30.0);
-    while (!ros::isShuttingDown() && !is_shutting_down_)
-    {
-      rate.sleep();
-
-      if (!parent_->getTFTransform("world", "right_ee", pose))
-      {
-        ROS_INFO_STREAM_NAMED(name_, "Waiting to recieve /tf for 'right_ee'");
-        continue;
-      }
-
-      // Check if poses have changed value at all
-      if (parent_->visual_start_->posesEqual(prev_pose, pose))
-      {
-        continue;
-      }
-
-      // Attempt to set robot to new pose
-      ROS_DEBUG_STREAM_THROTTLE_NAMED(1, name_, "Setting from IK");
-      if (imarker_state_->setFromIK(parent_->jmg_, pose))
-      {
-        parent_->visual_start_->publishRobotState(imarker_state_);
-
-        // Save current pose
-        prev_pose = pose;
-        imarker_pose_changed_ = true;
-        computePath();
-      }
-      else
-        ROS_DEBUG_STREAM_NAMED(name_, "Failed to set IK");
-    }
-  }
+void CartPathPlanner::processIMarkerPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback,
+                                       const Eigen::Affine3d &feedback_pose)
+{
+  imarker_state_ = imarker_cartesian_->getRobotState();
+  computePath();
+}
 
   bool CartPathPlanner::computePath()
   {
     // Plan cartesian path
-    std::vector<moveit::core::RobotStatePtr> traj;
+    trajectory_.clear();
     Eigen::Vector3d rotated_direction;
     rotated_direction << 0, -1, 0;
     double desired_distance = 0.5; // Distance to move
@@ -126,7 +89,7 @@ namespace hilgendorf_moveit_demos
 
     // this is the Cartesian pose we start from, and we move in the direction indicated
     Eigen::Affine3d start_pose = imarker_state_->getGlobalLinkTransform(parent_->ee_link_);
-    traj.push_back(moveit::core::RobotStatePtr(new moveit::core::RobotState(*imarker_state_)));
+    trajectory_.push_back(moveit::core::RobotStatePtr(new moveit::core::RobotState(*imarker_state_)));
 
     //The target pose is built by applying a translation to the start pose for the desired direction and distance
     Eigen::Affine3d target_pose = start_pose;
@@ -144,8 +107,8 @@ namespace hilgendorf_moveit_demos
     Eigen::Quaterniond start_quaternion(start_pose.rotation());
     Eigen::Quaterniond target_quaternion(target_pose.rotation());
 
-    parent_->visual_start_->enableBatchPublishing();
-    parent_->visual_start_->deleteAllMarkers();
+    imarker_cartesian_->getVisualTools()->enableBatchPublishing();
+    imarker_cartesian_->getVisualTools()->deleteAllMarkers();
     for (unsigned int i = 1; i <= steps ; ++i)
     {
       double percentage = (double)i / (double)steps;
@@ -154,14 +117,14 @@ namespace hilgendorf_moveit_demos
       pose.translation() = percentage * target_pose.translation() + (1 - percentage) * start_pose.translation();
 
       // Visualize
-      parent_->visual_start_->publishArrow(pose, rvt::ORANGE, rvt::REGULAR, 0.05, i);
+      imarker_cartesian_->getVisualTools()->publishArrow(pose, rvt::ORANGE, rvt::SMALL, 0.02, i);
 
       if (robot_state.setFromIK(parent_->jmg_, pose, parent_->ee_link_->getName(), 1, 0.0))
       {
-        traj.push_back(moveit::core::RobotStatePtr(new moveit::core::RobotState(robot_state)));
+        trajectory_.push_back(moveit::core::RobotStatePtr(new moveit::core::RobotState(robot_state)));
 
         // compute the distance to the previous point (infinity norm)
-        double dist_prev_point = traj.back()->distance(*traj[traj.size() - 2], parent_->jmg_);
+        double dist_prev_point = trajectory_.back()->distance(*trajectory_[trajectory_.size() - 2], parent_->jmg_);
         dist_vector.push_back(dist_prev_point);
         total_dist += dist_prev_point;
       }
@@ -169,7 +132,7 @@ namespace hilgendorf_moveit_demos
         break;
       last_valid_percentage = percentage;
     }
-    parent_->visual_start_->triggerBatchPublishAndDisable();
+    imarker_cartesian_->getVisualTools()->triggerBatchPublishAndDisable();
 
     //std::cout << "last_valid_percentage: " << last_valid_percentage << std::endl;
 
@@ -182,9 +145,8 @@ namespace hilgendorf_moveit_demos
     // Visualize path
     // double speed = 0.001;
     // bool blocking = true;
-    // parent_->visual_start_->publishTrajectoryPath(traj, parent_->jmg_, speed, blocking);
+    // imarker_cartesian_->getVisualTools()->publishTrajectoryPath(trajectory_, parent_->jmg_, speed, blocking);
 
-    imarker_pose_changed_ = false;
     return true;
   }
 

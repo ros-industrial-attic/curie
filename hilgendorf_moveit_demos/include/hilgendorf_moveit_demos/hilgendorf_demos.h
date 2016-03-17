@@ -34,6 +34,16 @@
 
 /* Author: Dave Coleman
    Desc:   Demo dual arm manipulation
+
+   Notes:
+
+   Visualizations
+   - visual_ompl1_ - used by BoltDB as VizCallbacks
+   - visual_ompl2_ - used by BoltDB as Viz2Callbacks
+   - visual_ompl3_ - shows the solution robot path and trajectory line
+   - visual_moveit_start_ - same as visual_ompl1_ - shows start state
+   - visual_moveit_goal_  - same as visual_ompl2_ - shows goal state
+   - visual_tools_ - from moveit_base base class
 */
 
 #ifndef HILGENDORF_MOVEIT_DEMOS_HILGENDORF_DEMOS_H
@@ -58,6 +68,9 @@
 #include <hilgendorf_moveit_demos/process_mem_usage.h>
 #include <hilgendorf_moveit_demos/state_validity_checker.h>
 #include <hilgendorf_moveit_demos/cart_path_planner.h>
+#include <hilgendorf_moveit_demos/imarker_robot_state.h>
+
+namespace mo = moveit_ompl;
 
 namespace hilgendorf_moveit_demos
 {
@@ -69,8 +82,10 @@ public:
    */
   HilgendorfDemos();
 
+  /** \brief Load the basic planning context components */
   bool loadOMPL();
 
+  /** \brief Generate states for testing */
   void testRandomStates();
 
   void runRandomProblems();
@@ -113,8 +128,8 @@ public:
   ompl_visual_tools::OmplVisualToolsPtr visual_ompl1_;
   ompl_visual_tools::OmplVisualToolsPtr visual_ompl2_;
   ompl_visual_tools::OmplVisualToolsPtr visual_ompl3_;
-  moveit_visual_tools::MoveItVisualToolsPtr visual_start_;  // Clone of ompl1
-  moveit_visual_tools::MoveItVisualToolsPtr visual_goal_;   // Clone of ompl2
+  moveit_visual_tools::MoveItVisualToolsPtr visual_moveit_start_;  // Clone of ompl1
+  moveit_visual_tools::MoveItVisualToolsPtr visual_moveit_goal_;   // Clone of ompl2
 
   // Robot states
   moveit::core::RobotStatePtr start_state_;
@@ -153,6 +168,10 @@ public:
 
   // Create constrained paths
   CartPathPlannerPtr cart_path_planner_;
+
+  // Interactive markers
+  IMarkerRobotStatePtr imarker_start_;
+  IMarkerRobotStatePtr imarker_goal_;
 
 };  // end class
 

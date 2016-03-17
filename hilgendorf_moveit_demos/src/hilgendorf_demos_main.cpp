@@ -54,6 +54,8 @@ int main(int argc, char **argv)
   server.runRandomProblems();
   // server.testRandomStates();
 
+  //ros::spin();
+
   // Shutdown
   ROS_INFO_STREAM_NAMED("main", "Shutting down.");
   ros::Duration(1.0).sleep();

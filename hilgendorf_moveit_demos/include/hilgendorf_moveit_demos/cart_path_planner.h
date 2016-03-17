@@ -39,14 +39,15 @@
 #ifndef HILGENDORF_MOVEIT_DEMOS_CART_PATH_PLANNER_H
 #define HILGENDORF_MOVEIT_DEMOS_CART_PATH_PLANNER_H
 
-// C++
-#include <thread>
-
 // MoveIt
 #include <moveit/robot_state/robot_state.h>
+#include <moveit_visual_tools/moveit_visual_tools.h>
 
 // ROS
 #include <ros/ros.h>
+
+// this package
+#include <hilgendorf_moveit_demos/imarker_robot_state.h>
 
 namespace hilgendorf_moveit_demos
 {
@@ -62,14 +63,24 @@ public:
    */
   CartPathPlanner(HilgendorfDemos* parent);
 
-  /**
-   * \brief Destructor
-   */
-  ~CartPathPlanner();
-
-  void imarkerThread();
+void processIMarkerPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback,
+                                           const Eigen::Affine3d &feedback_pose);
 
   bool computePath();
+
+  /**
+   * \brief Get the cartesian trajectory
+   * \param trajectory to populate
+   * \return true on success
+   */
+  bool getTrajectory(std::vector<moveit::core::RobotStatePtr>& trajectory)
+  {
+    if (trajectory_.empty())
+      return false;
+
+    trajectory = trajectory_;
+    return true;
+  }
 
 private:
 
@@ -87,10 +98,11 @@ private:
   // State
   moveit::core::RobotStatePtr imarker_state_;
 
-  // Threading
-  std::thread imarker_thread_;
-  bool imarker_pose_changed_ = false;
-  bool is_shutting_down_ = false;
+  // Trajetory
+  std::vector<moveit::core::RobotStatePtr> trajectory_;
+
+  // Interactive markers
+  IMarkerRobotStatePtr imarker_cartesian_;
 
 }; // end class
 

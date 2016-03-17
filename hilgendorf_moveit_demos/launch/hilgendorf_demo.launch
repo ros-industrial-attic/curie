@@ -19,7 +19,7 @@
   </include>
 
   <!-- Main process -->
-  <node name="hilgendorf" pkg="hilgendorf_moveit_demos" type="hilgendorf_demos" respawn="false"
+  <node name="hilgendorf" pkg="hilgendorf_moveit_demos" type="hilgendorf_demos_main" respawn="false"
     launch-prefix="$(arg launch_prefix)" output="screen">
 
     <!-- Robot-specific settings -->
