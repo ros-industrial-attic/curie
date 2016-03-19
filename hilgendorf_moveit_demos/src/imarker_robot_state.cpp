@@ -101,7 +101,7 @@ IMarkerRobotState::IMarkerRobotState(psm::PlanningSceneMonitorPtr planning_scene
   // Show initial robot state loaded from file
   visual_tools_->publishRobotState(imarker_state_, color_);
 
-  ROS_INFO_STREAM_NAMED(name_, "IMarkerRobotState " << name_ << " Ready.");
+  ROS_INFO_STREAM_NAMED(name_, "IMarkerRobotState '" << name_ << "' Ready.");
 }
 
 void IMarkerRobotState::setIMarkerCallback(IMarkerCallback callback)

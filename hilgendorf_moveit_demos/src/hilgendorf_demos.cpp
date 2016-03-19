@@ -60,7 +60,8 @@ HilgendorfDemos::HilgendorfDemos()
   error += !rosparam_shortcuts::get(name_, rpnh, "planning_group_name", planning_group_name_);
   // Visualize
   error += !rosparam_shortcuts::get(name_, rpnh, "visualize/display_database", visualize_display_database_);
-  error += !rosparam_shortcuts::get(name_, rpnh, "visualize/playback_trajectory", visualize_playback_trajectory_);
+  error += !rosparam_shortcuts::get(name_, rpnh, "visualize/interpolated_trajectory", visualize_interpolated_trajectory_);
+  error += !rosparam_shortcuts::get(name_, rpnh, "visualize/raw_trajectory", visualize_raw_trajectory_);
   error += !rosparam_shortcuts::get(name_, rpnh, "visualize/grid_generation", visualize_grid_generation_);
   error += !rosparam_shortcuts::get(name_, rpnh, "visualize/start_goal_states", visualize_start_goal_states_);
   error += !rosparam_shortcuts::get(name_, rpnh, "visualize/astar", visualize_astar_);
@@ -126,12 +127,22 @@ bool HilgendorfDemos::loadOMPL()
   // Construct the state space we are planning in
   space_.reset(new moveit_ompl::ModelBasedStateSpace(mbss_spec));
   experience_setup_.reset(new ompl::tools::Bolt(space_));
+  std::cout << "getSpaceInformation " << std::endl;
   si_ = experience_setup_->getSpaceInformation();
 
   // Add custom distance function
   // space_->setDistanceFunction(boost::bind(&HilgendorfDemos::customDistanceFunction, this, _1, _2));
 
+  // Set state validity checking for this space
+  experience_setup_->setStateValidityChecker(ob::StateValidityCheckerPtr(
+      new moveit_ompl::StateValidityChecker(planning_group_name_, si_, *current_state_, planning_scene_, space_)));
+
+  // The interval in which obstacles are checked for between states
+  // seems that it default to 0.01 but doesn't do a good job at that level
+  si_->setStateValidityCheckingResolution(0.005);
+
   // Setup base OMPL stuff
+  ROS_INFO_STREAM_NAMED(name_, "Setting up OMPL experience setup");
   experience_setup_->setup();
   assert(si_->isSetup());
 
@@ -166,14 +177,6 @@ bool HilgendorfDemos::loadOMPL()
   // Auto setup parameters (optional actually)
   // experience_setup_->enablePlanningFromRecall(use_recall_);
   // experience_setup_->enablePlanningFromScratch(use_scratch_);
-
-  // Set state validity checking for this space
-  experience_setup_->setStateValidityChecker(ob::StateValidityCheckerPtr(
-      new moveit_ompl::StateValidityChecker(planning_group_name_, si_, *current_state_, planning_scene_, space_)));
-
-  // The interval in which obstacles are checked for between states
-  // seems that it default to 0.01 but doesn't do a good job at that level
-  si_->setStateValidityCheckingResolution(0.005);
 
   // Calibrate the color scale for visualization
   const bool invert_colors = true;
@@ -330,6 +333,14 @@ bool HilgendorfDemos::plan(robot_state::RobotStatePtr start_state, robot_state::
   // Check/test the solution for errors
   checkOMPLPathSolution(path);
 
+  // Clear Rviz
+  visual_ompl3_->hideRobot();
+  visual_ompl3_->deleteAllMarkers();
+
+  // Visualize raw trajectory
+  if (visualize_raw_trajectory_)
+    visualizeRawTrajectory(path);
+
   // Add more states between waypoints
   std::size_t state_count = path.getStateCount();
   path.interpolate();
@@ -338,34 +349,26 @@ bool HilgendorfDemos::plan(robot_state::RobotStatePtr start_state, robot_state::
 
   // Convert trajectory
   robot_trajectory::RobotTrajectoryPtr traj;
-  const double speed = 0.05;
+  const double speed = 0.025;
   visual_ompl3_->convertPath(path, jmg_, traj, speed);
 
   // Check/test the solution for errors
   checkMoveItPathSolution(traj);
 
   // Visualize the trajectory
-  if (visualize_playback_trajectory_)
+  if (visualize_interpolated_trajectory_)
   {
-    ROS_INFO("Visualizing the trajectory");
-
-    // Clear Rviz
-    visual_ompl3_->hideRobot();
-    visual_ompl3_->deleteAllMarkers();
-
-    visual_ompl3_->loadTrajectoryPub("/hilgendorf/display_trajectory");
+    ROS_INFO("Visualizing the interpolated trajectory");
 
     // Show trajectory line
-    const bool clear_all_markers = true;
     mvt::MoveItVisualToolsPtr visual_moveit3 = boost::dynamic_pointer_cast<mvt::MoveItVisualTools>(visual_ompl3_);
-    visual_moveit3->publishTrajectoryLine(traj, ee_link_, rvt::RED, clear_all_markers);
-    visual_moveit3->triggerBatchPublish();
+    visual_moveit3->publishTrajectoryLine(traj, ee_link_, rvt::RED);
 
     // Show trajectory
     const bool wait_for_trajectory = true;
     visual_moveit3->publishTrajectoryPath(traj, wait_for_trajectory);
 
-    ros::Duration(2).sleep();
+    ros::Duration(1).sleep();
   }
 
   // Process the popularity
@@ -375,6 +378,21 @@ bool HilgendorfDemos::plan(robot_state::RobotStatePtr start_state, robot_state::
   std::cout << std::endl;
 
   return true;
+}
+
+void HilgendorfDemos::visualizeRawTrajectory(og::PathGeometric& path)
+{
+  ROS_INFO("Visualizing non-interpolated trajectory");
+
+  // Convert trajectory
+  robot_trajectory::RobotTrajectoryPtr traj;
+  const double speed = 0.05;
+  visual_ompl3_->convertPath(path, jmg_, traj, speed);
+
+  // Show trajectory line
+  mvt::MoveItVisualToolsPtr visual_moveit3 = boost::dynamic_pointer_cast<mvt::MoveItVisualTools>(visual_ompl3_);
+  visual_moveit3->publishTrajectoryLine(traj, ee_link_, rvt::GREY);
+  visual_moveit3->triggerBatchPublish();
 }
 
 /** \brief Create multiple dummy cartesian paths */
@@ -415,6 +433,7 @@ void HilgendorfDemos::generateRandCartesianPath()
 bool HilgendorfDemos::checkOMPLPathSolution(og::PathGeometric& path)
 {
   bool error = false;
+  int current_level = 0;
 
   for (std::size_t i = 0; i < path.getStateCount(); ++i)
   {
@@ -452,7 +471,27 @@ bool HilgendorfDemos::checkOMPLPathSolution(og::PathGeometric& path)
         error = true;
       }
     }
+
+    // Ensure that level is always increasing
+    if (level < current_level)
+    {
+      ROS_ERROR_STREAM_NAMED(name_, "State decreased in level (" << level << ") from previous level of " << current_level);
+      error = true;
+    }
+    current_level = level;
+
   } // for loop
+
+  // Show more data if error
+  if (error)
+  {
+    ROS_ERROR_STREAM_NAMED(name_, "Showing data on path:");
+    for (std::size_t i = 0; i < path.getStateCount(); ++i)
+    {
+      int level = space_->getLevel(path.getState(i));
+      std::cout << "  - Path state " << i << " has level " << level << std::endl;
+    }
+  }
 
   return error;
 }
@@ -461,9 +500,9 @@ bool HilgendorfDemos::checkMoveItPathSolution(robot_trajectory::RobotTrajectoryP
 {
   std::size_t state_count = traj->getWayPointCount();
   if (state_count < 3)
-    ROS_WARN_STREAM_NAMED(name_, "Solution path has only " << state_count << " states");
+    ROS_WARN_STREAM_NAMED(name_, "checkMoveItPathSolution: Solution path has only " << state_count << " states");
   else
-    ROS_INFO_STREAM_NAMED(name_, "Solution path has only " << state_count << " states");
+    ROS_INFO_STREAM_NAMED(name_, "checkMoveItPathSolution: Solution path has " << state_count << " states");
 
   //bool isPathValid(const robot_trajectory::RobotTrajectory &trajectory,
   //const std::string &group = "", bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
@@ -480,7 +519,7 @@ bool HilgendorfDemos::checkMoveItPathSolution(robot_trajectory::RobotTrajectoryP
       std::stringstream ss;
       for (std::size_t i = 0; i < index.size(); ++i)
         ss << index[i] << " ";
-      ROS_ERROR_STREAM("Computed path is not valid. Invalid states at index locations: [ "
+      ROS_ERROR_STREAM_NAMED(name_, "checkMoveItPathSolution: Computed path is not valid. Invalid states at index locations: [ "
                        << ss.str() << "] out of " << state_count << ". Explanations follow in command line.");
 
       // Call validity checks in verbose mode for the problematic states
@@ -501,7 +540,7 @@ bool HilgendorfDemos::checkMoveItPathSolution(robot_trajectory::RobotTrajectoryP
         c_req.verbose = false;
         planning_scene_->checkCollision(c_req, c_res, robot_state);
         */
-        ROS_ERROR_STREAM_NAMED(name_, "TODO: show collision states in code " << i);
+        ROS_ERROR_STREAM_NAMED(name_, "checkMoveItPathSolution: TODO: show collision states in code " << i);
         /*
           if (c_res.contact_count > 0)
           {
@@ -512,7 +551,7 @@ bool HilgendorfDemos::checkMoveItPathSolution(robot_trajectory::RobotTrajectoryP
           }
         */
       }
-      ROS_ERROR_STREAM("Completed listing of explanations for invalid states.");
+      ROS_ERROR_STREAM_NAMED(name_, "checkMoveItPathSolution: Completed listing of explanations for invalid states.");
       // if (!arr.markers.empty())
       //  contacts_publisher_.publish(arr);
     }
@@ -566,6 +605,7 @@ void HilgendorfDemos::loadVisualTools()
 
   visual_ompl3_.reset(
       new ompl_visual_tools::OmplVisualTools(robot_model_->getModelFrame(), namesp + "/ompl_markers", robot_model_));
+  visual_ompl3_->loadTrajectoryPub("/hilgendorf/display_trajectory");
   visual_ompl3_->setPlanningSceneMonitor(planning_scene_monitor_);
   visual_ompl3_->loadRobotStatePub(namesp + "/ompl_state");
   visual_ompl3_->setManualSceneUpdating(true);

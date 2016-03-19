@@ -13,11 +13,6 @@
   <arg     if="$(arg debug)" name="launch_prefix"
        value="gdb -x $(find hilgendorf_moveit_demos)/launch/debug_settings.gdb --ex run --args" />
 
-  <!-- Planning Functionality -->
-  <include ns="hilgendorf" file="$(find hilgendorf_moveit_config)/launch/planning_pipeline.launch.xml">
-    <arg name="pipeline" value="ompl" />
-  </include>
-
   <!-- Main process -->
   <node name="hilgendorf" pkg="hilgendorf_moveit_demos" type="hilgendorf_demos_main" respawn="false"
     launch-prefix="$(arg launch_prefix)" output="screen">

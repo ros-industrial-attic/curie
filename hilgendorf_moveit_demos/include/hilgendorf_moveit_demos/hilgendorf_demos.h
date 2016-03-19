@@ -106,6 +106,8 @@ public:
 
   void visualizeStartGoal();
 
+  void visualizeRawTrajectory(og::PathGeometric& path);
+
   /**
    * \brief Creates a directory names *database_direction* in the user's *home* folder, and inside that creates a file
    *        named *database_name.ompl*
@@ -153,7 +155,8 @@ public:
 
   // Debug and display preferences
   bool visualize_display_database_;
-  bool visualize_playback_trajectory_;
+  bool visualize_interpolated_trajectory_;
+  bool visualize_raw_trajectory_;
   bool visualize_grid_generation_;
   bool visualize_start_goal_states_;
   bool visualize_astar_;
