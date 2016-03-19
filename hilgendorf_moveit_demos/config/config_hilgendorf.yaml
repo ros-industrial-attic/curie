@@ -1,16 +1,18 @@
 # Main program
 hilgendorf_demos:
-  planning_runs: 1
+  auto_run: true # do not wait to move interactive markers
+  planning_runs: 10
   experience_planner: bolt
-  sparse_delta: 2.0
-  save_database: true
+  sparse_delta: 1.0
+  save_database: false
   skip_solving: false  # just load/generate database
   planning_group_name: right_arm
   visualize:
+    display_database: false
     astar: false # show node expansions and openings
     astar_speed: 0.05 # how many seconds to wait between each vertex
     start_goal_states: false
-    playback_trajectory: false
+    playback_trajectory: true
     grid_generation: false
     time_between_plans: 1
     cart_path: false
@@ -38,6 +40,3 @@ moveit_base:
     markers_topic: /hilgendorf/markers
     robot_state_topic: /hilgendorf/robot_state
     trajectory_topic: /hilgendorf/display_trajectory
-
-moveit_ompl:
-  saving_enabled: true

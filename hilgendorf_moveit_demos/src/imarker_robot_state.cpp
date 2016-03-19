@@ -36,296 +36,329 @@
    Desc:   Class to encapsule a visualized robot state that can be controlled using an interactive marker
 */
 
+// MoveIt
+#include <moveit/robot_state/conversions.h>
+
 // Conversions
 #include <eigen_conversions/eigen_msg.h>
 #include <tf_conversions/tf_eigen.h>
+
+// Boost
+#include <boost/filesystem.hpp>
 
 // this package
 #include <hilgendorf_moveit_demos/imarker_robot_state.h>
 
 namespace hilgendorf_moveit_demos
 {
+IMarkerRobotState::IMarkerRobotState(psm::PlanningSceneMonitorPtr planning_scene_monitor,
+                                     const std::string &imarker_name, const moveit::core::JointModelGroup *jmg,
+                                     moveit::core::LinkModel *ee_link, rvt::colors color)
+  : name_(imarker_name)
+  , nh_("~")
+  , planning_scene_monitor_(planning_scene_monitor)
+  , jmg_(jmg)
+  , ee_link_(ee_link)
+  , color_(color)
+{
+  imarker_topic_ = nh_.getNamespace() + "/" + imarker_name + "_imarker";
 
-IMarkerRobotState::IMarkerRobotState(psm::PlanningSceneMonitorPtr planning_scene_monitor, const std::string &imarker_name,
-                    const moveit::core::JointModelGroup *jmg, rvt::colors color)
-    : name_(imarker_name), nh_("~"), planning_scene_monitor_(planning_scene_monitor), jmg_(jmg), color_(color)
+  // Load rosparams
+  // ros::NodeHandle rpnh(nh_, name_);
+  // std::size_t error = 0;
+  // error += !rosparam_shortcuts::get(name_, rpnh, "control_rate", control_rate_);
+  // add more parameters here to load if desired
+  // rosparam_shortcuts::shutdownIfError(name_, error);
+
+  // Load Visual tools
+  visual_tools_.reset(new moveit_visual_tools::MoveItVisualTools(
+      planning_scene_monitor_->getRobotModel()->getModelFrame(), nh_.getNamespace() + "/" + imarker_name,
+      planning_scene_monitor_->getRobotModel()));
+  visual_tools_->setPlanningSceneMonitor(planning_scene_monitor_);
+  visual_tools_->loadRobotStatePub(nh_.getNamespace() + "/imarker_" + imarker_name + "_state");
+
+  // Load robot state
+  imarker_state_.reset(new moveit::core::RobotState(planning_scene_monitor_->getRobotModel()));
+  imarker_state_->setToDefaultValues();
+
+  // Get file name
+  if (!getFilePath(file_path_, "imarker_" + name_ + ".csv", "ompl_storage"))
+    exit(-1);
+
+  // Load previous pose from file
+  if (!loadFromFile(file_path_))
   {
-    imarker_topic_ = nh_.getNamespace() + "/" + imarker_name + "_imarker";
-
-    // Load rosparams
-    // ros::NodeHandle rpnh(nh_, name_);
-    // std::size_t error = 0;
-    // error += !rosparam_shortcuts::get(name_, rpnh, "control_rate", control_rate_);
-    // add more parameters here to load if desired
-    // rosparam_shortcuts::shutdownIfError(name_, error);
-
-    // Load Visual tools
-    visual_tools_.reset(new moveit_visual_tools::MoveItVisualTools(
-        planning_scene_monitor_->getRobotModel()->getModelFrame(), nh_.getNamespace() + "/" + imarker_name,
-        planning_scene_monitor_->getRobotModel()));
-    visual_tools_->setPlanningSceneMonitor(planning_scene_monitor_);
-    visual_tools_->loadRobotStatePub(nh_.getNamespace() + "/imarker_" + imarker_name + "_state");
-
-    // Load robot state
-    imarker_state_.reset(new moveit::core::RobotState(planning_scene_monitor_->getRobotModel()));
+    ROS_INFO_STREAM_NAMED(name_, "Unable to find state from file, setting to default");
     imarker_state_->setToDefaultValues();
 
-    // Load previous pose from file
-    Eigen::Affine3d start_pose = Eigen::Affine3d::Identity();
-    getFilePath(file_path_, "imarker_" + name_ + ".csv", "ompl_storage");
-
-    loadFromFile(start_pose, file_path_);
-
-    // Create imarker
-    initializeInteractiveMarkers(start_pose);
-
-    // Show initial robot state
-    solveIK(start_pose);
-
-    ROS_INFO_STREAM_NAMED(name_, "IMarkerRobotState " << name_ << " Ready.");
+    // Get pose from robot state
+    setPoseFromRobotState();
   }
 
-  void IMarkerRobotState::setIMarkerCallback(IMarkerCallback callback)
+  // Create imarker
+  initializeInteractiveMarkers(imarker_pose_);
+
+  // Show initial robot state loaded from file
+  visual_tools_->publishRobotState(imarker_state_, color_);
+
+  ROS_INFO_STREAM_NAMED(name_, "IMarkerRobotState " << name_ << " Ready.");
+}
+
+void IMarkerRobotState::setIMarkerCallback(IMarkerCallback callback)
+{
+  imarker_callback_ = callback;
+}
+
+void IMarkerRobotState::getPose(Eigen::Affine3d &pose)
+{
+  pose = imarker_pose_;
+}
+
+moveit::core::RobotStatePtr IMarkerRobotState::getRobotState()
+{
+  return imarker_state_;
+}
+
+bool IMarkerRobotState::loadFromFile(const std::string &file_name)
+{
+  if (!boost::filesystem::exists(file_name))
   {
-    imarker_callback_ = callback;
+    ROS_WARN_STREAM_NAMED(name_, "File not found: " << file_name);
+    return false;
+  }
+  std::ifstream input_file(file_name);
+
+  std::string line;
+
+  if (!std::getline(input_file, line))
+  {
+    ROS_ERROR_STREAM_NAMED(name_, "Unable to read line");
+    return false;
   }
 
-  void IMarkerRobotState::getPose(Eigen::Affine3d &pose)
+  // Get robot state from file
+  moveit::core::streamToRobotState(*imarker_state_, line);
+
+  // Get pose from robot state
+  setPoseFromRobotState();
+
+  return true;
+}
+
+bool IMarkerRobotState::saveToFile(const std::string &file_name)
+{
+  std::ofstream output_file(file_name);
+  moveit::core::robotStateToStream(*imarker_state_, output_file, false);
+
+  return true;
+}
+
+bool IMarkerRobotState::setPoseFromRobotState()
+{
+  imarker_pose_ = imarker_state_->getGlobalLinkTransform(ee_link_);
+  return true;
+}
+
+void IMarkerRobotState::iMarkerCallback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+{
+  // Ignore if not pose update
+  if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
+    return;
+
+  // Only allow one feedback to be processed at a time
   {
-    pose = imarker_pose_;
-  }
-
-  moveit::core::RobotStatePtr IMarkerRobotState::getRobotState()
-  {
-    return imarker_state_;
-  }
-
-  bool IMarkerRobotState::loadFromFile(Eigen::Affine3d &pose, const std::string &file_name)
-  {
-    std::ifstream input_file(file_name);
-
-    std::string line;
-    std::string cell;
-    std::vector<double> values;
-
-    // For each line/row
-    while (std::getline(input_file, line))
+    boost::unique_lock<boost::mutex> scoped_lock(imarker_mutex_);
+    if (!imarker_ready_to_process_)
     {
-      std::stringstream lineStream(line);
-
-      // For each item/column
-      for (std::size_t i = 0; i < 16; ++i)
-      {
-        // Value
-        if (!std::getline(lineStream, cell, ','))
-          ROS_ERROR_STREAM_NAMED(name_, "No value found for " << i);
-
-        pose.data()[i] = atof(cell.c_str());
-      }  // for
-
-      break;  // TODO(davetcoleman): can currently only handle one pose at a time
-    }         // while
-
-    return true;
-  }
-
-  bool IMarkerRobotState::saveToFile(Eigen::Affine3d &pose, const std::string &file_name)
-  {
-    std::ofstream output_file(file_name);
-
-    // For each item/column
-    for (std::size_t i = 0; i < 16; ++i)
-    {
-      output_file << pose.data()[i] << ", ";
-    }  // for
-
-    output_file << std::endl;
-
-    return true;
-  }
-
-  void IMarkerRobotState::iMarkerCallback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
-  {
-    // Ignore if not pose update
-    if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
       return;
-
-    // Only allow one feedback to be processed at a time
-    {
-      boost::unique_lock<boost::mutex> scoped_lock(imarker_mutex_);
-      if (!imarker_ready_to_process_)
-      {
-        return;
-      }
-      imarker_ready_to_process_ = false;
     }
-
-    // Convert
-    Eigen::Affine3d robot_ee_pose;
-    tf::poseMsgToEigen(feedback->pose, robot_ee_pose);
-
-    // Save pose to file if its been long enough
-    if (time_since_last_save_ < ros::Time::now() - ros::Duration(1.0))
-    {
-      saveToFile(robot_ee_pose, file_path_);
-      time_since_last_save_ = ros::Time::now();
-    }
-
-    // Offset ee pose forward, because interactive marker is a special thing in front of hand
-    robot_ee_pose = robot_ee_pose * imarker_offset_;
-
-    // Update robot
-    solveIK(robot_ee_pose);
-
-    // Redirect to base class
-    if (imarker_callback_)
-      imarker_callback_(feedback, robot_ee_pose);
-
-    // Allow next feedback to be processed
-    {
-      boost::unique_lock<boost::mutex> scoped_lock(imarker_mutex_);
-      imarker_ready_to_process_ = true;
-    }
+    imarker_ready_to_process_ = false;
   }
 
-  void IMarkerRobotState::solveIK(Eigen::Affine3d &pose)
+  // Convert
+  Eigen::Affine3d robot_ee_pose;
+  tf::poseMsgToEigen(feedback->pose, robot_ee_pose);
+
+  // Save pose to file if its been long enough
+  if (time_since_last_save_ < ros::Time::now() - ros::Duration(1.0))
   {
-    // Attempt to set robot to new pose
-    ROS_DEBUG_STREAM_THROTTLE_NAMED(1, name_, "Setting from IK");
-    if (imarker_state_->setFromIK(jmg_, pose))
-    {
-      ROS_INFO_STREAM_NAMED(name_, "Solved IK");
-      visual_tools_->publishRobotState(imarker_state_, color_);
-    }
-    else
-      ROS_DEBUG_STREAM_NAMED(name_, "Failed to set IK");
+    saveToFile(file_path_);
+    time_since_last_save_ = ros::Time::now();
   }
 
-  void IMarkerRobotState::initializeInteractiveMarkers(const Eigen::Affine3d &pose)
+  // Offset ee pose forward, because interactive marker is a special thing in front of hand
+  robot_ee_pose = robot_ee_pose * imarker_offset_;
+
+  // Update robot
+  solveIK(robot_ee_pose);
+
+  // Redirect to base class
+  if (imarker_callback_)
+    imarker_callback_(feedback, robot_ee_pose);
+
+  // Allow next feedback to be processed
   {
-    // Move marker to tip of fingers
-    imarker_pose_ = pose * imarker_offset_.inverse();
-
-    // Convert
-    geometry_msgs::Pose pose_msg;
-    tf::poseEigenToMsg(imarker_pose_, pose_msg);
-
-    // Server
-    imarker_server_.reset(new interactive_markers::InteractiveMarkerServer(imarker_topic_, "", false));
-
-    // Menu
-    // menu_handler_.insert("Reset", boost::bind(&iMarkerCallback, this, _1));
-    // interactive_markers::MenuHandler::EntryHandle sub_menu_handle1 = menu_handler_.insert("Recording");
-    // menu_handler_.insert(sub_menu_handle1, "Add Current Pose", boost::bind(&iMarkerCallback, this, _1));
-    // menu_handler_.insert(sub_menu_handle1, "Record IMarker Movements",
-    //                      boost::bind(&iMarkerCallback, this, _1));
-    // menu_handler_.insert(sub_menu_handle1, "Stop Recording IMarker",
-    //                      boost::bind(&iMarkerCallback, this, _1));
-    // interactive_markers::MenuHandler::EntryHandle sub_menu_handle2 = menu_handler_.insert("Playback");
-    // menu_handler_.insert(sub_menu_handle2, "Play Trajectory", boost::bind(&iMarkerCallback, this, _1));
-    // menu_handler_.insert(sub_menu_handle2, "Stop Trajectory", boost::bind(&iMarkerCallback, this, _1));
-    // menu_handler_.insert(sub_menu_handle2, "Clear Trajectory", boost::bind(&iMarkerCallback, this, _1));
-
-    // marker
-    make6DofMarker(pose_msg);
-    imarker_server_->applyChanges();
+    boost::unique_lock<boost::mutex> scoped_lock(imarker_mutex_);
+    imarker_ready_to_process_ = true;
   }
+}
 
-  void IMarkerRobotState::updateIMarkerPose(const Eigen::Affine3d &pose)
+void IMarkerRobotState::solveIK(Eigen::Affine3d &pose)
+{
+  // Cartesian settings
+  const bool collision_checking_verbose = false;
+  const bool only_check_self_collision = false;
+  const bool use_collision_checking_ = true;
+  const std::size_t attempts = 3;
+  const double timeout = 1.0 / 30;  // 30 fps?
+
+  // Optionally collision check
+  moveit::core::GroupStateValidityCallbackFn constraint_fn;
+  if (use_collision_checking_)
   {
-    // Move marker to tip of fingers
-    imarker_pose_ = pose * imarker_offset_.inverse();
-    sendUpdatedIMarkerPose();
+    boost::scoped_ptr<psm::LockedPlanningSceneRO> ls;
+    ls.reset(new psm::LockedPlanningSceneRO(planning_scene_monitor_));
+    constraint_fn = boost::bind(&isStateValid, static_cast<const planning_scene::PlanningSceneConstPtr &>(*ls).get(),
+                                collision_checking_verbose, only_check_self_collision, visual_tools_, _1, _2, _3);
   }
 
-  void IMarkerRobotState::sendUpdatedIMarkerPose()
+  // Attempt to set robot to new pose
+  // ROS_DEBUG_STREAM_THROTTLE_NAMED(1, name_, "Setting from IK");
+  if (imarker_state_->setFromIK(jmg_, pose, attempts, timeout, constraint_fn))
   {
-    // Convert
-    geometry_msgs::Pose pose_msg;
-    tf::poseEigenToMsg(imarker_pose_, pose_msg);
-
-    imarker_server_->setPose(int_marker_.name, pose_msg);
-    imarker_server_->applyChanges();
+    // ROS_INFO_STREAM_NAMED(name_, "Solved IK");
+    visual_tools_->publishRobotState(imarker_state_, color_);
   }
+  // else
+  // ROS_DEBUG_STREAM_NAMED(name_, "Failed to set IK");
+}
 
-  void IMarkerRobotState::make6DofMarker(const geometry_msgs::Pose &pose)
-  {
-    int_marker_.header.frame_id = "world";
-    int_marker_.pose = pose;
-    int_marker_.scale = 0.2;
+void IMarkerRobotState::initializeInteractiveMarkers(const Eigen::Affine3d &pose)
+{
+  // Move marker to tip of fingers
+  imarker_pose_ = pose * imarker_offset_.inverse();
 
-    int_marker_.name = "6dof_teleoperation";
-    int_marker_.description = name_;
+  // Convert
+  geometry_msgs::Pose pose_msg;
+  tf::poseEigenToMsg(imarker_pose_, pose_msg);
 
-    // insert a box
-    makeBoxControl(int_marker_);
+  // Server
+  imarker_server_.reset(new interactive_markers::InteractiveMarkerServer(imarker_topic_, "", false));
 
-    // insert mesh of robot's end effector
-    // makeEEControl(int_marker_);
-    // int_marker_.controls[0].interaction_mode = InteractiveMarkerControl::MENU;
+  // Menu
+  // menu_handler_.insert("Reset", boost::bind(&iMarkerCallback, this, _1));
+  // interactive_markers::MenuHandler::EntryHandle sub_menu_handle1 = menu_handler_.insert("Recording");
+  // menu_handler_.insert(sub_menu_handle1, "Add Current Pose", boost::bind(&iMarkerCallback, this, _1));
+  // menu_handler_.insert(sub_menu_handle1, "Record IMarker Movements",
+  //                      boost::bind(&iMarkerCallback, this, _1));
+  // menu_handler_.insert(sub_menu_handle1, "Stop Recording IMarker",
+  //                      boost::bind(&iMarkerCallback, this, _1));
+  // interactive_markers::MenuHandler::EntryHandle sub_menu_handle2 = menu_handler_.insert("Playback");
+  // menu_handler_.insert(sub_menu_handle2, "Play Trajectory", boost::bind(&iMarkerCallback, this, _1));
+  // menu_handler_.insert(sub_menu_handle2, "Stop Trajectory", boost::bind(&iMarkerCallback, this, _1));
+  // menu_handler_.insert(sub_menu_handle2, "Clear Trajectory", boost::bind(&iMarkerCallback, this, _1));
 
-    InteractiveMarkerControl control;
-    control.orientation.w = 1;
-    control.orientation.x = 1;
-    control.orientation.y = 0;
-    control.orientation.z = 0;
-    control.name = "rotate_x";
-    control.interaction_mode = InteractiveMarkerControl::ROTATE_AXIS;
-    int_marker_.controls.push_back(control);
-    control.name = "move_x";
-    control.interaction_mode = InteractiveMarkerControl::MOVE_AXIS;
-    int_marker_.controls.push_back(control);
+  // marker
+  make6DofMarker(pose_msg);
+  imarker_server_->applyChanges();
+}
 
-    control.orientation.w = 1;
-    control.orientation.x = 0;
-    control.orientation.y = 1;
-    control.orientation.z = 0;
-    control.name = "rotate_z";
-    control.interaction_mode = InteractiveMarkerControl::ROTATE_AXIS;
-    int_marker_.controls.push_back(control);
-    control.name = "move_z";
-    control.interaction_mode = InteractiveMarkerControl::MOVE_AXIS;
-    int_marker_.controls.push_back(control);
+void IMarkerRobotState::updateIMarkerPose(const Eigen::Affine3d &pose)
+{
+  // Move marker to tip of fingers
+  imarker_pose_ = pose * imarker_offset_.inverse();
+  sendUpdatedIMarkerPose();
+}
 
-    control.orientation.w = 1;
-    control.orientation.x = 0;
-    control.orientation.y = 0;
-    control.orientation.z = 1;
-    control.name = "rotate_y";
-    control.interaction_mode = InteractiveMarkerControl::ROTATE_AXIS;
-    int_marker_.controls.push_back(control);
-    control.name = "move_y";
-    control.interaction_mode = InteractiveMarkerControl::MOVE_AXIS;
-    int_marker_.controls.push_back(control);
+void IMarkerRobotState::sendUpdatedIMarkerPose()
+{
+  // Convert
+  geometry_msgs::Pose pose_msg;
+  tf::poseEigenToMsg(imarker_pose_, pose_msg);
 
-    imarker_server_->insert(int_marker_);
-    imarker_server_->setCallback(int_marker_.name, boost::bind(&IMarkerRobotState::iMarkerCallback, this, _1));
-    // menu_handler_.apply(*imarker_server_, int_marker_.name);
-  }
+  imarker_server_->setPose(int_marker_.name, pose_msg);
+  imarker_server_->applyChanges();
+}
 
-  visualization_msgs::InteractiveMarkerControl& IMarkerRobotState::makeBoxControl(visualization_msgs::InteractiveMarker &msg)
-  {
-    visualization_msgs::InteractiveMarkerControl control;
-    control.always_visible = true;
+void IMarkerRobotState::make6DofMarker(const geometry_msgs::Pose &pose)
+{
+  int_marker_.header.frame_id = "world";
+  int_marker_.pose = pose;
+  int_marker_.scale = 0.2;
 
-    visualization_msgs::Marker marker;
-    marker.type = visualization_msgs::Marker::CUBE;
-    marker.scale.x = msg.scale * 0.3;  // x direction
-    marker.scale.y = msg.scale * 0.10;  // y direction
-    marker.scale.z = msg.scale * 0.10;   // height
-    marker.color.r = 0.5;
-    marker.color.g = 0.5;
-    marker.color.b = 0.5;
-    marker.color.a = 1.0;
+  int_marker_.name = "6dof_teleoperation";
+  int_marker_.description = name_;
 
-    control.markers.push_back(marker);
-    msg.controls.push_back(control);
+  // insert a box
+  makeBoxControl(int_marker_);
 
-    return msg.controls.back();
-  }
+  // insert mesh of robot's end effector
+  // makeEEControl(int_marker_);
+  // int_marker_.controls[0].interaction_mode = InteractiveMarkerControl::MENU;
+
+  InteractiveMarkerControl control;
+  control.orientation.w = 1;
+  control.orientation.x = 1;
+  control.orientation.y = 0;
+  control.orientation.z = 0;
+  control.name = "rotate_x";
+  control.interaction_mode = InteractiveMarkerControl::ROTATE_AXIS;
+  int_marker_.controls.push_back(control);
+  control.name = "move_x";
+  control.interaction_mode = InteractiveMarkerControl::MOVE_AXIS;
+  int_marker_.controls.push_back(control);
+
+  control.orientation.w = 1;
+  control.orientation.x = 0;
+  control.orientation.y = 1;
+  control.orientation.z = 0;
+  control.name = "rotate_z";
+  control.interaction_mode = InteractiveMarkerControl::ROTATE_AXIS;
+  int_marker_.controls.push_back(control);
+  control.name = "move_z";
+  control.interaction_mode = InteractiveMarkerControl::MOVE_AXIS;
+  int_marker_.controls.push_back(control);
+
+  control.orientation.w = 1;
+  control.orientation.x = 0;
+  control.orientation.y = 0;
+  control.orientation.z = 1;
+  control.name = "rotate_y";
+  control.interaction_mode = InteractiveMarkerControl::ROTATE_AXIS;
+  int_marker_.controls.push_back(control);
+  control.name = "move_y";
+  control.interaction_mode = InteractiveMarkerControl::MOVE_AXIS;
+  int_marker_.controls.push_back(control);
+
+  imarker_server_->insert(int_marker_);
+  imarker_server_->setCallback(int_marker_.name, boost::bind(&IMarkerRobotState::iMarkerCallback, this, _1));
+  // menu_handler_.apply(*imarker_server_, int_marker_.name);
+}
+
+visualization_msgs::InteractiveMarkerControl &
+IMarkerRobotState::makeBoxControl(visualization_msgs::InteractiveMarker &msg)
+{
+  visualization_msgs::InteractiveMarkerControl control;
+  control.always_visible = true;
+
+  visualization_msgs::Marker marker;
+  marker.type = visualization_msgs::Marker::CUBE;
+  marker.scale.x = msg.scale * 0.3;   // x direction
+  marker.scale.y = msg.scale * 0.10;  // y direction
+  marker.scale.z = msg.scale * 0.10;  // height
+  marker.color.r = 0.5;
+  marker.color.g = 0.5;
+  marker.color.b = 0.5;
+  marker.color.a = 1.0;
+
+  control.markers.push_back(marker);
+  msg.controls.push_back(control);
+
+  return msg.controls.back();
+}
 
 bool IMarkerRobotState::getFilePath(std::string &file_path, const std::string &file_name,
-                 const std::string &subdirectory) const
+                                    const std::string &subdirectory) const
 
 {
   namespace fs = boost::filesystem;
@@ -338,7 +371,7 @@ bool IMarkerRobotState::getFilePath(std::string &file_path, const std::string &f
     rootPath = fs::path(getenv("HOMEPATH"));  // Support Windows
   else
   {
-    ROS_WARN("Unable to find a home path for this computer");
+    ROS_WARN("Unable to find a home path for this computer. Saving to root");
     rootPath = fs::path("");
   }
 
@@ -357,14 +390,112 @@ bool IMarkerRobotState::getFilePath(std::string &file_path, const std::string &f
   // directories successfully created, append the group name as the file name
   rootPath = rootPath / fs::path(file_name);
   file_path = rootPath.string();
-  //ROS_INFO_STREAM_NAMED(name_, "Setting database to " << file_path);
+  // ROS_INFO_STREAM_NAMED(name_, "Setting database to " << file_path);
 
   return true;
 }
 
-  moveit_visual_tools::MoveItVisualToolsPtr IMarkerRobotState::getVisualTools()
+bool IMarkerRobotState::setToRandomState()
+{
+  static const std::size_t MAX_ATTEMPTS = 100;
+  for (std::size_t i = 0; i < MAX_ATTEMPTS; ++i)
   {
-    return visual_tools_;
+    imarker_state_->setToRandomPositions(jmg_);
+    imarker_state_->update();
+
+    // Debug
+    const bool check_verbose = false;
+
+    // Get planning scene
+    boost::scoped_ptr<psm::LockedPlanningSceneRO> ls;
+    ls.reset(new psm::LockedPlanningSceneRO(planning_scene_monitor_));
+
+    // which planning group to collision check, "" is everything
+    static const std::string planning_group = "";
+    if (static_cast<const planning_scene::PlanningSceneConstPtr &>(*ls)
+        ->isStateValid(*imarker_state_, planning_group, check_verbose))
+    {
+      ROS_DEBUG_STREAM_NAMED(name_, "Found valid random robot state after " << i << " attempts");
+
+      // Get pose from robot state
+      setPoseFromRobotState();
+
+      // Send to imarker
+      sendUpdatedIMarkerPose();
+
+      // Show initial robot state loaded from file
+      visual_tools_->publishRobotState(imarker_state_, color_);
+
+      return true;
+    }
   }
 
+  ROS_ERROR_STREAM_NAMED(name_, "Unable to find valid random robot state for imarker");
+  exit(-1);
+  return false;
+}
+
+moveit_visual_tools::MoveItVisualToolsPtr IMarkerRobotState::getVisualTools()
+{
+  return visual_tools_;
+}
+
 }  // namespace hilgendorf_moveit_demos
+
+namespace
+{
+bool isStateValid(const planning_scene::PlanningScene *planning_scene, bool verbose, bool only_check_self_collision,
+                  mvt::MoveItVisualToolsPtr visual_tools, moveit::core::RobotState *robot_state, JointModelGroup *group,
+                  const double *ik_solution)
+{
+  // Apply IK solution to robot state
+  robot_state->setJointGroupPositions(group, ik_solution);
+  robot_state->update();
+
+  // Ensure there are objects in the planning scene
+  if (false)
+  {
+    const std::size_t num_collision_objects = planning_scene->getCollisionWorld()->getWorld()->size();
+    if (num_collision_objects == 0)
+    {
+      ROS_ERROR_STREAM_NAMED("cart_path_planner", "No collision objects exist in world, you need at least a table "
+                                                  "modeled for the controller to work");
+      ROS_ERROR_STREAM_NAMED("cart_path_planner", "To fix this, relaunch the teleop/head tracking/whatever MoveIt! "
+                                                  "node to publish the collision objects");
+      return false;
+    }
+  }
+
+  if (!planning_scene)
+  {
+    ROS_ERROR_STREAM_NAMED("cart_path_planner", "No planning scene provided");
+    return false;
+  }
+  if (only_check_self_collision)
+  {
+    // No easy API exists for only checking self-collision, so we do it here.
+    // TODO: move this into planning_scene.cpp
+    collision_detection::CollisionRequest req;
+    req.verbose = false;
+    req.group_name = group->getName();
+    collision_detection::CollisionResult res;
+    planning_scene->checkSelfCollision(req, res, *robot_state);
+    if (!res.collision)
+      return true;  // not in collision
+  }
+  else if (!planning_scene->isStateColliding(*robot_state, group->getName()))
+    return true;  // not in collision
+
+  // Display more info about the collision
+  if (verbose)
+  {
+    visual_tools->publishRobotState(*robot_state, rvt::RED);
+    planning_scene->isStateColliding(*robot_state, group->getName(), true);
+    visual_tools->publishContactPoints(*robot_state, planning_scene);
+    ros::Duration(0.4).sleep();
+  }
+  ROS_WARN_STREAM_THROTTLE_NAMED(2.0, "cart_path_planner", "Collision");
+  return false;
+}
+
+}  // end annonymous namespace

@@ -51,10 +51,10 @@ namespace hilgendorf_moveit_demos
 CartPathPlanner::CartPathPlanner(HilgendorfDemos *parent) : name_("cart_path_planner"), nh_("~"), parent_(parent)
 {
   // Load planning state
-  imarker_state_.reset(new moveit::core::RobotState(*parent_->start_state_));
+  imarker_state_.reset(new moveit::core::RobotState(*parent_->moveit_start_));
 
   // Create cartesian start pose interactive marker
-  imarker_cartesian_.reset(new IMarkerRobotState(parent_->getPlanningSceneMonitor(), "cart", parent_->jmg_, rvt::BLUE));
+  imarker_cartesian_.reset(new IMarkerRobotState(parent_->getPlanningSceneMonitor(), "cart", parent_->jmg_, parent_->ee_link_, rvt::BLUE));
   imarker_cartesian_->setIMarkerCallback(
       std::bind(&CartPathPlanner::processIMarkerPose, this, std::placeholders::_1, std::placeholders::_2));
 

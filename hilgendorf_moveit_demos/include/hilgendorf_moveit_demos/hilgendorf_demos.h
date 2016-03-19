@@ -77,16 +77,18 @@ namespace hilgendorf_moveit_demos
 class HilgendorfDemos : public moveit_boilerplate::MoveItBase
 {
 public:
-  /**
-   * \brief Constructor
-   */
+
+  /** \brief Constructor */
   HilgendorfDemos();
+
+  /** \brief Destructor */
+  ~HilgendorfDemos();
 
   /** \brief Load the basic planning context components */
   bool loadOMPL();
 
   /** \brief Generate states for testing */
-  void testRandomStates();
+  void testConnectionToGraphOfRandStates();
 
   void runRandomProblems();
 
@@ -95,9 +97,8 @@ public:
   /** \brief Create multiple dummy cartesian paths */
   void generateRandCartesianPath();
 
-  bool checkPathSolution(const planning_scene::PlanningSceneConstPtr &planning_scene,
-                         const planning_interface::MotionPlanRequest &request,
-                         planning_interface::MotionPlanResponse &result);
+  bool checkOMPLPathSolution(og::PathGeometric& path);
+  bool checkMoveItPathSolution(robot_trajectory::RobotTrajectoryPtr traj);
 
   bool getRandomState(moveit::core::RobotStatePtr &robot_state);
 
@@ -132,8 +133,10 @@ public:
   moveit_visual_tools::MoveItVisualToolsPtr visual_moveit_goal_;   // Clone of ompl2
 
   // Robot states
-  moveit::core::RobotStatePtr start_state_;
-  moveit::core::RobotStatePtr goal_state_;
+  moveit::core::RobotStatePtr moveit_start_;
+  moveit::core::RobotStatePtr moveit_goal_;
+  ob::State* ompl_start_;
+  ob::State* ompl_goal_;
 
   // Planning groups
   std::string planning_group_name_;
@@ -141,6 +144,7 @@ public:
   moveit::core::LinkModel *ee_link_;
 
   // Operation settings
+  bool auto_run_;
   std::string experience_planner_;
   std::size_t planning_runs_;
   double sparse_delta_;
@@ -148,6 +152,7 @@ public:
   bool skip_solving_;
 
   // Debug and display preferences
+  bool visualize_display_database_;
   bool visualize_playback_trajectory_;
   bool visualize_grid_generation_;
   bool visualize_start_goal_states_;

@@ -45,6 +45,9 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "hilgendorf_demos");
   ROS_INFO_STREAM_NAMED("main", "Starting HilgendorfDemos...");
 
+  // Seed random number generator
+  srand (time(NULL));
+
   // Allow the action server to recieve and send ros messages
   ros::AsyncSpinner spinner(2);
   spinner.start();
@@ -52,7 +55,7 @@ int main(int argc, char **argv)
   // Initialize main class
   hilgendorf_moveit_demos::HilgendorfDemos server;
   server.runRandomProblems();
-  // server.testRandomStates();
+  // server.testConnectionToGraphOfRandStates();
 
   //ros::spin();
 

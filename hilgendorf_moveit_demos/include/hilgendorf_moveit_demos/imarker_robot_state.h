@@ -66,7 +66,7 @@ public:
    * \brief Constructor
    */
   IMarkerRobotState(psm::PlanningSceneMonitorPtr planning_scene_monitor, const std::string &imarker_name,
-                    const moveit::core::JointModelGroup *jmg, rvt::colors color);
+                    const moveit::core::JointModelGroup *jmg, moveit::core::LinkModel *ee_link, rvt::colors color);
 
   /** \brief Set where in the parent class the feedback should be sent */
   void setIMarkerCallback(IMarkerCallback callback);
@@ -75,9 +75,11 @@ public:
 
   moveit::core::RobotStatePtr getRobotState();
 
-  bool loadFromFile(Eigen::Affine3d &pose, const std::string &file_name);
+  bool loadFromFile(const std::string &file_name);
 
-  bool saveToFile(Eigen::Affine3d &pose, const std::string &file_name);
+  bool saveToFile(const std::string &file_name);
+
+  bool setPoseFromRobotState();
 
   void iMarkerCallback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 
@@ -93,8 +95,9 @@ public:
 
   visualization_msgs::InteractiveMarkerControl &makeBoxControl(visualization_msgs::InteractiveMarker &msg);
 
-bool getFilePath(std::string &file_path, const std::string &file_name,
-                 const std::string &subdirectory) const;
+  bool getFilePath(std::string &file_path, const std::string &file_name, const std::string &subdirectory) const;
+
+  bool setToRandomState();
 
   moveit_visual_tools::MoveItVisualToolsPtr getVisualTools();
 
@@ -109,6 +112,7 @@ private:
 
   // State
   moveit::core::RobotStatePtr imarker_state_;
+  Eigen::Affine3d imarker_pose_;
 
   // Trajetory
   std::vector<moveit::core::RobotStatePtr> trajectory_;
@@ -122,6 +126,7 @@ private:
   // Settings
   std::size_t refresh_rate_ = 30;
   const moveit::core::JointModelGroup *jmg_;
+  moveit::core::LinkModel *ee_link_;
   rvt::colors color_ = rvt::PURPLE;
 
   // File saving
@@ -129,7 +134,6 @@ private:
   ros::Time time_since_last_save_;
 
   // Interactive markers
-  Eigen::Affine3d imarker_pose_;
   std::string imarker_topic_;
   boost::shared_ptr<interactive_markers::InteractiveMarkerServer> imarker_server_;
   // interactive_markers::MenuHandler menu_handler_;
@@ -150,4 +154,13 @@ typedef boost::shared_ptr<IMarkerRobotState> IMarkerRobotStatePtr;
 typedef boost::shared_ptr<const IMarkerRobotState> IMarkerRobotStateConstPtr;
 
 }  // namespace hilgendorf_moveit_demos
+
+namespace
+{
+/** \brief Collision checking handle for IK solvers */
+bool isStateValid(const planning_scene::PlanningScene *planning_scene, bool verbose, bool only_check_self_collision,
+                  mvt::MoveItVisualToolsPtr visual_tools_, robot_state::RobotState *state,
+                  const robot_state::JointModelGroup *group, const double *ik_solution);
+}
+
 #endif  // HILGENDORF_MOVEIT_DEMOS_IM_ROBOT_STATE_H

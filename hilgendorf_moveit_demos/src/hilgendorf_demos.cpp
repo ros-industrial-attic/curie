@@ -51,6 +51,7 @@ HilgendorfDemos::HilgendorfDemos()
   // Load rosparams
   ros::NodeHandle rpnh(nh_, name_);
   std::size_t error = 0;
+    error += !rosparam_shortcuts::get(name_, rpnh, "auto_run", auto_run_);
   error += !rosparam_shortcuts::get(name_, rpnh, "experience_planner", experience_planner_);
   error += !rosparam_shortcuts::get(name_, rpnh, "planning_runs", planning_runs_);
   error += !rosparam_shortcuts::get(name_, rpnh, "sparse_delta", sparse_delta_);
@@ -58,6 +59,7 @@ HilgendorfDemos::HilgendorfDemos()
   error += !rosparam_shortcuts::get(name_, rpnh, "skip_solving", skip_solving_);
   error += !rosparam_shortcuts::get(name_, rpnh, "planning_group_name", planning_group_name_);
   // Visualize
+  error += !rosparam_shortcuts::get(name_, rpnh, "visualize/display_database", visualize_display_database_);
   error += !rosparam_shortcuts::get(name_, rpnh, "visualize/playback_trajectory", visualize_playback_trajectory_);
   error += !rosparam_shortcuts::get(name_, rpnh, "visualize/grid_generation", visualize_grid_generation_);
   error += !rosparam_shortcuts::get(name_, rpnh, "visualize/start_goal_states", visualize_start_goal_states_);
@@ -74,11 +76,10 @@ HilgendorfDemos::HilgendorfDemos()
 
   // Load 2 more visual tools
   loadVisualTools();
-  ros::Duration(1).sleep();
 
   // Load 2 more robot states
-  start_state_.reset(new moveit::core::RobotState(*current_state_));
-  goal_state_.reset(new moveit::core::RobotState(*current_state_));
+  moveit_start_.reset(new moveit::core::RobotState(*current_state_));
+  moveit_goal_.reset(new moveit::core::RobotState(*current_state_));
 
   // Get the two arms jmg
   jmg_ = robot_model_->getJointModelGroup(planning_group_name_);
@@ -92,12 +93,14 @@ HilgendorfDemos::HilgendorfDemos()
   cart_path_planner_.reset(new CartPathPlanner(this));
 
   // Create start/goal state imarker
-  imarker_start_.reset(new IMarkerRobotState(planning_scene_monitor_, "start", jmg_, rvt::GREEN));
-  imarker_goal_.reset(new IMarkerRobotState(planning_scene_monitor_, "goal", jmg_, rvt::ORANGE));
+  imarker_start_.reset(new IMarkerRobotState(planning_scene_monitor_, "start", jmg_, ee_link_, rvt::GREEN));
+  imarker_goal_.reset(new IMarkerRobotState(planning_scene_monitor_, "goal", jmg_, ee_link_, rvt::ORANGE));
 
   ros::Duration(1.0).sleep();
-  ros::spin();
-  exit(0);
+
+  // Wait until user does something
+  if (!auto_run_)
+    ros::spin();
 
   // Load planning
   if (!loadOMPL())
@@ -107,6 +110,13 @@ HilgendorfDemos::HilgendorfDemos()
   }
 
   ROS_INFO_STREAM_NAMED(name_, "HilgendorfDemos Ready.");
+}
+
+HilgendorfDemos::~HilgendorfDemos()
+{
+  // Free start and goal states
+  space_->freeState(ompl_start_);
+  space_->freeState(ompl_goal_);
 }
 
 bool HilgendorfDemos::loadOMPL()
@@ -125,6 +135,10 @@ bool HilgendorfDemos::loadOMPL()
   experience_setup_->setup();
   assert(si_->isSetup());
 
+  // Create start and goal states
+  ompl_start_ = space_->allocState();
+  ompl_goal_ = space_->allocState();
+
   // Set state space
   visual_ompl1_->setStateSpace(space_);
   visual_ompl2_->setStateSpace(space_);
@@ -138,8 +152,8 @@ bool HilgendorfDemos::loadOMPL()
                                                          visual_ompl2_->getVizEdgeCallback(),
                                                          visual_ompl2_->getVizTriggerCallback());
   experience_setup_->getRetrieveRepairPlanner().setVizCallbacks(visual_ompl3_->getVizStateCallback(),
-                                                                 visual_ompl3_->getVizEdgeCallback(),
-                                                                 visual_ompl3_->getVizTriggerCallback());
+                                                                visual_ompl3_->getVizEdgeCallback(),
+                                                                visual_ompl3_->getVizTriggerCallback());
 
   // Set planner settings
   experience_setup_->getExperienceDB()->visualizeAstar_ = visualize_astar_;
@@ -154,8 +168,8 @@ bool HilgendorfDemos::loadOMPL()
   // experience_setup_->enablePlanningFromScratch(use_scratch_);
 
   // Set state validity checking for this space
-  //experience_setup_->setStateValidityChecker(ob::StateValidityCheckerPtr(
-  //new moveit_ompl::StateValidityChecker(planning_group_name_, si_, *current_state_, planning_scene_, space_)));
+  experience_setup_->setStateValidityChecker(ob::StateValidityCheckerPtr(
+      new moveit_ompl::StateValidityChecker(planning_group_name_, si_, *current_state_, planning_scene_, space_)));
 
   // The interval in which obstacles are checked for between states
   // seems that it default to 0.01 but doesn't do a good job at that level
@@ -189,43 +203,13 @@ bool HilgendorfDemos::loadOMPL()
   ROS_INFO_STREAM_NAMED(name_, "Current memory consumption - VM: " << vm2 << " MB | RSS: " << rss2 << " MB");
   ROS_INFO_STREAM_NAMED(name_, "Current memory diff        - VM: " << vm2 - vm1 << " MB | RSS: " << rss2 - rss1 << " M"
                                                                                                                    "B");
-
   // Show database
-  // experience_setup_->getExperienceDB()->displayDatabase();
-
-  return true;
-}
-
-void HilgendorfDemos::testRandomStates()
-{
-  ompl::base::State *random_state = space_->allocState();
-
-  std::size_t successful_connections = 0;
-  for (std::size_t run_id = 0; run_id < planning_runs_; ++run_id)
+  if (visualize_display_database_)
   {
-    std::cout << std::endl;
-    std::cout << "-------------------------------------------------------" << std::endl;
-    ROS_INFO_STREAM_NAMED(name_, "Testing random state " << run_id);
-
-    // Generate random state
-    getRandomState(start_state_);
-
-    // Visualize
-    visual_moveit_start_->publishRobotState(start_state_, rvt::GREEN);
-
-    // Convert to ompl
-    space_->copyToOMPLState(random_state, *start_state_);
-
-    // Test
-    const ompl::base::PlannerTerminationCondition ptc = ompl::base::timedPlannerTerminationCondition(60.0);
-    bool result = experience_setup_->getRetrieveRepairPlanner().canConnect(random_state, ptc);
-    if (result)
-      successful_connections++;
-
-    ROS_ERROR_STREAM_NAMED(name_, "Percent connnected: " << successful_connections / double(run_id + 1) * 100.0);
+    experience_setup_->getExperienceDB()->displayDatabase();
   }
 
-  space_->freeState(random_state);
+  return true;
 }
 
 void HilgendorfDemos::runRandomProblems()
@@ -242,17 +226,17 @@ void HilgendorfDemos::runRandomProblems()
     ROS_INFO_STREAM_NAMED(name_, "Starting planning run " << run_id);
 
     // Generate start/goal pair
-    //getRandomState(start_state_);
-    //getRandomState(goal_state_);
-    start_state_ = imarker_start_->getRobotState();
-    goal_state_ = imarker_goal_->getRobotState();
+    //imarker_start_->setToRandomState();
+    //imarker_goal_->setToRandomState();
+    moveit_start_ = imarker_start_->getRobotState();
+    moveit_goal_ = imarker_goal_->getRobotState();
 
     // Visualize
     if (visualize_start_goal_states_)
       visualizeStartGoal();
 
     // Plan from start to goal
-    plan(start_state_, goal_state_);
+    plan(moveit_start_, moveit_goal_);
 
     // Main pause between planning instances - allows user to analyze
     ros::Duration(visualize_time_between_plans_).sleep();
@@ -288,20 +272,16 @@ bool HilgendorfDemos::plan(robot_state::RobotStatePtr start_state, robot_state::
   // Planner settings, start & goal states are not affected.
   experience_setup_->clear();
 
-  // Create start and goal space
-  ob::ScopedState<> start(space_);
-  ob::ScopedState<> goal(space_);
-
   // Convert MoveIt state to OMPL state
-  space_->copyToOMPLState(start.get(), *start_state);
-  space_->copyToOMPLState(goal.get(), *goal_state);
+  space_->copyToOMPLState(ompl_start_, *start_state);
+  space_->copyToOMPLState(ompl_goal_, *goal_state);
 
   // Convert the goal state to level 2
   const int level = 2;
-  //space_->setLevel(goal.get(), level);
+  space_->setLevel(ompl_goal_, level);
 
   // Set the start and goal states
-  experience_setup_->setStartAndGoalStates(start, goal);
+  experience_setup_->setStartAndGoalStates(ompl_start_, ompl_goal_);
 
   // Debug - this call is optional, but we put it in to get more output information
   // experience_setup_->print();
@@ -341,6 +321,29 @@ bool HilgendorfDemos::plan(robot_state::RobotStatePtr start_state, robot_state::
     experience_setup_->printResultsInfo();
   }
 
+  // Get solution
+  og::PathGeometric path = experience_setup_->getSolutionPath();
+
+  // Add start to solution
+  path.prepend(ompl_start_);
+
+  // Check/test the solution for errors
+  checkOMPLPathSolution(path);
+
+  // Add more states between waypoints
+  std::size_t state_count = path.getStateCount();
+  path.interpolate();
+  ROS_INFO_STREAM_NAMED(name_, "Number of states - before interpolation: " << state_count
+                        << " after interpolation: " << path.getStateCount());
+
+  // Convert trajectory
+  robot_trajectory::RobotTrajectoryPtr traj;
+  const double speed = 0.05;
+  visual_ompl3_->convertPath(path, jmg_, traj, speed);
+
+  // Check/test the solution for errors
+  checkMoveItPathSolution(traj);
+
   // Visualize the trajectory
   if (visualize_playback_trajectory_)
   {
@@ -350,22 +353,7 @@ bool HilgendorfDemos::plan(robot_state::RobotStatePtr start_state, robot_state::
     visual_ompl3_->hideRobot();
     visual_ompl3_->deleteAllMarkers();
 
-    // Get solution
-    og::PathGeometric path = experience_setup_->getSolutionPath();
-
-    // Add start to solution
-    path.prepend(start.get());
-
-    // Add more states between
-    std::cout << "path.getStateCount() " << path.getStateCount() << std::endl;
-    path.interpolate();
-    std::cout << "path.getStateCount() " << path.getStateCount() << std::endl;
-
-    // Convert trajectory
     visual_ompl3_->loadTrajectoryPub("/hilgendorf/display_trajectory");
-    robot_trajectory::RobotTrajectoryPtr traj;
-    const double speed = 0.05;
-    visual_ompl3_->convertPath(path, jmg_, traj, speed);
 
     // Show trajectory line
     const bool clear_all_markers = true;
@@ -404,48 +392,90 @@ void HilgendorfDemos::generateRandCartesianPath()
   }
 
   // Convert to OMPL path
-  std::vector<ompl::base::State*> ompl_path;
+  std::vector<ompl::base::State *> ompl_path;
   for (std::size_t i = 0; i < trajectory.size(); ++i)
   {
     ob::State *state = space_->allocState();
     space_->copyToOMPLState(state, *trajectory[i]);
-
-    // Adjust the task level information
-    mo::ModelBasedStateSpace::StateType *mb_state = static_cast<mo::ModelBasedStateSpace::StateType*>(state);
-    mb_state->level = 1;
+    const std::size_t level = 1;
+    space_->setLevel(state, level);
 
     ompl_path.push_back(state);
   }
 
   // Insert into graph
   std::cout << "adding path --------------------- " << std::endl;
-  experience_setup_->getExperienceDB()->addCartPath(ompl_path);
+  if (!experience_setup_->getExperienceDB()->addCartPath(ompl_path))
+  {
+    ROS_ERROR_STREAM_NAMED(name_, "Unable to add cartesian path");
+    exit(-1);
+  }
 }
 
-bool HilgendorfDemos::checkPathSolution(const planning_scene::PlanningSceneConstPtr &planning_scene,
-                                        const planning_interface::MotionPlanRequest &request,
-                                        planning_interface::MotionPlanResponse &result)
+bool HilgendorfDemos::checkOMPLPathSolution(og::PathGeometric& path)
 {
-  // Check solution
-  if (!result.trajectory_)
-  {
-    ROS_ERROR_STREAM_NAMED(name_, "No trajectory");
-    return false;
-  }
+  bool error = false;
 
-  // Debug
-  const std::size_t state_count = result.trajectory_->getWayPointCount();
-  ROS_DEBUG_STREAM("Motion planner reported a solution path with " << state_count << " states");
+  for (std::size_t i = 0; i < path.getStateCount(); ++i)
+  {
+    int level = space_->getLevel(path.getState(i));
+    std::cout << "Path state " << i << " has level " << level << std::endl;
+
+    // Check if start state is correct
+    if (i == 0)
+    {
+      if (!space_->equalStates(path.getState(i), ompl_start_))
+      {
+        ROS_ERROR_STREAM_NAMED(name_, "Start state of path is not same as original problem");
+        error = true;
+      }
+
+      if (level != 0)
+      {
+        ROS_ERROR_STREAM_NAMED(name_, "Start state is not at level 0, instead " << level);
+        error = true;
+      }
+    }
+
+    // Check if goal state is correct
+    if (i == path.getStateCount() - 1)
+    {
+      if (!space_->equalStates(path.getState(i), ompl_goal_))
+      {
+        ROS_ERROR_STREAM_NAMED(name_, "Goal state of path is not same as original problem");
+        error = true;
+      }
+
+      if (level != 2)
+      {
+        ROS_ERROR_STREAM_NAMED(name_, "Goal state is not at level 2, instead " << level);
+        error = true;
+      }
+    }
+  } // for loop
+
+  return error;
+}
+
+bool HilgendorfDemos::checkMoveItPathSolution(robot_trajectory::RobotTrajectoryPtr traj)
+{
+  std::size_t state_count = traj->getWayPointCount();
+  if (state_count < 3)
+    ROS_WARN_STREAM_NAMED(name_, "Solution path has only " << state_count << " states");
+  else
+    ROS_INFO_STREAM_NAMED(name_, "Solution path has only " << state_count << " states");
+
+  //bool isPathValid(const robot_trajectory::RobotTrajectory &trajectory,
+  //const std::string &group = "", bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
 
   std::vector<std::size_t> index;
-  if (!planning_scene->isPathValid(*result.trajectory_, request.path_constraints, request.group_name, false, &index))
+  const bool verbose = true;
+  if (!planning_scene_->isPathValid(*traj, "", verbose, &index))
   {
     if (index.size() == 1 && index[0] == 0)  // ignore cases when the robot starts at invalid location
       ROS_DEBUG("It appears the robot is starting at an invalid state, but that is ok.");
     else
     {
-      result.error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
-
       // display error messages
       std::stringstream ss;
       for (std::size_t i = 0; i < index.size(); ++i)
@@ -453,13 +483,14 @@ bool HilgendorfDemos::checkPathSolution(const planning_scene::PlanningSceneConst
       ROS_ERROR_STREAM("Computed path is not valid. Invalid states at index locations: [ "
                        << ss.str() << "] out of " << state_count << ". Explanations follow in command line.");
 
-      // call validity checks in verbose mode for the problematic states
+      // Call validity checks in verbose mode for the problematic states
       visualization_msgs::MarkerArray arr;
       for (std::size_t i = 0; i < index.size(); ++i)
       {
+        /*
         // check validity with verbose on
-        const robot_state::RobotState &robot_state = result.trajectory_->getWayPoint(index[i]);
-        planning_scene->isStateValid(robot_state, request.path_constraints, request.group_name, true);
+        const robot_state::RobotState &robot_state = traj->getWayPoint(index[i]);
+        planning_scene_->isStateValid(robot_state, request.path_constraints, request.group_name, true);
 
         // compute the contacts if any
         collision_detection::CollisionRequest c_req;
@@ -468,12 +499,14 @@ bool HilgendorfDemos::checkPathSolution(const planning_scene::PlanningSceneConst
         c_req.max_contacts = 10;
         c_req.max_contacts_per_pair = 3;
         c_req.verbose = false;
-        planning_scene->checkCollision(c_req, c_res, robot_state);
+        planning_scene_->checkCollision(c_req, c_res, robot_state);
+        */
+        ROS_ERROR_STREAM_NAMED(name_, "TODO: show collision states in code " << i);
         /*
           if (c_res.contact_count > 0)
           {
           visualization_msgs::MarkerArray arr_i;
-          collision_detection::getCollisionMarkersFromContacts(arr_i, planning_scene->getPlanningFrame(),
+          collision_detection::getCollisionMarkersFromContacts(arr_i, planning_scene_->getPlanningFrame(),
           c_res.contacts);
           arr.markers.insert(arr.markers.end(), arr_i.markers.begin(), arr_i.markers.end());
           }
@@ -528,7 +561,7 @@ void HilgendorfDemos::loadVisualTools()
   visual_ompl2_->setPlanningSceneMonitor(planning_scene_monitor_);
   visual_ompl2_->loadRobotStatePub(namesp + "/goal_state");
   visual_ompl2_->setManualSceneUpdating(true);
-  visual_ompl2_->hideRobot();    // show that things have been reset
+  visual_ompl2_->hideRobot();           // show that things have been reset
   visual_moveit_goal_ = visual_ompl2_;  // copy for use by Moveit
 
   visual_ompl3_.reset(
@@ -539,85 +572,74 @@ void HilgendorfDemos::loadVisualTools()
   visual_ompl3_->hideRobot();  // show that things have been reset
 
   // Clear all previous markers
-  ROS_ERROR_STREAM_NAMED(name_, "Deleting all markers");
-  ros::spinOnce();
-  visual_tools_->loadMarkerPub();
+  visual_tools_->loadMarkerPub(true);
   visual_tools_->deleteAllMarkers();
   visual_tools_->triggerBatchPublish();
   ros::spinOnce();
 
-  ros::spinOnce();
   visual_ompl1_->loadMarkerPub(true);
   visual_ompl1_->deleteAllMarkers();
   visual_ompl1_->triggerBatchPublish();
   ros::spinOnce();
 
-  visual_ompl2_->loadMarkerPub();
+  visual_ompl2_->loadMarkerPub(true);
+  ros::spinOnce();
+  ros::Duration(0.1).sleep();
   visual_ompl2_->deleteAllMarkers();
   visual_ompl2_->triggerBatchPublish();
   ros::spinOnce();
-  visual_ompl3_->loadMarkerPub();
+
+  visual_ompl3_->loadMarkerPub(true);
   visual_ompl3_->deleteAllMarkers();
   visual_ompl3_->triggerBatchPublish();
   ros::spinOnce();
+
+  ros::Duration(1).sleep();
 }
 
 void HilgendorfDemos::visualizeStartGoal()
 {
-  visual_moveit_start_->publishRobotState(start_state_, rvt::GREEN);
-  visual_moveit_goal_->publishRobotState(goal_state_, rvt::ORANGE);
+  visual_moveit_start_->publishRobotState(moveit_start_, rvt::GREEN);
+  visual_moveit_goal_->publishRobotState(moveit_goal_, rvt::ORANGE);
 
   // Show values and limits
   // std::cout << "Start: " << std::endl;
-  // visual_moveit_start_->showJointLimits(start_state_);
+  // visual_moveit_start_->showJointLimits(moveit_start_);
   // std::cout << "Goal: " << std::endl;
-  // visual_moveit_start_->showJointLimits(goal_state_);
+  // visual_moveit_start_->showJointLimits(moveit_goal_);
 }
 
-/*
-double customDistanceFunction(const ompl::base::State *state1, const ompl::base::State *state2)
+void HilgendorfDemos::testConnectionToGraphOfRandStates()
 {
-  std::cout << "no one should call this " << std::endl;
-  exit(-1);
+  ompl::base::State *random_state = space_->allocState();
 
-  space_->copyToRobotState(*from_state_, state1);
-  space_->copyToRobotState(*to_state_, state2);
+  std::size_t successful_connections = 0;
+  for (std::size_t run_id = 0; run_id < planning_runs_; ++run_id)
+  {
+    std::cout << std::endl;
+    std::cout << "-------------------------------------------------------" << std::endl;
+    ROS_INFO_STREAM_NAMED(name_, "Testing random state " << run_id);
 
-  const Eigen::Affine3d from_pose = from_state_->getGlobalLinkTransform(ee_link_);
-  const Eigen::Affine3d to_pose = to_state_->getGlobalLinkTransform(ee_link_);
+    // Generate random state
+    getRandomState(moveit_start_);
 
-  return getPoseDistance(from_pose, to_pose);
+    // Visualize
+    visual_moveit_start_->publishRobotState(moveit_start_, rvt::GREEN);
+
+    // Convert to ompl
+    space_->copyToOMPLState(random_state, *moveit_start_);
+
+    // Test
+    const ompl::base::PlannerTerminationCondition ptc = ompl::base::timedPlannerTerminationCondition(60.0);
+    bool result = experience_setup_->getRetrieveRepairPlanner().canConnect(random_state, ptc);
+    if (result)
+      successful_connections++;
+
+    ROS_ERROR_STREAM_NAMED(name_, "Percent connnected: " << successful_connections / double(run_id + 1) * 100.0);
+  }
+
+  space_->freeState(random_state);
 }
-
-double getPoseDistance(const Eigen::Affine3d &from_pose, const Eigen::Affine3d &to_pose)
-{
-  const double translation_dist = (from_pose.translation() - to_pose.translation()).norm();
-  // const double distance_wrist_to_finger = 0.25; // meter
-
-  const Eigen::Quaterniond from(from_pose.rotation());
-  const Eigen::Quaterniond to(to_pose.rotation());
-
-  // std::cout << "From: " << from.x() << ", " << from.y() << ", " << from.z() << ", " << from.w() << std::endl;
-  // std::cout << "To: " << to.x() << ", " << to.y() << ", " << to.z() << ", " << to.w() << std::endl;
-
-  double rotational_dist = arcLength(from, to);  // * distance_wrist_to_finger;
-
-  std::cout << "  Translation_Dist: " << std::fixed << std::setprecision(4) << translation_dist
-            << " rotational_dist: " << rotational_dist << std::endl;
-
-  return rotational_dist + translation_dist;
-}
-
-double arcLength(const Eigen::Quaterniond &from, const Eigen::Quaterniond &to)
-{
-  static const double MAX_QUATERNION_NORM_ERROR = 1e-9;
-  double dq = fabs(from.x() * to.x() + from.y() * to.y() + from.z() * to.z() + from.w() * to.w());
-  if (dq > 1.0 - MAX_QUATERNION_NORM_ERROR)
-    return 0.0;
-  else
-    return acos(dq);
-}
-*/
 
 /**
  * \brief Creates a directory names *database_direction* in the user's *home* folder, and inside that creates a file
