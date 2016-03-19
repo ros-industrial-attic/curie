@@ -82,7 +82,7 @@ IMarkerRobotState::IMarkerRobotState(psm::PlanningSceneMonitorPtr planning_scene
   imarker_state_->setToDefaultValues();
 
   // Get file name
-  if (!getFilePath(file_path_, "imarker_" + name_ + ".csv", "ompl_storage"))
+  if (!getFilePath(file_path_, "imarker_" + name_ + ".csv", "config/imarkers"))
     exit(-1);
 
   // Load previous pose from file
@@ -363,18 +363,16 @@ bool IMarkerRobotState::getFilePath(std::string &file_path, const std::string &f
 {
   namespace fs = boost::filesystem;
 
-  // Check that the directory exists, if not, create it
-  fs::path rootPath;
-  if (!std::string(getenv("HOME")).empty())
-    rootPath = fs::path(getenv("HOME"));  // Support Linux/Mac
-  else if (!std::string(getenv("HOMEPATH")).empty())
-    rootPath = fs::path(getenv("HOMEPATH"));  // Support Windows
-  else
+  // Get this package's path
+  const std::string package_path = ros::package::getPath("hilgendorf_moveit_demos");
+  if (package_path.empty())
   {
-    ROS_WARN("Unable to find a home path for this computer. Saving to root");
-    rootPath = fs::path("");
+    ROS_WARN("Unable to find this package's path");
+    return false;
   }
 
+  // Check that the directory exists, if not, create it
+  fs::path rootPath = fs::path(package_path);
   rootPath = rootPath / fs::path(subdirectory);
 
   boost::system::error_code returnedError;
@@ -390,7 +388,7 @@ bool IMarkerRobotState::getFilePath(std::string &file_path, const std::string &f
   // directories successfully created, append the group name as the file name
   rootPath = rootPath / fs::path(file_name);
   file_path = rootPath.string();
-  // ROS_INFO_STREAM_NAMED(name_, "Setting database to " << file_path);
+  ROS_INFO_STREAM_NAMED(name_, "Setting database to " << file_path);
 
   return true;
 }

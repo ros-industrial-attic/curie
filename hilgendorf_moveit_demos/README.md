@@ -4,7 +4,12 @@ Description: Demonstrate dual arm manipulation using a combination of free space
 
 Features:
 
- - TODO
+ - Integration of OMPL + MoveIt + Descartes
+ - Ability to discretize roadmap naively
+ - Multi-modal task planning - have intermediate waypoint goals
+ - Follow cartesian paths
+ - Support for dual arms
+ - Speedup using Thunder experience database
 
 Developed by [Dave Coleman](http://dav.ee/) at the University of Colorado Boulder in collaboration with ROS Industrial, Southwest Research Institute, and the National Institute of Standards and Technology.
 
@@ -46,21 +51,32 @@ Start simulated ros_control:
 
     roslaunch hilgendorf_moveit_demos hilgendorf_simulation.launch
 
-Start interactive marker control:
-
-    roslaunch hilgendorf_moveit_demos tf_interactive_marker.launch
-
 Run example demo:
 
     roslaunch hilgendorf_moveit_demos hilgendorf_demo.launch
 
+Note: the first time you run the program, it will discretize the configuration space in a brute-force manner, using the ``sparse_delta`` config. This will likely take ~1 hour. It will then save the database in the folder:
+
+    ~/ros/ompl_storage/
+
+And in the future loading will be fast.
+
+## Configuration
+
+There are lots of settings that can easily be tweaked in the following file:
+
+    hilgendorf_moveit_demos/config/config_hilgendorf.yaml
+
+In particular, pay attention to the ``visualize/`` configurations for more indepth view of what is going on.
+
 ## Distance between poses
 
-Test code
+Unfinished test code
 
     rosrun tf_keyboard_cal tf_interactive_marker.py world thing 0 0 0 0 0 0 1
 
     rosrun hilgendorf_moveit_demos test_pose_distance
+
 ## Testing and Linting
 
 To run [roslint](http://wiki.ros.org/roslint), use the following command with [catkin-tools](https://catkin-tools.readthedocs.org/):

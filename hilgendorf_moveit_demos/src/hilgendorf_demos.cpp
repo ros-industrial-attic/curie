@@ -341,11 +341,15 @@ bool HilgendorfDemos::plan(robot_state::RobotStatePtr start_state, robot_state::
   if (visualize_raw_trajectory_)
     visualizeRawTrajectory(path);
 
-  // Add more states between waypoints
+  // Smooth free-space components of trajectory
   std::size_t state_count = path.getStateCount();
+  smoothFreeSpace(path);
+  ROS_INFO_STREAM_NAMED(name_, "Smoothing removed: " << path.getStateCount() - state_count << " states");
+
+  // Add more states between waypoints
+  state_count = path.getStateCount();
   path.interpolate();
-  ROS_INFO_STREAM_NAMED(name_, "Number of states - before interpolation: " << state_count
-                        << " after interpolation: " << path.getStateCount());
+  ROS_INFO_STREAM_NAMED(name_, "Interpolation added: " << path.getStateCount() - state_count << " states");
 
   // Convert trajectory
   robot_trajectory::RobotTrajectoryPtr traj;
@@ -395,7 +399,68 @@ void HilgendorfDemos::visualizeRawTrajectory(og::PathGeometric& path)
   visual_moveit3->triggerBatchPublish();
 }
 
-/** \brief Create multiple dummy cartesian paths */
+void HilgendorfDemos::smoothFreeSpace(og::PathGeometric& path)
+{
+  og::PathGeometric free_path_0(si_);
+  og::PathGeometric cart_path_1(si_);
+  og::PathGeometric free_path_2(si_);
+  og::PathGeometric new_path(si_);
+
+  // Separate path into level types
+  for (std::size_t i = 0; i < path.getStateCount(); ++i)
+  {
+    int level = space_->getLevel(path.getState(i));
+
+    switch (level)
+    {
+      case 0:
+        free_path_0.append(path.getState(i));
+        break;
+      case 1:
+        cart_path_1.append(path.getState(i));
+        break;
+      case 2:
+        free_path_2.append(path.getState(i));
+        break;
+      default:
+        ROS_ERROR_STREAM_NAMED(name_, "Unknown level type " << level);
+    }
+  } // for
+
+  // Smooth both free space plans
+  simplifyPath(free_path_0);
+  simplifyPath(free_path_2);
+
+  // Combine paths back together
+  new_path.append(free_path_0);
+  new_path.append(cart_path_1);
+  new_path.append(free_path_2);
+
+  ROS_INFO_STREAM_NAMED(name_, "New path has " << new_path.getStateCount() << " states");
+
+  // Copy back to original structure
+  path = new_path;
+}
+
+bool HilgendorfDemos::simplifyPath(og::PathGeometric& path)
+{
+  ros::Time start_time = ros::Time::now();
+  std::size_t num_states = path.getStateCount();
+
+  // Allow 1 second of simplification
+  const ompl::base::PlannerTerminationCondition ptc = ompl::base::timedPlannerTerminationCondition(1.0);
+
+  // Simplify
+  experience_setup_->getPathSimplifier()->simplify(path, ptc);
+
+  // Feedback
+  double duration = (ros::Time::now() - start_time).toSec();
+  OMPL_INFORM("SimpleSetup(ptc): Path simplification took %f seconds and changed from %d to %d states",
+              duration, num_states, path.getStateCount());
+
+  return true;
+}
+
 void HilgendorfDemos::generateRandCartesianPath()
 {
   // First cleanup previous cartesian paths
@@ -438,7 +503,6 @@ bool HilgendorfDemos::checkOMPLPathSolution(og::PathGeometric& path)
   for (std::size_t i = 0; i < path.getStateCount(); ++i)
   {
     int level = space_->getLevel(path.getState(i));
-    std::cout << "Path state " << i << " has level " << level << std::endl;
 
     // Check if start state is correct
     if (i == 0)

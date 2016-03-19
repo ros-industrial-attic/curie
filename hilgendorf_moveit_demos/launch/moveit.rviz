@@ -5,9 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Grid1/Offset1
-        - /ompl1 - start1
         - /ompl1 - markers1/Namespaces1
-        - /Trajectory1
       Splitter Ratio: 0.561969
     Tree Height: 603
   - Class: rviz/Help
@@ -1011,8 +1009,7 @@ Visualization Manager:
       Marker Topic: /hilgendorf/ompl_markers
       Name: ompl3 - markers
       Namespaces:
-        Cylinder: true
-        Sphere: true
+        {}
       Queue Size: 100
       Value: true
     - Attached Body Color: 150; 50; 150
@@ -1491,7 +1488,7 @@ Visualization Manager:
       Marker Topic: /hilgendorf/cartesian_trajectory
       Name: Cartesian Trajectory
       Namespaces:
-        Arrow: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Group
@@ -2244,15 +2241,15 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 1.86584
+      Distance: 2.08974
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.392612
-        Y: -0.191858
+        X: 0.475816
+        Y: 0.127606
         Z: -9.98381e-07
       Name: Current View
       Near Clip Distance: 0.01
@@ -2277,5 +2274,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1788
-  X: 866
+  X: 856
   Y: 14

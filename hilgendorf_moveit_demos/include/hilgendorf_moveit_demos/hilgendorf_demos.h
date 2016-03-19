@@ -108,6 +108,10 @@ public:
 
   void visualizeRawTrajectory(og::PathGeometric& path);
 
+  void smoothFreeSpace(og::PathGeometric& path);
+
+  bool simplifyPath(og::PathGeometric& path);
+
   /**
    * \brief Creates a directory names *database_direction* in the user's *home* folder, and inside that creates a file
    *        named *database_name.ompl*
