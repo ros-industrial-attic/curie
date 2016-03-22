@@ -63,6 +63,39 @@ CartPathPlanner::CartPathPlanner(CurieDemos *parent) : name_("cart_path_planner"
   imarker_cartesian_->getVisualTools()->loadMarkerPub(true);
   imarker_cartesian_->getVisualTools()->deleteAllMarkers();
   imarker_cartesian_->getVisualTools()->setManualSceneUpdating(true);
+  imarker_cartesian_->getVisualTools()->loadTrajectoryPub(nh_.getNamespace() + "/display_trajectory");
+  ROS_WARN_STREAM_NAMED(name_, "Publishing to " << nh_.getNamespace() << "/display_trajectory");
+
+  // Load Descartes ------------------------------------------------
+
+  // creating application
+  ur5_descartes_.reset(new curie_demos::UR5DescartesApp(imarker_cartesian_->getVisualTools()));
+
+  // loading parameters
+  ur5_descartes_->loadParameters();
+
+  // initializing descartes
+  ur5_descartes_->initDescartes();
+
+  // while(ros::ok())
+  // {
+    // generating trajectory
+    curie_demos::DescartesTrajectory traj;
+    ur5_descartes_->generateTrajectory(traj);
+
+    // planning robot path
+    curie_demos::DescartesTrajectory output_path;
+    ur5_descartes_->planPath(traj,output_path);
+
+    // running robot path
+    moveit_msgs::RobotTrajectory moveit_traj = ur5_descartes_->runPath(output_path);
+
+    const bool blocking = true;
+    imarker_cartesian_->getVisualTools()->publishTrajectoryPath(moveit_traj, imarker_state_, blocking);
+
+  //   break;
+  // }
+
 
   ROS_INFO_STREAM_NAMED(name_, "CartPathPlanner Ready.");
 }
@@ -72,6 +105,37 @@ void CartPathPlanner::processIMarkerPose(const visualization_msgs::InteractiveMa
 {
   imarker_state_ = imarker_cartesian_->getRobotState();
   computePath();
+
+  /*
+  Eigen::Affine3d start_pose = imarker_state_->getGlobalLinkTransform(parent_->ee_link_);
+
+  // Get all possible solutions
+  std::vector<std::vector<double> > joint_poses;
+  if (!ur5_descartes_->robot_model_ptr_->getAllIK(start_pose, joint_poses))
+  {
+    ROS_ERROR_STREAM_NAMED(name_, "getAllIK returned false");
+    return;
+  }
+
+  // Error check
+  if (joint_poses.empty())
+  {
+    ROS_ERROR_STREAM_NAMED(name_, "getAllIK returned no solutions");
+    return;
+  }
+
+  // Visualize all returned solutions
+  for (std::size_t i = 0; i < 1; ++i) //joint_poses.size(); ++i)
+  {
+    std::cout << "settting joint pose: " << i << " -- ";
+    std::copy(joint_poses[i].begin(), joint_poses[i].end(), std::ostream_iterator<double>(std::cout, ", "));
+    std::cout << std::endl;
+
+    imarker_state_->setJointGroupPositions("right_arm", joint_poses[i]);
+    imarker_cartesian_->getVisualTools()->publishRobotState(imarker_state_, rvt::RAND);
+    //ros::Duration(0.5).sleep();
+  }
+  */
 }
 
 bool CartPathPlanner::computePath()

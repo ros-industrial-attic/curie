@@ -21,6 +21,26 @@ curie_demos:
   debug:
     print_trajectory: false
 
+# for ur5_demo_descartes/src/ur_moveit_plugin.cpp TODO: this is crappy code
+arm_prefix: right_
+
+ur5_descartes_app:
+  group_name: right_arm
+  tip_link: right_gripper_target
+  base_link: right_base_link
+  world_frame: world
+  trajectory:
+    time_delay: 0.1
+    foci_distance: 0.07
+    radius: 0.097
+    num_points: 200
+    num_lemniscates: 4
+    center: [0.6, -0.2, 0.2]
+    seed_pose: [0.0, -1.7, 1.7 , 0.0, 1.5, 0.0]
+  visualization:
+    min_point_distance: 0.02
+  controller_joint_names: [shoulder_pan_joint, shoulder_lift_joint, elbow_joint, wrist_1_joint, wrist_2_joint, wrist_3_joint]
+
 # Interface for publishing joint/cartesian commands to the low level controllers
 execution_interface:
   command_mode: joint_publisher # method for publishing commands from this node to low level controller

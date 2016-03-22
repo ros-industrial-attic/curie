@@ -51,7 +51,7 @@ CurieDemos::CurieDemos()
   // Load rosparams
   ros::NodeHandle rpnh(nh_, name_);
   std::size_t error = 0;
-    error += !rosparam_shortcuts::get(name_, rpnh, "auto_run", auto_run_);
+  error += !rosparam_shortcuts::get(name_, rpnh, "auto_run", auto_run_);
   error += !rosparam_shortcuts::get(name_, rpnh, "experience_planner", experience_planner_);
   error += !rosparam_shortcuts::get(name_, rpnh, "planning_runs", planning_runs_);
   error += !rosparam_shortcuts::get(name_, rpnh, "sparse_delta", sparse_delta_);
@@ -102,6 +102,10 @@ CurieDemos::CurieDemos()
   // Wait until user does something
   if (!auto_run_)
     ros::spin();
+
+  // TODO(davetcoleman): temp
+  ros::spin();
+  exit(0);
 
   // Load planning
   if (!loadOMPL())

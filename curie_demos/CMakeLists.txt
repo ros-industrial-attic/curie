@@ -14,6 +14,10 @@ find_package(catkin REQUIRED COMPONENTS
   rosparam_shortcuts
   ompl_visual_tools
   tf_conversions
+  descartes_core
+  descartes_planner
+  descartes_moveit
+  ur5_demo_descartes
 )
 
 find_package(Boost REQUIRED)
@@ -52,6 +56,12 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+## Library
+add_library(${PROJECT_NAME}_ur5_descartes_app
+  src/ur5_descartes_app.cpp
+)
+target_link_libraries(${PROJECT_NAME}_ur5_descartes_app ${catkin_LIBRARIES})
+
 # Library
 add_library(${PROJECT_NAME}_imarker_robot_state
   src/imarker_robot_state.cpp
@@ -69,6 +79,7 @@ add_library(${PROJECT_NAME}_cart_path_planner
 # Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_cart_path_planner
   ${PROJECT_NAME}_imarker_robot_state
+  ${PROJECT_NAME}_ur5_descartes_app
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
 )
@@ -101,7 +112,7 @@ target_link_libraries(${PROJECT_NAME}_curie_demos_main
 
 # Demo for memory usage
 add_executable(${PROJECT_NAME}_memory_demo
-  src/memory_demo.cpp
+  src/tools/memory_demo.cpp
 )
 # Rename C++ executable without namespace
 set_target_properties(${PROJECT_NAME}_memory_demo
@@ -115,7 +126,7 @@ target_link_libraries(${PROJECT_NAME}_memory_demo
 
 # Demo for distance function
 add_executable(${PROJECT_NAME}_test_pose_distance
-  src/test_pose_distance.cpp
+  src/tools/test_pose_distance.cpp
 )
 # Rename C++ executable without namespace
 set_target_properties(${PROJECT_NAME}_test_pose_distance

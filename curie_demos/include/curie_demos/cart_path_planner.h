@@ -48,6 +48,7 @@
 
 // this package
 #include <curie_demos/imarker_robot_state.h>
+#include <curie_demos/ur5_descartes_app.h>
 
 namespace curie_demos
 {
@@ -97,6 +98,8 @@ private:
   // Interactive markers
   IMarkerRobotStatePtr imarker_cartesian_;
 
+  // Descartes
+  UR5DescartesAppPtr ur5_descartes_;
 }; // end class
 
 // Create boost pointers for this class

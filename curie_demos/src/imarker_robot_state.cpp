@@ -226,7 +226,7 @@ void IMarkerRobotState::solveIK(Eigen::Affine3d &pose)
   // ROS_DEBUG_STREAM_THROTTLE_NAMED(1, name_, "Setting from IK");
   if (imarker_state_->setFromIK(jmg_, pose, attempts, timeout, constraint_fn))
   {
-    // ROS_INFO_STREAM_NAMED(name_, "Solved IK");
+    //ROS_INFO_STREAM_NAMED(name_, "Solved IK - viz temp disabled");
     visual_tools_->publishRobotState(imarker_state_, color_);
   }
   // else
