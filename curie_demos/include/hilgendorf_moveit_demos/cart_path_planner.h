@@ -36,8 +36,8 @@
    Desc:   Creates a cartesian path to be inserted into a planning roadmap
 */
 
-#ifndef HILGENDORF_MOVEIT_DEMOS_CART_PATH_PLANNER_H
-#define HILGENDORF_MOVEIT_DEMOS_CART_PATH_PLANNER_H
+#ifndef CURIE_DEMOS_CART_PATH_PLANNER_H
+#define CURIE_DEMOS_CART_PATH_PLANNER_H
 
 // MoveIt
 #include <moveit/robot_state/robot_state.h>
@@ -47,12 +47,12 @@
 #include <ros/ros.h>
 
 // this package
-#include <hilgendorf_moveit_demos/imarker_robot_state.h>
+#include <curie_demos/imarker_robot_state.h>
 
-namespace hilgendorf_moveit_demos
+namespace curie_demos
 {
 
-class HilgendorfDemos;
+class CurieDemos;
 
 class CartPathPlanner
 {
@@ -61,7 +61,7 @@ public:
   /**
    * \brief Constructor
    */
-  CartPathPlanner(HilgendorfDemos* parent);
+  CartPathPlanner(CurieDemos* parent);
 
 void processIMarkerPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback,
                                            const Eigen::Affine3d &feedback_pose);
@@ -86,7 +86,7 @@ private:
   ros::NodeHandle nh_;
 
   // Parent class
-  HilgendorfDemos* parent_;
+  CurieDemos* parent_;
 
   // State
   moveit::core::RobotStatePtr imarker_state_;
@@ -103,5 +103,5 @@ private:
 typedef boost::shared_ptr<CartPathPlanner> CartPathPlannerPtr;
 typedef boost::shared_ptr<const CartPathPlanner> CartPathPlannerConstPtr;
 
-} // namespace hilgendorf_moveit_demos
-#endif  // HILGENDORF_MOVEIT_DEMOS_CART_PATH_PLANNER_H
+} // namespace curie_demos
+#endif  // CURIE_DEMOS_CART_PATH_PLANNER_H

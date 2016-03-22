@@ -37,13 +37,13 @@
 */
 
 // this package
-#include <hilgendorf_moveit_demos/hilgendorf_demos.h>
+#include <curie_demos/curie_demos.h>
 
 int main(int argc, char **argv)
 {
   // Initialize ROS
-  ros::init(argc, argv, "hilgendorf_demos");
-  ROS_INFO_STREAM_NAMED("main", "Starting HilgendorfDemos...");
+  ros::init(argc, argv, "curie_demos");
+  ROS_INFO_STREAM_NAMED("main", "Starting CurieDemos...");
 
   // Seed random number generator
   srand (time(NULL));
@@ -53,7 +53,7 @@ int main(int argc, char **argv)
   spinner.start();
 
   // Initialize main class
-  hilgendorf_moveit_demos::HilgendorfDemos server;
+  curie_demos::CurieDemos server;
   server.runRandomProblems();
   // server.testConnectionToGraphOfRandStates();
 

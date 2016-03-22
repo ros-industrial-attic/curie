@@ -47,9 +47,9 @@
 #include <boost/filesystem.hpp>
 
 // this package
-#include <hilgendorf_moveit_demos/imarker_robot_state.h>
+#include <curie_demos/imarker_robot_state.h>
 
-namespace hilgendorf_moveit_demos
+namespace curie_demos
 {
 IMarkerRobotState::IMarkerRobotState(psm::PlanningSceneMonitorPtr planning_scene_monitor,
                                      const std::string &imarker_name, const moveit::core::JointModelGroup *jmg,
@@ -364,7 +364,7 @@ bool IMarkerRobotState::getFilePath(std::string &file_path, const std::string &f
   namespace fs = boost::filesystem;
 
   // Get this package's path
-  const std::string package_path = ros::package::getPath("hilgendorf_moveit_demos");
+  const std::string package_path = ros::package::getPath("curie_demos");
   if (package_path.empty())
   {
     ROS_WARN("Unable to find this package's path");
@@ -438,7 +438,7 @@ moveit_visual_tools::MoveItVisualToolsPtr IMarkerRobotState::getVisualTools()
   return visual_tools_;
 }
 
-}  // namespace hilgendorf_moveit_demos
+}  // namespace curie_demos
 
 namespace
 {

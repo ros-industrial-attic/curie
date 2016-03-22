@@ -11,14 +11,14 @@
   <arg name="debug" default="false" />
   <arg unless="$(arg debug)" name="launch_prefix" value="" />
   <arg     if="$(arg debug)" name="launch_prefix"
-       value="gdb -x $(find hilgendorf_moveit_demos)/launch/debug_settings.gdb --ex run --args" />
+       value="gdb -x $(find curie_demos)/launch/debug_settings.gdb --ex run --args" />
 
   <!-- Main process -->
-  <node name="hilgendorf" pkg="hilgendorf_moveit_demos" type="hilgendorf_demos_main" respawn="false"
+  <node name="hilgendorf" pkg="curie_demos" type="curie_demos_main" respawn="false"
     launch-prefix="$(arg launch_prefix)" output="screen">
 
     <!-- Robot-specific settings -->
-    <rosparam command="load" file="$(find hilgendorf_moveit_demos)/config/config_hilgendorf.yaml"/>
+    <rosparam command="load" file="$(find curie_demos)/config/config_hilgendorf.yaml"/>
   </node>
 
   <!-- <node name="game_controller" pkg="joy" type="joy_node" respawn="true"/> -->

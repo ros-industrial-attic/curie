@@ -1,4 +1,4 @@
-# Hilgendorf Demos
+# Curie Demos
 
 Description: Demonstrate dual arm manipulation using a combination of free space and Cartesian planning
 
@@ -15,9 +15,9 @@ Developed by [Dave Coleman](http://dav.ee/) at the University of Colorado Boulde
 
 Status:
 
- * [![Build Status](https://travis-ci.org/davetcoleman/hilgendorf_demos.svg)](https://travis-ci.org/davetcoleman/hilgendorf_demos) Travis - Continuous Integration
- * [![Build Status](http://build.ros.org/buildStatus/icon?job=Jsrc_uT__hilgendorf_demos__ubuntu_trusty__source)](http://build.ros.org/view/Jsrc_uT/job/Jsrc_uT__hilgendorf_demos__ubuntu_trusty__source/) ROS Buildfarm - Trusty Devel Source Build
- * [![Build Status](http://build.ros.org/buildStatus/icon?job=Jbin_uT64__hilgendorf_demos__ubuntu_trusty_amd64__binary)](http://build.ros.org/view/Jbin_uT64/job/Jbin_uT64__hilgendorf_demos__ubuntu_trusty_amd64__binary/) ROS Buildfarm - AMD64 Trusty Debian Build
+ * [![Build Status](https://travis-ci.org/davetcoleman/curie_demos.svg)](https://travis-ci.org/davetcoleman/curie_demos) Travis - Continuous Integration
+ * [![Build Status](http://build.ros.org/buildStatus/icon?job=Jsrc_uT__curie_demos__ubuntu_trusty__source)](http://build.ros.org/view/Jsrc_uT/job/Jsrc_uT__curie_demos__ubuntu_trusty__source/) ROS Buildfarm - Trusty Devel Source Build
+ * [![Build Status](http://build.ros.org/buildStatus/icon?job=Jbin_uT64__curie_demos__ubuntu_trusty_amd64__binary)](http://build.ros.org/view/Jbin_uT64/job/Jbin_uT64__curie_demos__ubuntu_trusty_amd64__binary/) ROS Buildfarm - AMD64 Trusty Debian Build
 
 ![](resources/screenshot.png)
 
@@ -27,7 +27,7 @@ Status:
 
 > Note: this package has not been released yet
 
-    sudo apt-get install ros-jade-hilgendorf-demos
+    sudo apt-get install ros-jade-curie-demos
 
 ### Build from Source
 
@@ -39,21 +39,21 @@ To build this package, ``git clone`` this repo into a [catkin workspace](http://
 
 > Note: this package has not been released yet
 
-See [Class Reference](http://docs.ros.org/jade/api/hilgendorf_demos/html/)
+See [Class Reference](http://docs.ros.org/jade/api/curie_demos/html/)
 
 ## Usage
 
 Start Rviz:
 
-    roslaunch hilgendorf_moveit_demos hilgendorf_visualize.launch
+    roslaunch curie_demos hilgendorf_visualize.launch
 
 Start simulated ros_control:
 
-    roslaunch hilgendorf_moveit_demos hilgendorf_simulation.launch
+    roslaunch curie_demos hilgendorf_simulation.launch
 
 Run example demo:
 
-    roslaunch hilgendorf_moveit_demos hilgendorf_demo.launch
+    roslaunch curie_demos hilgendorf_demo.launch
 
 Note: the first time you run the program, it will discretize the configuration space in a brute-force manner, using the ``sparse_delta`` config. This will likely take ~1 hour. It will then save the database in the folder:
 
@@ -65,7 +65,7 @@ And in the future loading will be fast.
 
 There are lots of settings that can easily be tweaked in the following file:
 
-    hilgendorf_moveit_demos/config/config_hilgendorf.yaml
+    curie_demos/config/config_hilgendorf.yaml
 
 In particular, pay attention to the ``visualize/`` configurations for more indepth view of what is going on.
 
@@ -75,7 +75,7 @@ Unfinished test code
 
     rosrun tf_keyboard_cal tf_interactive_marker.py world thing 0 0 0 0 0 0 1
 
-    rosrun hilgendorf_moveit_demos test_pose_distance
+    rosrun curie_demos test_pose_distance
 
 ## Testing and Linting
 

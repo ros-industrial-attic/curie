@@ -40,12 +40,12 @@
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 
 // this package
-#include <hilgendorf_moveit_demos/hilgendorf_demos.h>
+#include <curie_demos/curie_demos.h>
 
-namespace hilgendorf_moveit_demos
+namespace curie_demos
 {
-HilgendorfDemos::HilgendorfDemos()
-  : MoveItBase(), nh_("~"), name_("hilgendorf_demos"), total_duration_(0.0), total_runs_(0), total_failures_(0)
+CurieDemos::CurieDemos()
+  : MoveItBase(), nh_("~"), name_("curie_demos"), total_duration_(0.0), total_runs_(0), total_failures_(0)
 
 {
   // Load rosparams
@@ -75,7 +75,7 @@ HilgendorfDemos::HilgendorfDemos()
   // Initialize MoveIt base
   MoveItBase::init(nh_);
 
-  // Load 2 more visual tools
+  // Load more visual tool objects
   loadVisualTools();
 
   // Load 2 more robot states
@@ -110,17 +110,17 @@ HilgendorfDemos::HilgendorfDemos()
     return;
   }
 
-  ROS_INFO_STREAM_NAMED(name_, "HilgendorfDemos Ready.");
+  ROS_INFO_STREAM_NAMED(name_, "CurieDemos Ready.");
 }
 
-HilgendorfDemos::~HilgendorfDemos()
+CurieDemos::~CurieDemos()
 {
   // Free start and goal states
   space_->freeState(ompl_start_);
   space_->freeState(ompl_goal_);
 }
 
-bool HilgendorfDemos::loadOMPL()
+bool CurieDemos::loadOMPL()
 {
   moveit_ompl::ModelBasedStateSpaceSpecification mbss_spec(robot_model_, jmg_);
 
@@ -131,7 +131,7 @@ bool HilgendorfDemos::loadOMPL()
   si_ = experience_setup_->getSpaceInformation();
 
   // Add custom distance function
-  // space_->setDistanceFunction(boost::bind(&HilgendorfDemos::customDistanceFunction, this, _1, _2));
+  // space_->setDistanceFunction(boost::bind(&CurieDemos::customDistanceFunction, this, _1, _2));
 
   // Set state validity checking for this space
   experience_setup_->setStateValidityChecker(ob::StateValidityCheckerPtr(
@@ -215,7 +215,7 @@ bool HilgendorfDemos::loadOMPL()
   return true;
 }
 
-void HilgendorfDemos::runRandomProblems()
+void CurieDemos::runRandomProblems()
 {
   if (skip_solving_)
   {
@@ -267,7 +267,7 @@ void HilgendorfDemos::runRandomProblems()
   // ROS_ERROR_STREAM_NAMED(name_, "Average solving time: " << (total_duration_ / total_runs_));
 }
 
-bool HilgendorfDemos::plan(robot_state::RobotStatePtr start_state, robot_state::RobotStatePtr goal_state)
+bool CurieDemos::plan(robot_state::RobotStatePtr start_state, robot_state::RobotStatePtr goal_state)
 {
   // Setup -----------------------------------------------------------
 
@@ -384,7 +384,7 @@ bool HilgendorfDemos::plan(robot_state::RobotStatePtr start_state, robot_state::
   return true;
 }
 
-void HilgendorfDemos::visualizeRawTrajectory(og::PathGeometric& path)
+void CurieDemos::visualizeRawTrajectory(og::PathGeometric& path)
 {
   ROS_INFO("Visualizing non-interpolated trajectory");
 
@@ -399,7 +399,7 @@ void HilgendorfDemos::visualizeRawTrajectory(og::PathGeometric& path)
   visual_moveit3->triggerBatchPublish();
 }
 
-void HilgendorfDemos::smoothFreeSpace(og::PathGeometric& path)
+void CurieDemos::smoothFreeSpace(og::PathGeometric& path)
 {
   og::PathGeometric free_path_0(si_);
   og::PathGeometric cart_path_1(si_);
@@ -442,7 +442,7 @@ void HilgendorfDemos::smoothFreeSpace(og::PathGeometric& path)
   path = new_path;
 }
 
-bool HilgendorfDemos::simplifyPath(og::PathGeometric& path)
+bool CurieDemos::simplifyPath(og::PathGeometric& path)
 {
   ros::Time start_time = ros::Time::now();
   std::size_t num_states = path.getStateCount();
@@ -461,7 +461,7 @@ bool HilgendorfDemos::simplifyPath(og::PathGeometric& path)
   return true;
 }
 
-void HilgendorfDemos::generateRandCartesianPath()
+void CurieDemos::generateRandCartesianPath()
 {
   // First cleanup previous cartesian paths
   experience_setup_->getExperienceDB()->cleanupTemporaryVerticies();
@@ -495,7 +495,7 @@ void HilgendorfDemos::generateRandCartesianPath()
   }
 }
 
-bool HilgendorfDemos::checkOMPLPathSolution(og::PathGeometric& path)
+bool CurieDemos::checkOMPLPathSolution(og::PathGeometric& path)
 {
   bool error = false;
   int current_level = 0;
@@ -560,7 +560,7 @@ bool HilgendorfDemos::checkOMPLPathSolution(og::PathGeometric& path)
   return error;
 }
 
-bool HilgendorfDemos::checkMoveItPathSolution(robot_trajectory::RobotTrajectoryPtr traj)
+bool CurieDemos::checkMoveItPathSolution(robot_trajectory::RobotTrajectoryPtr traj)
 {
   std::size_t state_count = traj->getWayPointCount();
   if (state_count < 3)
@@ -623,7 +623,7 @@ bool HilgendorfDemos::checkMoveItPathSolution(robot_trajectory::RobotTrajectoryP
   return true;
 }
 
-bool HilgendorfDemos::getRandomState(moveit::core::RobotStatePtr &robot_state)
+bool CurieDemos::getRandomState(moveit::core::RobotStatePtr &robot_state)
 {
   static const std::size_t MAX_ATTEMPTS = 100;
   for (std::size_t i = 0; i < MAX_ATTEMPTS; ++i)
@@ -646,7 +646,7 @@ bool HilgendorfDemos::getRandomState(moveit::core::RobotStatePtr &robot_state)
   return false;
 }
 
-void HilgendorfDemos::loadVisualTools()
+void CurieDemos::loadVisualTools()
 {
   // Note: this is in addition to the moveit_boilerplate visual_tools
 
@@ -669,7 +669,7 @@ void HilgendorfDemos::loadVisualTools()
 
   visual_ompl3_.reset(
       new ompl_visual_tools::OmplVisualTools(robot_model_->getModelFrame(), namesp + "/ompl_markers", robot_model_));
-  visual_ompl3_->loadTrajectoryPub("/hilgendorf/display_trajectory");
+  visual_ompl3_->loadTrajectoryPub(namesp + "/display_trajectory");
   visual_ompl3_->setPlanningSceneMonitor(planning_scene_monitor_);
   visual_ompl3_->loadRobotStatePub(namesp + "/ompl_state");
   visual_ompl3_->setManualSceneUpdating(true);
@@ -701,7 +701,7 @@ void HilgendorfDemos::loadVisualTools()
   ros::Duration(1).sleep();
 }
 
-void HilgendorfDemos::visualizeStartGoal()
+void CurieDemos::visualizeStartGoal()
 {
   visual_moveit_start_->publishRobotState(moveit_start_, rvt::GREEN);
   visual_moveit_goal_->publishRobotState(moveit_goal_, rvt::ORANGE);
@@ -713,7 +713,7 @@ void HilgendorfDemos::visualizeStartGoal()
   // visual_moveit_start_->showJointLimits(moveit_goal_);
 }
 
-void HilgendorfDemos::testConnectionToGraphOfRandStates()
+void CurieDemos::testConnectionToGraphOfRandStates()
 {
   ompl::base::State *random_state = space_->allocState();
 
@@ -745,15 +745,7 @@ void HilgendorfDemos::testConnectionToGraphOfRandStates()
   space_->freeState(random_state);
 }
 
-/**
- * \brief Creates a directory names *database_direction* in the user's *home* folder, and inside that creates a file
- *        named *database_name.ompl*
- * \param file_path - result to generate
- * \param database_name - name of file to create
- * \param database_directory - name of folder to save in user directory
- * \return true on success
- */
-bool HilgendorfDemos::getFilePath(std::string &file_path, const std::string &database_name,
+bool CurieDemos::getFilePath(std::string &file_path, const std::string &database_name,
                                   const std::string &database_directory) const
 
 {
@@ -791,4 +783,4 @@ bool HilgendorfDemos::getFilePath(std::string &file_path, const std::string &dat
   return true;
 }
 
-}  // namespace hilgendorf_moveit_demos
+}  // namespace curie_demos

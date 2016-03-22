@@ -37,8 +37,8 @@
 */
 
 // this package
-#include <hilgendorf_moveit_demos/cart_path_planner.h>
-#include <hilgendorf_moveit_demos/hilgendorf_demos.h>
+#include <curie_demos/cart_path_planner.h>
+#include <curie_demos/curie_demos.h>
 
 // ROS parameter loading
 //#include <rosparam_shortcuts/rosparam_shortcuts.h>
@@ -46,9 +46,9 @@
 // moveit_boilerplate
 #include <moveit_boilerplate/namespaces.h>
 
-namespace hilgendorf_moveit_demos
+namespace curie_demos
 {
-CartPathPlanner::CartPathPlanner(HilgendorfDemos *parent) : name_("cart_path_planner"), nh_("~"), parent_(parent)
+CartPathPlanner::CartPathPlanner(CurieDemos *parent) : name_("cart_path_planner"), nh_("~"), parent_(parent)
 {
   // Load planning state
   imarker_state_.reset(new moveit::core::RobotState(*parent_->moveit_start_));
@@ -162,4 +162,4 @@ bool CartPathPlanner::getTrajectory(std::vector<moveit::core::RobotStatePtr> &tr
   return true;
 }
 
-}  // namespace hilgendorf_moveit_demos
+}  // namespace curie_demos

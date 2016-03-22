@@ -1,7 +1,7 @@
 # Main program
-hilgendorf_demos:
+curie_demos:
   auto_run: true # do not wait to move interactive markers
-  planning_runs: 1
+  planning_runs: 100
   experience_planner: bolt
   sparse_delta: 1.0
   save_database: false

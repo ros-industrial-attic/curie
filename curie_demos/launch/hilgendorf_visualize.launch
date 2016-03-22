@@ -10,7 +10,7 @@
   </include>
 
   <node name="$(anon rviz)" launch-prefix="$(arg launch_prefix)" pkg="rviz" type="rviz" respawn="false"
-    args="-d $(find hilgendorf_moveit_demos)/launch/moveit.rviz" output="screen">
+    args="-d $(find curie_demos)/launch/moveit.rviz" output="screen">
   </node>
 
 </launch>

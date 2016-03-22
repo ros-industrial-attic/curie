@@ -46,8 +46,8 @@
    - visual_tools_ - from moveit_base base class
 */
 
-#ifndef HILGENDORF_MOVEIT_DEMOS_HILGENDORF_DEMOS_H
-#define HILGENDORF_MOVEIT_DEMOS_HILGENDORF_DEMOS_H
+#ifndef CURIE_DEMOS_CURIE_DEMOS_H
+#define CURIE_DEMOS_CURIE_DEMOS_H
 
 // ROS
 #include <ros/ros.h>
@@ -65,24 +65,24 @@
 #include <ompl_visual_tools/ompl_visual_tools.h>
 
 // this package
-#include <hilgendorf_moveit_demos/process_mem_usage.h>
-#include <hilgendorf_moveit_demos/state_validity_checker.h>
-#include <hilgendorf_moveit_demos/cart_path_planner.h>
-#include <hilgendorf_moveit_demos/imarker_robot_state.h>
+#include <curie_demos/process_mem_usage.h>
+#include <curie_demos/state_validity_checker.h>
+#include <curie_demos/cart_path_planner.h>
+#include <curie_demos/imarker_robot_state.h>
 
 namespace mo = moveit_ompl;
 
-namespace hilgendorf_moveit_demos
+namespace curie_demos
 {
-class HilgendorfDemos : public moveit_boilerplate::MoveItBase
+class CurieDemos : public moveit_boilerplate::MoveItBase
 {
 public:
 
   /** \brief Constructor */
-  HilgendorfDemos();
+  CurieDemos();
 
   /** \brief Destructor */
-  ~HilgendorfDemos();
+  ~CurieDemos();
 
   /** \brief Load the basic planning context components */
   bool loadOMPL();
@@ -108,6 +108,7 @@ public:
 
   void visualizeRawTrajectory(og::PathGeometric& path);
 
+  /** \brief Smooths the free space components of a trajectory, but not the cartesian components */
   void smoothFreeSpace(og::PathGeometric& path);
 
   bool simplifyPath(og::PathGeometric& path);
@@ -190,9 +191,9 @@ public:
 };  // end class
 
 // Create boost pointers for this class
-typedef boost::shared_ptr<HilgendorfDemos> HilgendorfDemosPtr;
-typedef boost::shared_ptr<const HilgendorfDemos> HilgendorfDemosConstPtr;
+typedef boost::shared_ptr<CurieDemos> CurieDemosPtr;
+typedef boost::shared_ptr<const CurieDemos> CurieDemosConstPtr;
 
-}  // namespace hilgendorf_moveit_demos
+}  // namespace curie_demos
 
-#endif  // HILGENDORF_MOVEIT_DEMOS_HILGENDORF_DEMOS_H
+#endif  // CURIE_DEMOS_CURIE_DEMOS_H

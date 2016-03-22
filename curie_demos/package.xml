@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>hilgendorf_moveit_demos</name>
+  <name>curie_demos</name>
   <version>0.0.1</version>
   <description>Demonstrate dual arm manipulation using a combination of free space and Cartesian planning</description>
 

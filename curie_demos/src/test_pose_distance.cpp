@@ -36,8 +36,8 @@
    Desc:
 */
 
-#ifndef HILGENDORF_MOVEIT_DEMOS_TEST_POSE_DISTANCE_H
-#define HILGENDORF_MOVEIT_DEMOS_TEST_POSE_DISTANCE_H
+#ifndef CURIE_DEMOS_TEST_POSE_DISTANCE_H
+#define CURIE_DEMOS_TEST_POSE_DISTANCE_H
 
 // ROS
 #include <ros/ros.h>
@@ -56,7 +56,7 @@
 // Boost
 #include <boost/lexical_cast.hpp>
 
-namespace hilgendorf_moveit_demos
+namespace curie_demos
 {
 class TestPoseDistance
 {
@@ -162,8 +162,8 @@ private:
 typedef boost::shared_ptr<TestPoseDistance> TestPoseDistancePtr;
 typedef boost::shared_ptr<const TestPoseDistance> TestPoseDistanceConstPtr;
 
-}  // namespace hilgendorf_moveit_demos
-#endif  // HILGENDORF_MOVEIT_DEMOS_TEST_POSE_DISTANCE_H
+}  // namespace curie_demos
+#endif  // CURIE_DEMOS_TEST_POSE_DISTANCE_H
 
 int main(int argc, char** argv)
 {
@@ -176,7 +176,7 @@ int main(int argc, char** argv)
   spinner.start();
 
   // Initialize main class
-  hilgendorf_moveit_demos::TestPoseDistance server;
+  curie_demos::TestPoseDistance server;
   server.runLoop();
 
   // Shutdown

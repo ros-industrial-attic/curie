@@ -36,8 +36,8 @@
    Desc:   Class to encapsule a visualized robot state that can be controlled using an interactive marker
 */
 
-#ifndef HILGENDORF_MOVEIT_DEMOS_IM_ROBOT_STATE_H
-#define HILGENDORF_MOVEIT_DEMOS_IM_ROBOT_STATE_H
+#ifndef CURIE_DEMOS_IM_ROBOT_STATE_H
+#define CURIE_DEMOS_IM_ROBOT_STATE_H
 
 // ROS
 #include <ros/ros.h>
@@ -51,7 +51,7 @@
 #include <moveit_visual_tools/moveit_visual_tools.h>
 #include <moveit_boilerplate/namespaces.h>
 
-namespace hilgendorf_moveit_demos
+namespace curie_demos
 {
 using visualization_msgs::InteractiveMarkerFeedback;
 using visualization_msgs::InteractiveMarkerControl;
@@ -153,7 +153,7 @@ private:
 typedef boost::shared_ptr<IMarkerRobotState> IMarkerRobotStatePtr;
 typedef boost::shared_ptr<const IMarkerRobotState> IMarkerRobotStateConstPtr;
 
-}  // namespace hilgendorf_moveit_demos
+}  // namespace curie_demos
 
 namespace
 {
@@ -163,4 +163,4 @@ bool isStateValid(const planning_scene::PlanningScene *planning_scene, bool verb
                   const robot_state::JointModelGroup *group, const double *ik_solution);
 }
 
-#endif  // HILGENDORF_MOVEIT_DEMOS_IM_ROBOT_STATE_H
+#endif  // CURIE_DEMOS_IM_ROBOT_STATE_H
