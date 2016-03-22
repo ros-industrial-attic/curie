@@ -86,6 +86,12 @@ CurieDemos::CurieDemos()
   jmg_ = robot_model_->getJointModelGroup(planning_group_name_);
   ee_link_ = robot_model_->getLinkModel("right_gripper_target");
 
+  // Add a collision objects
+  visual_moveit_start_->publishCollisionFloor(0.001, "floor", rvt::TRANSLUCENT);
+  visual_moveit_start_->publishCollisionWall(-0.5, 0.0, 0, 2, 1.5, "wall", rvt::BLACK);
+  visual_moveit_start_->triggerPlanningSceneUpdate();
+  ros::spinOnce();
+
   double vm1, rss1;
   process_mem_usage(vm1, rss1);
   ROS_INFO_STREAM_NAMED(name_, "Current memory consumption - VM: " << vm1 << " MB | RSS: " << rss1 << " MB");
@@ -102,10 +108,6 @@ CurieDemos::CurieDemos()
   // Wait until user does something
   if (!auto_run_)
     ros::spin();
-
-  // TODO(davetcoleman): temp
-  ros::spin();
-  exit(0);
 
   // Load planning
   if (!loadOMPL())

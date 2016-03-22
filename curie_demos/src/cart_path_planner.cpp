@@ -64,10 +64,10 @@ CartPathPlanner::CartPathPlanner(CurieDemos *parent) : name_("cart_path_planner"
   imarker_cartesian_->getVisualTools()->deleteAllMarkers();
   imarker_cartesian_->getVisualTools()->setManualSceneUpdating(true);
   imarker_cartesian_->getVisualTools()->loadTrajectoryPub(nh_.getNamespace() + "/display_trajectory");
-  ROS_WARN_STREAM_NAMED(name_, "Publishing to " << nh_.getNamespace() << "/display_trajectory");
 
   // Load Descartes ------------------------------------------------
 
+  /*
   // creating application
   ur5_descartes_.reset(new curie_demos::UR5DescartesApp(imarker_cartesian_->getVisualTools()));
 
@@ -77,8 +77,6 @@ CartPathPlanner::CartPathPlanner(CurieDemos *parent) : name_("cart_path_planner"
   // initializing descartes
   ur5_descartes_->initDescartes();
 
-  // while(ros::ok())
-  // {
     // generating trajectory
     curie_demos::DescartesTrajectory traj;
     ur5_descartes_->generateTrajectory(traj);
@@ -90,11 +88,11 @@ CartPathPlanner::CartPathPlanner(CurieDemos *parent) : name_("cart_path_planner"
     // running robot path
     moveit_msgs::RobotTrajectory moveit_traj = ur5_descartes_->runPath(output_path);
 
+    std::cout << "moveit_traj: " << moveit_traj << std::endl;
+
     const bool blocking = true;
     imarker_cartesian_->getVisualTools()->publishTrajectoryPath(moveit_traj, imarker_state_, blocking);
-
-  //   break;
-  // }
+  */
 
 
   ROS_INFO_STREAM_NAMED(name_, "CartPathPlanner Ready.");

@@ -288,8 +288,8 @@ void UR5DescartesApp::publishPosesMarkers(const EigenSTL::vector_Affine3d& poses
 }
 
 bool UR5DescartesApp::createLemniscateCurve(double foci_distance, double sphere_radius,
-                                  int num_points, int num_lemniscates,const Eigen::Vector3d& sphere_center,
-                                  EigenSTL::vector_Affine3d& poses)
+                                            int num_points, int num_lemniscates,const Eigen::Vector3d& sphere_center,
+                                            EigenSTL::vector_Affine3d& poses)
 {
   double a = foci_distance;
   double ro = sphere_radius;
@@ -419,9 +419,9 @@ void UR5DescartesApp::generateTrajectory(DescartesTrajectory& traj)
 
   // generating trajectory using a lemniscate curve function.
   EigenSTL::vector_Affine3d poses;
-  Eigen::Vector3d center(config_.center[0],config_.center[1],config_.center[2]);
-  if(createLemniscateCurve(config_.foci_distance,config_.radius,config_.num_points,
-                        config_.num_lemniscates,center,poses))
+  Eigen::Vector3d center(config_.center[0], config_.center[1], config_.center[2]);
+  if(createLemniscateCurve(config_.foci_distance, config_.radius, config_.num_points,
+                           config_.num_lemniscates, center, poses))
   {
     ROS_INFO_STREAM("Trajectory with "<<poses.size()<<" points was generated");
   }
@@ -434,31 +434,39 @@ void UR5DescartesApp::generateTrajectory(DescartesTrajectory& traj)
   // publishing trajectory poses for visualization
   publishPosesMarkers(poses);
 
+  Eigen::Affine3d transform = visual_tools_->getSharedRobotState()->getGlobalLinkTransform("right_base_link");
 
   // creating descartes trajectory points
   traj.clear();
   traj.reserve(poses.size());
   for(unsigned int i = 0; i < poses.size(); i++)
   {
-    const Eigen::Affine3d& pose = poses[i];
+    //const Eigen::Affine3d& pose = poses[i];
+    Eigen::Affine3d pose = transform * poses[i];
 
-    /*  Fill Code:
-     * Goal:
-     * - Create AxialSymetricPt objects in order to define a trajectory cartesian point with
+    // Get all possible solutions
+    std::vector<std::vector<double> > joint_poses;
+    if (!robot_model_ptr_->getAllIK(pose, joint_poses))
+    {
+      ROS_ERROR_STREAM_NAMED(name_, "getAllIK returned false");
+      return;
+    }
+
+    // Error check
+    if (joint_poses.empty())
+    {
+      ROS_ERROR_STREAM_NAMED(name_, "getAllIK returned no solutions");
+      return;
+    }
+
+    ROS_INFO_STREAM_NAMED(name_, "Found good joint pose");
+
+    /*
+     * Create AxialSymetricPt objects in order to define a trajectory cartesian point with
      *    rotational freedom about the tool's z axis.
-     *
-     * Hint:
-     * - The point can be constructed as follows:
-     *
-     *    new AxialSymmetricPt(Pose ,Increment, Free Axis)
-     *
-     * - The Pose can be found in the for loop's "pose" variable.
-     * - The Increment can be found in the "ORIENTATION_INCREMENT" global variable.
-     * - The Free Axis can be selected from the AxialSymmetricPt::FreeAxis::Z_AXIS enumeration constants.
-     *
      */
     descartes_core::TrajectoryPtPtr pt = descartes_core::TrajectoryPtPtr(
-        new descartes_trajectory::AxialSymmetricPt(pose,ORIENTATION_INCREMENT,
+        new descartes_trajectory::AxialSymmetricPt(pose, ORIENTATION_INCREMENT,
                                                    descartes_trajectory::AxialSymmetricPt::FreeAxis::Z_AXIS,
                                                     descartes_core::TimingConstraint(0.5) ) );
 
