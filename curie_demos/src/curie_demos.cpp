@@ -235,8 +235,8 @@ void CurieDemos::runRandomProblems()
     ROS_INFO_STREAM_NAMED(name_, "Starting planning run " << run_id);
 
     // Generate start/goal pair
-    //imarker_start_->setToRandomState();
-    //imarker_goal_->setToRandomState();
+    // imarker_start_->setToRandomState();
+    // imarker_goal_->setToRandomState();
     moveit_start_ = imarker_start_->getRobotState();
     moveit_goal_ = imarker_goal_->getRobotState();
 
@@ -337,7 +337,7 @@ bool CurieDemos::plan(robot_state::RobotStatePtr start_state, robot_state::Robot
   path.prepend(ompl_start_);
 
   // Check/test the solution for errors
-  checkOMPLPathSolution(path);
+  experience_setup_->getExperienceDB()->checkTaskPathSolution(path, ompl_start_, ompl_goal_);
 
   // Clear Rviz
   visual_ompl3_->hideRobot();
@@ -390,7 +390,7 @@ bool CurieDemos::plan(robot_state::RobotStatePtr start_state, robot_state::Robot
   return true;
 }
 
-void CurieDemos::visualizeRawTrajectory(og::PathGeometric& path)
+void CurieDemos::visualizeRawTrajectory(og::PathGeometric &path)
 {
   ROS_INFO("Visualizing non-interpolated trajectory");
 
@@ -405,7 +405,7 @@ void CurieDemos::visualizeRawTrajectory(og::PathGeometric& path)
   visual_moveit3->triggerBatchPublish();
 }
 
-void CurieDemos::smoothFreeSpace(og::PathGeometric& path)
+void CurieDemos::smoothFreeSpace(og::PathGeometric &path)
 {
   og::PathGeometric free_path_0(si_);
   og::PathGeometric cart_path_1(si_);
@@ -431,7 +431,7 @@ void CurieDemos::smoothFreeSpace(og::PathGeometric& path)
       default:
         ROS_ERROR_STREAM_NAMED(name_, "Unknown level type " << level);
     }
-  } // for
+  }  // for
 
   // Smooth both free space plans
   simplifyPath(free_path_0);
@@ -448,7 +448,7 @@ void CurieDemos::smoothFreeSpace(og::PathGeometric& path)
   path = new_path;
 }
 
-bool CurieDemos::simplifyPath(og::PathGeometric& path)
+bool CurieDemos::simplifyPath(og::PathGeometric &path)
 {
   ros::Time start_time = ros::Time::now();
   std::size_t num_states = path.getStateCount();
@@ -461,8 +461,8 @@ bool CurieDemos::simplifyPath(og::PathGeometric& path)
 
   // Feedback
   double duration = (ros::Time::now() - start_time).toSec();
-  OMPL_INFORM("SimpleSetup(ptc): Path simplification took %f seconds and changed from %d to %d states",
-              duration, num_states, path.getStateCount());
+  OMPL_INFORM("SimpleSetup(ptc): Path simplification took %f seconds and changed from %d to %d states", duration,
+              num_states, path.getStateCount());
 
   return true;
 }
@@ -501,71 +501,6 @@ void CurieDemos::generateRandCartesianPath()
   }
 }
 
-bool CurieDemos::checkOMPLPathSolution(og::PathGeometric& path)
-{
-  bool error = false;
-  int current_level = 0;
-
-  for (std::size_t i = 0; i < path.getStateCount(); ++i)
-  {
-    int level = space_->getLevel(path.getState(i));
-
-    // Check if start state is correct
-    if (i == 0)
-    {
-      if (!space_->equalStates(path.getState(i), ompl_start_))
-      {
-        ROS_ERROR_STREAM_NAMED(name_, "Start state of path is not same as original problem");
-        error = true;
-      }
-
-      if (level != 0)
-      {
-        ROS_ERROR_STREAM_NAMED(name_, "Start state is not at level 0, instead " << level);
-        error = true;
-      }
-    }
-
-    // Check if goal state is correct
-    if (i == path.getStateCount() - 1)
-    {
-      if (!space_->equalStates(path.getState(i), ompl_goal_))
-      {
-        ROS_ERROR_STREAM_NAMED(name_, "Goal state of path is not same as original problem");
-        error = true;
-      }
-
-      if (level != 2)
-      {
-        ROS_ERROR_STREAM_NAMED(name_, "Goal state is not at level 2, instead " << level);
-        error = true;
-      }
-    }
-
-    // Ensure that level is always increasing
-    if (level < current_level)
-    {
-      ROS_ERROR_STREAM_NAMED(name_, "State decreased in level (" << level << ") from previous level of " << current_level);
-      error = true;
-    }
-    current_level = level;
-
-  } // for loop
-
-  // Show more data if error
-  if (error)
-  {
-    ROS_ERROR_STREAM_NAMED(name_, "Showing data on path:");
-    for (std::size_t i = 0; i < path.getStateCount(); ++i)
-    {
-      int level = space_->getLevel(path.getState(i));
-      std::cout << "  - Path state " << i << " has level " << level << std::endl;
-    }
-  }
-
-  return error;
-}
-
 bool CurieDemos::checkMoveItPathSolution(robot_trajectory::RobotTrajectoryPtr traj)
 {
   std::size_t state_count = traj->getWayPointCount();
@@ -574,8 +509,8 @@ bool CurieDemos::checkMoveItPathSolution(robot_trajectory::RobotTrajectoryPtr tr
   else
     ROS_INFO_STREAM_NAMED(name_, "checkMoveItPathSolution: Solution path has " << state_count << " states");
 
-  //bool isPathValid(const robot_trajectory::RobotTrajectory &trajectory,
-  //const std::string &group = "", bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
+  // bool isPathValid(const robot_trajectory::RobotTrajectory &trajectory,
+  // const std::string &group = "", bool verbose = false, std::vector<std::size_t> *invalid_index = NULL) const;
 
   std::vector<std::size_t> index;
   const bool verbose = true;
@@ -589,8 +524,9 @@ bool CurieDemos::checkMoveItPathSolution(robot_trajectory::RobotTrajectoryPtr tr
       std::stringstream ss;
       for (std::size_t i = 0; i < index.size(); ++i)
         ss << index[i] << " ";
-      ROS_ERROR_STREAM_NAMED(name_, "checkMoveItPathSolution: Computed path is not valid. Invalid states at index locations: [ "
-                       << ss.str() << "] out of " << state_count << ". Explanations follow in command line.");
+      ROS_ERROR_STREAM_NAMED(
+          name_, "checkMoveItPathSolution: Computed path is not valid. Invalid states at index locations: [ "
+                     << ss.str() << "] out of " << state_count << ". Explanations follow in command line.");
 
       // Call validity checks in verbose mode for the problematic states
       visualization_msgs::MarkerArray arr;
@@ -752,7 +688,7 @@ void CurieDemos::testConnectionToGraphOfRandStates()
 }
 
 bool CurieDemos::getFilePath(std::string &file_path, const std::string &database_name,
-                                  const std::string &database_directory) const
+                             const std::string &database_directory) const
 
 {
   namespace fs = boost::filesystem;
