@@ -57,6 +57,7 @@ CurieDemos::CurieDemos()
   error += !rosparam_shortcuts::get(name_, rpnh, "sparse_delta", sparse_delta_);
   error += !rosparam_shortcuts::get(name_, rpnh, "save_database", save_database_);
   error += !rosparam_shortcuts::get(name_, rpnh, "skip_solving", skip_solving_);
+  error += !rosparam_shortcuts::get(name_, rpnh, "use_task_planning", use_task_planning_);
   error += !rosparam_shortcuts::get(name_, rpnh, "planning_group_name", planning_group_name_);
   // Visualize
   error += !rosparam_shortcuts::get(name_, rpnh, "visualize/display_database", visualize_display_database_);
@@ -179,6 +180,7 @@ bool CurieDemos::loadOMPL()
   experience_setup_->getExperienceDB()->setSavingEnabled(save_database_);
   experience_setup_->getExperienceDB()->visualizeCartNeighbors_ = visualize_cart_neighbors_;
   experience_setup_->getExperienceDB()->visualizeCartPath_ = visualize_cart_path_;
+  experience_setup_->getExperienceDB()->setUseTaskPlanning(use_task_planning_);
 
   // Auto setup parameters (optional actually)
   // experience_setup_->enablePlanningFromRecall(use_recall_);
@@ -210,8 +212,15 @@ bool CurieDemos::loadOMPL()
   double vm2, rss2;
   process_mem_usage(vm2, rss2);
   ROS_INFO_STREAM_NAMED(name_, "Current memory consumption - VM: " << vm2 << " MB | RSS: " << rss2 << " MB");
-  ROS_INFO_STREAM_NAMED(name_, "Current memory diff        - VM: " << vm2 - vm1 << " MB | RSS: " << rss2 - rss1 << " M"
-                                                                                                                   "B");
+  ROS_INFO_STREAM_NAMED(name_, "Current memory diff - VM: " << vm2 - vm1 << " MB | RSS: " << rss2 - rss1 << " MB");
+
+  // Add hybrid cartesian planning / task planning
+  if (use_task_planning_)
+  {
+    // Clone the graph to have second and third layers for task planning then free space planning
+    experience_setup_->getExperienceDB()->generateTaskSpace();
+  }
+
   // Show database
   if (visualize_display_database_)
   {
@@ -286,8 +295,11 @@ bool CurieDemos::plan(robot_state::RobotStatePtr start_state, robot_state::Robot
   space_->copyToOMPLState(ompl_goal_, *goal_state);
 
   // Convert the goal state to level 2
-  const int level = 2;
-  space_->setLevel(ompl_goal_, level);
+  if (use_task_planning_)
+  {
+    const int level = 2;
+    space_->setLevel(ompl_goal_, level);
+  }
 
   // Set the start and goal states
   experience_setup_->setStartAndGoalStates(ompl_start_, ompl_goal_);
@@ -298,7 +310,10 @@ bool CurieDemos::plan(robot_state::RobotStatePtr start_state, robot_state::Robot
   // Cartesian -----------------------------------------------------------
 
   // Optionally create cartesian path
-  generateRandCartesianPath();
+  if (use_task_planning_)
+  {
+    generateRandCartesianPath();
+  }
 
   // Solve -----------------------------------------------------------
 

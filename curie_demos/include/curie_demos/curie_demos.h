@@ -157,6 +157,7 @@ public:
   double sparse_delta_;
   bool save_database_;
   bool skip_solving_;
+  bool use_task_planning_;
 
   // Debug and display preferences
   bool visualize_display_database_;

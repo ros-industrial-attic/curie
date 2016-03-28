@@ -1,12 +1,13 @@
 # Main program
 curie_demos:
   auto_run: true # do not wait to move interactive markers
-  planning_runs: 100
+  planning_runs: 200
   experience_planner: bolt
   sparse_delta: 0.5
   save_database: true
   skip_solving: false  # just load/generate database
   planning_group_name: right_arm
+  popularity_bias: true
   visualize:
     display_database: false
     astar: false # show node expansions and openings
