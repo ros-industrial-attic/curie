@@ -133,7 +133,7 @@ bool CurieDemos::loadOMPL()
 
   // Construct the state space we are planning in
   space_.reset(new moveit_ompl::ModelBasedStateSpace(mbss_spec));
-  experience_setup_.reset(new ompl::tools::Bolt(space_));
+  experience_setup_.reset(new ompl::tools::bolt::Bolt(space_));
   std::cout << "getSpaceInformation " << std::endl;
   si_ = experience_setup_->getSpaceInformation();
 
@@ -178,7 +178,7 @@ bool CurieDemos::loadOMPL()
 
   // Set planner settings
   experience_setup_->getExperienceDB()->visualizeAstar_ = visualize_astar_;
-  experience_setup_->getExperienceDB()->sparseDelta_ = sparse_delta_;
+  experience_setup_->getExperienceDB()->getSparseDB()->sparseDelta_ = sparse_delta_;
   experience_setup_->getExperienceDB()->visualizeGridGeneration_ = visualize_grid_generation_;
   experience_setup_->getExperienceDB()->setSavingEnabled(save_database_);
   experience_setup_->getExperienceDB()->visualizeCartNeighbors_ = visualize_cart_neighbors_;

@@ -175,7 +175,7 @@ public:
   ompl::base::SpaceInformationPtr si_;
 
   moveit_ompl::ModelBasedStateSpacePtr space_;
-  ompl::tools::BoltPtr experience_setup_;
+  ompl::tools::bolt::BoltPtr experience_setup_;
 
   // Average planning time
   double total_duration_;
