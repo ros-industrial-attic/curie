@@ -164,16 +164,20 @@ bool CurieDemos::loadOMPL()
 
   // Set visualization callbacks
   experience_setup_->getVisual()->setViz1Callbacks(visual_ompl2_->getVizStateCallback(),
-                                                         visual_ompl2_->getVizEdgeCallback(),
-                                                         visual_ompl2_->getVizTriggerCallback());
+                                                   visual_ompl2_->getVizEdgeCallback(),
+                                                   visual_ompl2_->getVizPathCallback(),
+                                                   visual_ompl2_->getVizTriggerCallback());
   experience_setup_->getVisual()->setViz2Callbacks(visual_ompl3_->getVizStateCallback(),
                                                          visual_ompl3_->getVizEdgeCallback(),
+                                                     visual_tools1_->getVizPathCallback(),
                                                          visual_ompl3_->getVizTriggerCallback());
   experience_setup_->getVisual()->setViz3Callbacks(visual_ompl1_->getVizStateCallback(),
                                                         visual_ompl1_->getVizEdgeCallback(),
+                                                     visual_tools1_->getVizPathCallback(),
                                                         visual_ompl1_->getVizTriggerCallback());
   experience_setup_->getRetrieveRepairPlanner().setVizCallbacks(visual_ompl3_->getVizStateCallback(),
                                                                 visual_ompl3_->getVizEdgeCallback(),
+                                                     visual_tools1_->getVizPathCallback(),
                                                                 visual_ompl3_->getVizTriggerCallback());
 
   // Set planner settings
