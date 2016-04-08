@@ -163,22 +163,22 @@ bool CurieDemos::loadOMPL()
   visual_ompl3_->setStateSpace(space_);
 
   // Set visualization callbacks
-  experience_setup_->getVisual()->setVizDBCallbacks(visual_ompl1_->getVizStateCallback(),
-                                                        visual_ompl1_->getVizEdgeCallback(),
-                                                        visual_ompl1_->getVizTriggerCallback());
   experience_setup_->getVisual()->setViz1Callbacks(visual_ompl2_->getVizStateCallback(),
                                                          visual_ompl2_->getVizEdgeCallback(),
                                                          visual_ompl2_->getVizTriggerCallback());
   experience_setup_->getVisual()->setViz2Callbacks(visual_ompl3_->getVizStateCallback(),
                                                          visual_ompl3_->getVizEdgeCallback(),
                                                          visual_ompl3_->getVizTriggerCallback());
+  experience_setup_->getVisual()->setViz3Callbacks(visual_ompl1_->getVizStateCallback(),
+                                                        visual_ompl1_->getVizEdgeCallback(),
+                                                        visual_ompl1_->getVizTriggerCallback());
   experience_setup_->getRetrieveRepairPlanner().setVizCallbacks(visual_ompl3_->getVizStateCallback(),
                                                                 visual_ompl3_->getVizEdgeCallback(),
                                                                 visual_ompl3_->getVizTriggerCallback());
 
   // Set planner settings
   experience_setup_->getExperienceDB()->visualizeAstar_ = visualize_astar_;
-  experience_setup_->getExperienceDB()->getSparseDB()->sparseDelta_ = sparse_delta_;
+  //experience_setup_->getExperienceDB()->getSparseDB()->sparseDelta_ = sparse_delta_;
   experience_setup_->getExperienceDB()->visualizeGridGeneration_ = visualize_grid_generation_;
   experience_setup_->getExperienceDB()->setSavingEnabled(save_database_);
   experience_setup_->getExperienceDB()->visualizeCartNeighbors_ = visualize_cart_neighbors_;

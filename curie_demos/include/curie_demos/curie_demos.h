@@ -38,9 +38,9 @@
    Notes:
 
    Visualizations
-   - visual_ompl1_ - used by BoltDB as VizCallbacks
-   - visual_ompl2_ - used by BoltDB as Viz2Callbacks
-   - visual_ompl3_ - used by BoltDBRetriveRepair as VizCallbacks, also shows the solution robot path and trajectory line
+   - visual_ompl1_ - used by DenseDB as VizCallbacks
+   - visual_ompl2_ - used by DenseDB as Viz2Callbacks
+   - visual_ompl3_ - used by DenseDBRetriveRepair as VizCallbacks, also shows the solution robot path and trajectory line
    - visual_moveit_start_ - same as visual_ompl1_ - shows start state
    - visual_moveit_goal_  - same as visual_ompl2_ - shows goal state
    - visual_tools_ - from moveit_base base class
