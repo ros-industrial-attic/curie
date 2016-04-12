@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   descartes_planner
   descartes_moveit
   ur5_demo_descartes
+  ompl_experience_demos
 )
 
 find_package(Boost REQUIRED)

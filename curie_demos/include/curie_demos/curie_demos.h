@@ -38,11 +38,11 @@
    Notes:
 
    Visualizations
-   - visual_ompl1_ - used by DenseDB as VizCallbacks
-   - visual_ompl2_ - used by DenseDB as Viz2Callbacks
-   - visual_ompl3_ - used by DenseDBRetriveRepair as VizCallbacks, also shows the solution robot path and trajectory line
-   - visual_moveit_start_ - same as visual_ompl1_ - shows start state
-   - visual_moveit_goal_  - same as visual_ompl2_ - shows goal state
+   - viz1_ - used by DenseDB as VizCallbacks
+   - viz2_ - used by DenseDB as Viz2Callbacks
+   - viz3_ - used by DenseDBRetriveRepair as VizCallbacks, also shows the solution robot path and trajectory line
+   - visual_moveit_start_ - same as viz1_ - shows start state
+   - visual_moveit_goal_  - same as viz2_ - shows goal state
    - visual_tools_ - from moveit_base base class
 */
 
@@ -133,9 +133,9 @@ public:
   std::string name_;
 
   // For visualizing things in rviz
-  ompl_visual_tools::OmplVisualToolsPtr visual_ompl1_;
-  ompl_visual_tools::OmplVisualToolsPtr visual_ompl2_;
-  ompl_visual_tools::OmplVisualToolsPtr visual_ompl3_;
+  ompl_visual_tools::OmplVisualToolsPtr viz1_;
+  ompl_visual_tools::OmplVisualToolsPtr viz2_;
+  ompl_visual_tools::OmplVisualToolsPtr viz3_;
   moveit_visual_tools::MoveItVisualToolsPtr visual_moveit_start_;  // Clone of ompl1
   moveit_visual_tools::MoveItVisualToolsPtr visual_moveit_goal_;   // Clone of ompl2
 
@@ -154,7 +154,7 @@ public:
   bool auto_run_;
   std::string experience_planner_;
   std::size_t planning_runs_;
-  double sparse_delta_;
+  //double sparse_delta_;
   bool save_database_;
   bool skip_solving_;
   bool use_task_planning_;
@@ -162,10 +162,10 @@ public:
   // Debug and display preferences
   bool visualize_display_database_;
   bool visualize_interpolated_trajectory_;
-  bool visualize_raw_trajectory_;
+  //bool visualize_raw_trajectory_;
   bool visualize_grid_generation_;
   bool visualize_start_goal_states_;
-  bool visualize_astar_;
+  //bool visualize_astar_;
   bool visualize_cart_neighbors_;
   bool visualize_cart_path_;
   double visualize_time_between_plans_;
@@ -175,7 +175,7 @@ public:
   ompl::base::SpaceInformationPtr si_;
 
   moveit_ompl::ModelBasedStateSpacePtr space_;
-  ompl::tools::bolt::BoltPtr experience_setup_;
+  ompl::tools::bolt::BoltPtr bolt_setup_;
 
   // Average planning time
   double total_duration_;

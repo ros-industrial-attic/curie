@@ -1,30 +1,68 @@
 # Main program
 curie_demos:
+  planning_runs: 10
   auto_run: true # do not wait to move interactive markers
-  planning_runs: 200
   experience_planner: bolt
-  sparse_delta: 0.5
-  save_database: true
-  skip_solving: false  # just load/generate database
+  save_database: false
+  skip_solving: true  # just load/generate database
   planning_group_name: right_arm
-  popularity_bias: true
+  use_task_planning: false  # cartesian hybrid planning
   visualize:
     display_database: false
-    astar: false # show node expansions and openings
-    astar_speed: 0.05 # how many seconds to wait between each vertex
     start_goal_states: false
-    raw_trajectory: true
     interpolated_trajectory: true
-    grid_generation: false
     time_between_plans: 1
-    cart_path: false
-    cart_neighbors: false
   debug:
     print_trajectory: false
+    verbose: true
 
+# ====================================================
+dense_db:
+  discretization: 2
+  desired_average_cost: 90 # most things are of low value
+  save_database: true
+  popularity_bias_enabled: true
+  popularity_bias: 5 # how much popularity (0-100) affects the edge weights
+  debug:
+    snap_path_verbose: false
+  visualize:
+    grid_generation: true # if discretizing from scratch, visualize
+    cart_path: true
+    cart_neighbors: true
+    snap_path: false # show the insertion of a smoothed path into the dense graph as popularity
+    snap_path_speed: 1 # how many seconds to wait between each visualization
+    astar: false # NOTE THIS ASTAR IS NOT USED ANYMORE show node expansions and openings
+    astar_speed: 0.01 # how many seconds to wait between each visualization
+    add_sample: true
+
+# ====================================================
+sparse_db:
+  sparse_delta_fraction: 0.1
+  dense_delta: 0.05
+  sparse_creation_insertion_order: 0 # 0 - popularity, 1 - default, 2 - random
+  percent_max_extent_underestimate: 1.5 # 0 to 1
+  debug:
+    checks_verbose: false
+  visualize:
+    spars_graph: true
+    spars_graph_speed: 0 # if 0, does not animate but only single image draw
+    dense_representatives: false
+    astar: true # show node expansions and openings
+    astar_speed: 0.1 # how many seconds to wait between each vertex
+    node_popularity: true
+
+# ====================================================
+bolt_retrieve_repair:
+  debug:
+    verbose: false
+  visualize:
+    raw_trajectory: true
+
+# ====================================================
 # for ur5_demo_descartes/src/ur_moveit_plugin.cpp TODO: this is crappy code
 arm_prefix: right_
 
+# ====================================================
 ur5_descartes_app:
   group_name: right_arm
   tip_link: right_gripper_target
@@ -42,6 +80,7 @@ ur5_descartes_app:
     min_point_distance: 0.02
   controller_joint_names: [right_shoulder_pan_joint, right_shoulder_lift_joint, right_elbow_joint, right_wrist_1_joint, right_wrist_2_joint, right_wrist_3_joint]
 
+# ====================================================
 # Interface for publishing joint/cartesian commands to the low level controllers
 execution_interface:
   command_mode: joint_publisher # method for publishing commands from this node to low level controller
