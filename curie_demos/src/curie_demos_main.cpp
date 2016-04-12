@@ -45,19 +45,25 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "curie_demos");
   ROS_INFO_STREAM_NAMED("main", "Starting CurieDemos...");
 
-  // Seed random number generator
-  srand (time(NULL));
-
   // Allow the action server to recieve and send ros messages
   ros::AsyncSpinner spinner(2);
   spinner.start();
 
   // Initialize main class
-  curie_demos::CurieDemos server;
-  server.runRandomProblems();
-  // server.testConnectionToGraphOfRandStates();
+  curie_demos::CurieDemos demo;
 
-  //ros::spin();
+  // Run the demo
+  if (demo.getShouldSkipSolving())
+    ROS_INFO_STREAM("Solving requested to be skipped by config file");
+  else
+  {
+    demo.runProblems();
+    // demo.runPopularityExperiement();
+    //demo.runSparseFactorExperiment();
+  }
+  // demo.testConnectionToGraphOfRandStates();
+
+  ros::spin();
 
   // Shutdown
   ROS_INFO_STREAM_NAMED("main", "Shutting down.");

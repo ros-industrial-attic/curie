@@ -34,16 +34,6 @@
 
 /* Author: Dave Coleman
    Desc:   Demo dual arm manipulation
-
-   Notes:
-
-   Visualizations
-   - viz1_ - used by DenseDB as VizCallbacks
-   - viz2_ - used by DenseDB as Viz2Callbacks
-   - viz3_ - used by DenseDBRetriveRepair as VizCallbacks, also shows the solution robot path and trajectory line
-   - visual_moveit_start_ - same as viz1_ - shows start state
-   - visual_moveit_goal_  - same as viz2_ - shows goal state
-   - visual_tools_ - from moveit_base base class
 */
 
 #ifndef CURIE_DEMOS_CURIE_DEMOS_H
@@ -90,7 +80,7 @@ public:
   /** \brief Generate states for testing */
   void testConnectionToGraphOfRandStates();
 
-  void runRandomProblems();
+  void runProblems();
 
   bool plan(robot_state::RobotStatePtr start_state, robot_state::RobotStatePtr goal_state);
 
@@ -101,6 +91,36 @@ public:
   bool checkMoveItPathSolution(robot_trajectory::RobotTrajectoryPtr traj);
 
   bool getRandomState(moveit::core::RobotStatePtr &robot_state);
+
+  /**
+   * \brief Dump the entire database contents to Rviz
+   */
+  void displayDatabase()
+  {
+    bolt_setup_->getExperienceDB()->displayDatabase();
+  }
+
+  bool getShouldSkipSolving()
+  {
+    return skip_solving_;
+  }
+
+  /**
+   * \brief Clear all markers displayed in Rviz
+   */
+  void deleteAllMarkers(bool clearDatabase = true)
+  {
+    // Reset rviz markers
+    if (clearDatabase)
+    {
+      viz1_->deleteAllMarkers();
+      viz2_->deleteAllMarkers();
+      viz3_->deleteAllMarkers();
+    }
+    viz4_->deleteAllMarkers();
+    viz5_->deleteAllMarkers();
+    viz6_->deleteAllMarkers();
+  }
 
   void loadVisualTools();
 
@@ -136,6 +156,9 @@ public:
   ompl_visual_tools::OmplVisualToolsPtr viz1_;
   ompl_visual_tools::OmplVisualToolsPtr viz2_;
   ompl_visual_tools::OmplVisualToolsPtr viz3_;
+  ompl_visual_tools::OmplVisualToolsPtr viz4_;
+  ompl_visual_tools::OmplVisualToolsPtr viz5_;
+  ompl_visual_tools::OmplVisualToolsPtr viz6_;
   moveit_visual_tools::MoveItVisualToolsPtr visual_moveit_start_;  // Clone of ompl1
   moveit_visual_tools::MoveItVisualToolsPtr visual_moveit_goal_;   // Clone of ompl2
 
@@ -158,10 +181,11 @@ public:
   bool save_database_;
   bool skip_solving_;
   bool use_task_planning_;
+  int post_processing_interval_;
 
   // Debug and display preferences
   bool visualize_display_database_;
-  bool visualize_interpolated_trajectory_;
+  bool visualize_interpolated_traj_;
   //bool visualize_raw_trajectory_;
   bool visualize_grid_generation_;
   bool visualize_start_goal_states_;
@@ -169,6 +193,7 @@ public:
   bool visualize_cart_neighbors_;
   bool visualize_cart_path_;
   double visualize_time_between_plans_;
+  bool visualize_database_every_plan_;
   bool debug_print_trajectory_;
 
   // Configuration space

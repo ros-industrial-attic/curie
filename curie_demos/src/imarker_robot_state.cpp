@@ -388,7 +388,7 @@ bool IMarkerRobotState::getFilePath(std::string &file_path, const std::string &f
   // directories successfully created, append the group name as the file name
   rootPath = rootPath / fs::path(file_name);
   file_path = rootPath.string();
-  ROS_INFO_STREAM_NAMED(name_, "Setting database to " << file_path);
+  ROS_DEBUG_STREAM_NAMED(name_, "Config file: " << file_path);
 
   return true;
 }

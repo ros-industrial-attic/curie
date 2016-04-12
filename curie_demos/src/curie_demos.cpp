@@ -51,31 +51,32 @@ CurieDemos::CurieDemos()
   : MoveItBase(), nh_("~"), name_("curie_demos"), total_duration_(0.0), total_runs_(0), total_failures_(0)
 
 {
+  bool seed_random;
   // Load rosparams
   ros::NodeHandle rpnh(nh_, name_);
   std::size_t error = 0;
   error += !rosparam_shortcuts::get(name_, rpnh, "auto_run", auto_run_);
   error += !rosparam_shortcuts::get(name_, rpnh, "experience_planner", experience_planner_);
   error += !rosparam_shortcuts::get(name_, rpnh, "planning_runs", planning_runs_);
-  // error += !rosparam_shortcuts::get(name_, rpnh, "sparse_delta", sparse_delta_);
   error += !rosparam_shortcuts::get(name_, rpnh, "save_database", save_database_);
   error += !rosparam_shortcuts::get(name_, rpnh, "skip_solving", skip_solving_);
   error += !rosparam_shortcuts::get(name_, rpnh, "use_task_planning", use_task_planning_);
   error += !rosparam_shortcuts::get(name_, rpnh, "planning_group_name", planning_group_name_);
+  error += !rosparam_shortcuts::get(name_, rpnh, "seed_random", seed_random);
+  error += !rosparam_shortcuts::get(name_, rpnh, "post_processing_interval", post_processing_interval_);
   // Visualize
   error += !rosparam_shortcuts::get(name_, rpnh, "visualize/display_database", visualize_display_database_);
-  error +=
-      !rosparam_shortcuts::get(name_, rpnh, "visualize/interpolated_trajectory", visualize_interpolated_trajectory_);
-  ///error += !rosparam_shortcuts::get(name_, rpnh, "visualize/raw_trajectory", visualize_raw_trajectory_);
-  //error += !rosparam_shortcuts::get(name_, rpnh, "visualize/grid_generation", visualize_grid_generation_);
+  error += !rosparam_shortcuts::get(name_, rpnh, "visualize/interpolated_traj", visualize_interpolated_traj_);
   error += !rosparam_shortcuts::get(name_, rpnh, "visualize/start_goal_states", visualize_start_goal_states_);
-  // error += !rosparam_shortcuts::get(name_, rpnh, "visualize/astar", visualize_astar_);
   error += !rosparam_shortcuts::get(name_, rpnh, "visualize/time_between_plans", visualize_time_between_plans_);
-  //error += !rosparam_shortcuts::get(name_, rpnh, "visualize/cart_neighbors", visualize_cart_neighbors_);
-  //error += !rosparam_shortcuts::get(name_, rpnh, "visualize/cart_path", visualize_cart_path_);
+  error += !rosparam_shortcuts::get(name_, rpnh, "visualize/database_every_plan", visualize_database_every_plan_);
   // Debug
   error += !rosparam_shortcuts::get(name_, rpnh, "debug/print_trajectory", debug_print_trajectory_);
   rosparam_shortcuts::shutdownIfError(name_, error);
+
+  // Seed random
+  if (seed_random)
+    srand(time(NULL));
 
   // Initialize MoveIt base
   MoveItBase::init(nh_);
@@ -108,7 +109,7 @@ CurieDemos::CurieDemos()
   imarker_start_.reset(new IMarkerRobotState(planning_scene_monitor_, "start", jmg_, ee_link_, rvt::GREEN));
   imarker_goal_.reset(new IMarkerRobotState(planning_scene_monitor_, "goal", jmg_, ee_link_, rvt::ORANGE));
 
-  ros::Duration(1.0).sleep();
+  ros::Duration(0.5).sleep();
 
   // Wait until user does something
   if (!auto_run_)
@@ -118,10 +119,8 @@ CurieDemos::CurieDemos()
   if (!loadOMPL())
   {
     ROS_ERROR_STREAM_NAMED(name_, "Unable to load planning context");
-    return;
+    exit(-1);
   }
-
-  ROS_INFO_STREAM_NAMED(name_, "CurieDemos Ready.");
 }
 
 CurieDemos::~CurieDemos()
@@ -137,9 +136,15 @@ bool CurieDemos::loadOMPL()
 
   // Construct the state space we are planning in
   space_.reset(new moveit_ompl::ModelBasedStateSpace(mbss_spec));
+
+  // Create SimpleSetup
   bolt_setup_.reset(new ompl::tools::bolt::Bolt(space_));
-  std::cout << "getSpaceInformation " << std::endl;
   si_ = bolt_setup_->getSpaceInformation();
+
+  // Set the database file location
+  std::string file_path;
+  getFilePath(file_path, planning_group_name_, "ros/ompl_storage");
+  bolt_setup_->setFilePath(file_path);  // this is here because its how we do it in moveit_ompl
 
   // Add custom distance function
   // space_->setDistanceFunction(boost::bind(&CurieDemos::customDistanceFunction, this, _1, _2));
@@ -156,7 +161,7 @@ bool CurieDemos::loadOMPL()
   ompl_experience_demos::loadOMPLParameters(nh_, name_, bolt_setup_);
 
   // Setup base OMPL stuff
-  ROS_INFO_STREAM_NAMED(name_, "Setting up OMPL experience setup");
+  ROS_INFO_STREAM_NAMED(name_, "Setting up OMPL experience");
   bolt_setup_->setup();
   assert(si_->isSetup());
 
@@ -168,45 +173,51 @@ bool CurieDemos::loadOMPL()
   viz1_->setStateSpace(space_);
   viz2_->setStateSpace(space_);
   viz3_->setStateSpace(space_);
+  viz4_->setStateSpace(space_);
+  viz5_->setStateSpace(space_);
+  viz6_->setStateSpace(space_);
 
-  // Set visualization callbacks
+  // Add visualization hooks into OMPL
   bolt_setup_->getVisual()->setViz1Callbacks(viz1_->getVizStateCallback(), viz1_->getVizEdgeCallback(),
-                                             viz1_->getVizPathCallback(),
-                                             viz1_->getVizTriggerCallback());
+                                             viz1_->getVizPathCallback(), viz1_->getVizTriggerCallback());
   bolt_setup_->getVisual()->setViz2Callbacks(viz2_->getVizStateCallback(), viz2_->getVizEdgeCallback(),
-                                             viz2_->getVizPathCallback(),
-                                             viz2_->getVizTriggerCallback());
+                                             viz2_->getVizPathCallback(), viz2_->getVizTriggerCallback());
   bolt_setup_->getVisual()->setViz3Callbacks(viz3_->getVizStateCallback(), viz3_->getVizEdgeCallback(),
-                                             viz3_->getVizPathCallback(),
-                                             viz3_->getVizTriggerCallback());
+                                             viz3_->getVizPathCallback(), viz3_->getVizTriggerCallback());
+  bolt_setup_->getVisual()->setViz4Callbacks(viz4_->getVizStateCallback(), viz4_->getVizEdgeCallback(),
+                                             viz4_->getVizPathCallback(), viz4_->getVizTriggerCallback());
+  bolt_setup_->getVisual()->setViz5Callbacks(viz5_->getVizStateCallback(), viz5_->getVizEdgeCallback(),
+                                             viz5_->getVizPathCallback(), viz5_->getVizTriggerCallback());
+  bolt_setup_->getVisual()->setViz6Callbacks(viz6_->getVizStateCallback(), viz6_->getVizEdgeCallback(),
+                                             viz6_->getVizPathCallback(), viz6_->getVizTriggerCallback());
 
-  // Set planner settings
-  // bolt_setup_->getExperienceDB()->visualizeAstar_ = visualize_astar_;
-  // // bolt_setup_->getExperienceDB()->getSparseDB()->sparseDelta_ = sparse_delta_;
-  // bolt_setup_->getExperienceDB()->visualizeGridGeneration_ = visualize_grid_generation_;
-  // bolt_setup_->getExperienceDB()->setSavingEnabled(save_database_);
-  // bolt_setup_->getExperienceDB()->visualizeCartNeighbors_ = visualize_cart_neighbors_;
-  // bolt_setup_->getExperienceDB()->visualizeCartPath_ = visualize_cart_path_;
-  // bolt_setup_->getExperienceDB()->setUseTaskPlanning(use_task_planning_);
-
-  // Auto setup parameters (optional actually)
-  // bolt_setup_->enablePlanningFromRecall(use_recall_);
-  // bolt_setup_->enablePlanningFromScratch(use_scratch_);
+  // TODO(davetcoleman): not here
+  bolt_setup_->getExperienceDB()->setUseTaskPlanning(false);
 
   // Calibrate the color scale for visualization
   const bool invert_colors = true;
   viz1_->setMinMaxEdgeCost(0, 110, invert_colors);
   viz2_->setMinMaxEdgeCost(0, 110, invert_colors);
   viz3_->setMinMaxEdgeCost(0, 110, invert_colors);
+  viz4_->setMinMaxEdgeCost(0, 110, invert_colors);
+  viz5_->setMinMaxEdgeCost(0, 110, invert_colors);
+  viz6_->setMinMaxEdgeCost(0, 110, invert_colors);
 
   viz1_->setMinMaxEdgeRadius(0.001, 0.005);
   viz2_->setMinMaxEdgeRadius(0.001, 0.005);
   viz3_->setMinMaxEdgeRadius(0.001, 0.005);
+  viz4_->setMinMaxEdgeRadius(0.001, 0.005);
+  viz5_->setMinMaxEdgeRadius(0.001, 0.005);
+  viz6_->setMinMaxEdgeRadius(0.001, 0.005);
 
-  std::string file_path;
-  getFilePath(file_path, planning_group_name_, "ros/ompl_storage");
-  bolt_setup_->setFilePath(file_path);  // this is here because its how we do it in moveit_ompl
+  viz1_->setMinMaxStateRadius(0.2, 1.4);
+  viz2_->setMinMaxStateRadius(0.2, 1.4);
+  viz3_->setMinMaxStateRadius(0.2, 1.4);
+  viz4_->setMinMaxStateRadius(0.2, 1.4);
+  viz5_->setMinMaxStateRadius(0.2, 1.4);
+  viz6_->setMinMaxStateRadius(0.2, 1.4);
 
+  // Track memory usage
   double vm1, rss1;
   process_mem_usage(vm1, rss1);
   ROS_INFO_STREAM_NAMED(name_, "Current memory consumption - VM: " << vm1 << " MB | RSS: " << rss1 << " MB");
@@ -216,10 +227,14 @@ bool CurieDemos::loadOMPL()
   bolt_setup_->loadOrGenerate();
   bolt_setup_->saveIfChanged();
 
+  // Track memory usage
   double vm2, rss2;
   process_mem_usage(vm2, rss2);
   ROS_INFO_STREAM_NAMED(name_, "Current memory consumption - VM: " << vm2 << " MB | RSS: " << rss2 << " MB");
   ROS_INFO_STREAM_NAMED(name_, "Current memory diff - VM: " << vm2 - vm1 << " MB | RSS: " << rss2 - rss1 << " MB");
+
+  // Create SPARs graph using popularity
+  bolt_setup_->getExperienceDB()->getSparseDB()->createSPARS();
 
   // Add hybrid cartesian planning / task planning
   if (use_task_planning_)
@@ -231,24 +246,25 @@ bool CurieDemos::loadOMPL()
   // Show database
   if (visualize_display_database_)
   {
-    bolt_setup_->getExperienceDB()->displayDatabase();
+    displayDatabase();
   }
 
   return true;
 }
 
-void CurieDemos::runRandomProblems()
+void CurieDemos::runProblems()
 {
-  if (skip_solving_)
-  {
-    ROS_INFO_STREAM_NAMED(name_, "Skipping solving by request of rosparam");
-    return;
-  }
-
   // Start solving multiple times
   for (std::size_t run_id = 0; run_id < planning_runs_; ++run_id)
   {
-    ROS_INFO_STREAM_NAMED(name_, "Starting planning run " << run_id);
+    // Check if user wants to shutdown
+    if (!ros::ok())
+      break;
+
+    std::cout << std::endl;
+    std::cout << "------------------------------------------------------------------------" << std::endl;
+    ROS_INFO_STREAM_NAMED("plan", "Planning " << run_id + 1 << " out of " << planning_runs_);
+    std::cout << "------------------------------------------------------------------------" << std::endl;
 
     // Generate start/goal pair
     // imarker_start_->setToRandomState();
@@ -263,30 +279,39 @@ void CurieDemos::runRandomProblems()
     // Plan from start to goal
     plan(moveit_start_, moveit_goal_);
 
+    // Console display
+    bolt_setup_->printLogs();
+
+    // Show database
+    if (visualize_database_every_plan_)
+    {
+      displayDatabase();
+    }
+
+    // Regenerate Sparse Graph
+    if (run_id % post_processing_interval_ == 0 && run_id > 0)  // every x runs
+    {
+      ROS_INFO_STREAM_NAMED(name_, "Performing post processing every " << post_processing_interval_ << " intervals");
+      bolt_setup_->doPostProcessing();
+    }
+
     // Main pause between planning instances - allows user to analyze
     ros::Duration(visualize_time_between_plans_).sleep();
 
-    // Check if time to end loop
-    if (!ros::ok())
-      return;
+    // Reset marker if this is not our last run
+    if (run_id < planning_runs_ - 1)
+      deleteAllMarkers(false);
   }
 
   // Save experience
   bolt_setup_->doPostProcessing();
-
-  // Console display
-  bolt_setup_->printLogs();
-
-  // Logging
-  // bolt_setup_->saveDataLog(logging_file);
-  // logging_file.flush();
 
   // Finishing up
   ROS_INFO_STREAM_NAMED(name_, "Saving experience db...");
   bolt_setup_->saveIfChanged();
 
   // Stats
-  // ROS_ERROR_STREAM_NAMED(name_, "Average solving time: " << (total_duration_ / total_runs_));
+  ROS_ERROR_STREAM_NAMED(name_, "Average solving time: " << (total_duration_ / total_runs_));
 }
 
 bool CurieDemos::plan(robot_state::RobotStatePtr start_state, robot_state::RobotStatePtr goal_state)
@@ -325,7 +350,7 @@ bool CurieDemos::plan(robot_state::RobotStatePtr start_state, robot_state::Robot
   // Solve -----------------------------------------------------------
 
   // Create the termination condition
-  double seconds = 1000;  // 0.1; //0.1;
+  double seconds = 60;
   ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition(seconds, 0.1);
 
   // Attempt to solve the problem within x seconds of planning time
@@ -335,6 +360,7 @@ bool CurieDemos::plan(robot_state::RobotStatePtr start_state, robot_state::Robot
   if (!solved)
   {
     ROS_ERROR("No Solution Found");
+    exit(-1);
     return false;
   }
 
@@ -342,32 +368,25 @@ bool CurieDemos::plan(robot_state::RobotStatePtr start_state, robot_state::Robot
   if (!bolt_setup_->haveExactSolutionPath())
   {
     ROS_WARN_STREAM_NAMED(name_, "APPROXIMATE solution found from planner " << bolt_setup_->getSolutionPlannerName());
+    exit(-1);
   }
-  else  // exact solution found
-  {
-    ROS_DEBUG_STREAM_NAMED(name_, "Exact solution found from planner " << bolt_setup_->getSolutionPlannerName());
 
-    // Display states on available solutions
-    bolt_setup_->printResultsInfo();
-  }
+  // Display states on available solutions
+  // bolt_setup_->printResultsInfo();
 
   // Get solution
   og::PathGeometric path = bolt_setup_->getSolutionPath();
 
   // Add start to solution
-  path.prepend(ompl_start_);
+  path.prepend(ompl_start_); // necessary?
 
   // Check/test the solution for errors
-  bolt_setup_->getExperienceDB()->checkTaskPathSolution(path, ompl_start_, ompl_goal_);
+  if (use_task_planning_)
+  {
+    bolt_setup_->getExperienceDB()->checkTaskPathSolution(path, ompl_start_, ompl_goal_);
+  }
 
-  // Clear Rviz
-  viz3_->hideRobot();
-  viz3_->deleteAllMarkers();
-
-  // Visualize raw trajectory
-  //if (visualize_raw_trajectory_)
-//    visualizeRawTrajectory(path);
-
+  /*
   // Smooth free-space components of trajectory
   std::size_t state_count = path.getStateCount();
   smoothFreeSpace(path);
@@ -387,7 +406,7 @@ bool CurieDemos::plan(robot_state::RobotStatePtr start_state, robot_state::Robot
   checkMoveItPathSolution(traj);
 
   // Visualize the trajectory
-  if (visualize_interpolated_trajectory_)
+  if (visualize_interpolated_traj_)
   {
     ROS_INFO("Visualizing the interpolated trajectory");
 
@@ -401,9 +420,7 @@ bool CurieDemos::plan(robot_state::RobotStatePtr start_state, robot_state::Robot
 
     ros::Duration(1).sleep();
   }
-
-  // Process the popularity
-  bolt_setup_->doPostProcessing();
+  */
 
   // Visualize the doneness
   std::cout << std::endl;
@@ -579,8 +596,6 @@ bool CurieDemos::checkMoveItPathSolution(robot_trajectory::RobotTrajectoryPtr tr
         */
       }
       ROS_ERROR_STREAM_NAMED(name_, "checkMoveItPathSolution: Completed listing of explanations for invalid states.");
-      // if (!arr.markers.empty())
-      //  contacts_publisher_.publish(arr);
     }
   }
   return true;
@@ -615,51 +630,62 @@ void CurieDemos::loadVisualTools()
 
   std::string namesp = nh_.getNamespace();
   viz1_.reset(
-      new ompl_visual_tools::OmplVisualTools(robot_model_->getModelFrame(), namesp + "/start_markers", robot_model_));
+      new ompl_visual_tools::OmplVisualTools("world_visual1", namesp + "/ompl_visual1", robot_model_));
   viz1_->setPlanningSceneMonitor(planning_scene_monitor_);
-  viz1_->loadRobotStatePub(namesp + "/start_state");
+  viz1_->loadRobotStatePub(namesp + "/robot_state1");
   viz1_->hideRobot();  // show that things have been reset
   viz1_->setManualSceneUpdating(true);
   visual_moveit_start_ = viz1_;
 
   viz2_.reset(
-      new ompl_visual_tools::OmplVisualTools(robot_model_->getModelFrame(), namesp + "/goal_markers", robot_model_));
+      new ompl_visual_tools::OmplVisualTools("world_visual2", namesp + "/ompl_visual2", robot_model_));
   viz2_->setPlanningSceneMonitor(planning_scene_monitor_);
-  viz2_->loadRobotStatePub(namesp + "/goal_state");
+  viz2_->loadRobotStatePub(namesp + "/robot_state2");
   viz2_->setManualSceneUpdating(true);
   viz2_->hideRobot();           // show that things have been reset
   visual_moveit_goal_ = viz2_;  // copy for use by Moveit
 
   viz3_.reset(
-      new ompl_visual_tools::OmplVisualTools(robot_model_->getModelFrame(), namesp + "/ompl_markers", robot_model_));
-  viz3_->loadTrajectoryPub(namesp + "/display_trajectory");
+      new ompl_visual_tools::OmplVisualTools("world_visual3", namesp + "/ompl_visual3", robot_model_));
+  //viz3_->loadTrajectoryPub(namesp + "/display_trajectory");
   viz3_->setPlanningSceneMonitor(planning_scene_monitor_);
-  viz3_->loadRobotStatePub(namesp + "/ompl_state");
+  viz3_->loadRobotStatePub(namesp + "/robot_state3");
   viz3_->setManualSceneUpdating(true);
   viz3_->hideRobot();  // show that things have been reset
 
-  // Clear all previous markers
-  visual_tools_->loadMarkerPub(true);
-  visual_tools_->deleteAllMarkers();
-  visual_tools_->triggerBatchPublish();
-  ros::spinOnce();
+  viz4_.reset(
+      new ompl_visual_tools::OmplVisualTools("world_visual4", namesp + "/ompl_visual4", robot_model_));
+  //viz4_->loadTrajectoryPub(namesp + "/display_trajectory");
+  viz4_->setPlanningSceneMonitor(planning_scene_monitor_);
+  viz4_->loadRobotStatePub(namesp + "/robot_state4");
+  viz4_->setManualSceneUpdating(true);
+  viz4_->hideRobot();  // show that things have been reset
+
+  viz5_.reset(
+      new ompl_visual_tools::OmplVisualTools("world_visual5", namesp + "/ompl_visual5", robot_model_));
+  //viz5_->loadTrajectoryPub(namesp + "/display_trajectory");
+  viz5_->setPlanningSceneMonitor(planning_scene_monitor_);
+  viz5_->loadRobotStatePub(namesp + "/robot_state5");
+  viz5_->setManualSceneUpdating(true);
+  viz5_->hideRobot();  // show that things have been reset
+
+  viz6_.reset(
+      new ompl_visual_tools::OmplVisualTools("world_visual6", namesp + "/ompl_visual6", robot_model_));
+  //viz6_->loadTrajectoryPub(namesp + "/display_trajectory");
+  viz6_->setPlanningSceneMonitor(planning_scene_monitor_);
+  viz6_->loadRobotStatePub(namesp + "/robot_state6");
+  viz6_->setManualSceneUpdating(true);
+  viz6_->hideRobot();  // show that things have been reset
 
   viz1_->loadMarkerPub(true);
-  viz1_->deleteAllMarkers();
-  viz1_->triggerBatchPublish();
-  ros::spinOnce();
-
   viz2_->loadMarkerPub(true);
-  ros::spinOnce();
-  ros::Duration(0.1).sleep();
-  viz2_->deleteAllMarkers();
-  viz2_->triggerBatchPublish();
+  viz3_->loadMarkerPub(true);
+  viz4_->loadMarkerPub(true);
+  viz5_->loadMarkerPub(true);
+  viz6_->loadMarkerPub(true);
   ros::spinOnce();
 
-  viz3_->loadMarkerPub(true);
-  viz3_->deleteAllMarkers();
-  viz3_->triggerBatchPublish();
-  ros::spinOnce();
+  deleteAllMarkers();
 
   ros::Duration(1).sleep();
 }

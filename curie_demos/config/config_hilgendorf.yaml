@@ -4,14 +4,17 @@ curie_demos:
   auto_run: true # do not wait to move interactive markers
   experience_planner: bolt
   save_database: false
-  skip_solving: true  # just load/generate database
+  skip_solving: false  # just load/generate database
   planning_group_name: right_arm
   use_task_planning: false  # cartesian hybrid planning
+  post_processing_interval: 20 # how often (in runs) to adjust the graphs
+  seed_random: true
   visualize:
-    display_database: false
+    display_database: true
     start_goal_states: false
-    interpolated_trajectory: true
+    interpolated_traj: true
     time_between_plans: 1
+    database_every_plan: false
   debug:
     print_trajectory: false
     verbose: true
@@ -26,7 +29,7 @@ dense_db:
   debug:
     snap_path_verbose: false
   visualize:
-    grid_generation: true # if discretizing from scratch, visualize
+    grid_generation: false # if discretizing from scratch, visualize
     cart_path: true
     cart_neighbors: true
     snap_path: false # show the insertion of a smoothed path into the dense graph as popularity

@@ -1,5 +1,7 @@
+<!-- -*- mode: XML -*- -->
 <launch>
 
+  <!-- Debug Arguments -->
   <arg name="debug" default="false" />
   <arg unless="$(arg debug)" name="launch_prefix" value="" />
   <arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
@@ -9,8 +11,17 @@
     <arg name="robot_description" value="hilgendorf/robot_description"/>
   </include>
 
+  <!-- Launch visualizer -->
   <node name="$(anon rviz)" launch-prefix="$(arg launch_prefix)" pkg="rviz" type="rviz" respawn="false"
     args="-d $(find curie_demos)/launch/moveit.rviz" output="screen">
   </node>
+
+  <!-- Ordered left to right, then top to bottom -->
+  <node pkg="tf" type="static_transform_publisher" name="tfdummy1" args="0 0   0 0 0 0 /world /world_visual1 10" />
+  <node pkg="tf" type="static_transform_publisher" name="tfdummy2" args="0 1.5 0 0 0 0 /world /world_visual2 10" />
+  <node pkg="tf" type="static_transform_publisher" name="tfdummy3" args="0 3.0 0 0 0 0 /world /world_visual3 10" />
+  <node pkg="tf" type="static_transform_publisher" name="tfdummy4" args="0 0   2 0 0 0 /world /world_visual4 10" />
+  <node pkg="tf" type="static_transform_publisher" name="tfdummy5" args="0 1.5 2 0 0 0 /world /world_visual5 10" />
+  <node pkg="tf" type="static_transform_publisher" name="tfdummy6" args="0 3.0 2 0 0 0 /world /world_visual6 10" />
 
 </launch>

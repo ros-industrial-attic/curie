@@ -1,16 +1,15 @@
 Panels:
   - Class: rviz/Displays
-    Help Height: 101
+    Help Height: 0
     Name: Displays
     Property Tree Widget:
       Expanded:
         - /Grid1/Offset1
-        - /ompl1 - markers1/Namespaces1
-        - /PlanningScene1
+        - /Viz1to61
         - /PlanningScene1/Scene Geometry1
         - /PlanningScene1/Scene Robot1
       Splitter Ratio: 0.561969
-    Tree Height: 603
+    Tree Height: 737
   - Class: rviz/Help
     Name: Help
   - Class: rviz/Views
@@ -43,1214 +42,1468 @@ Visualization Manager:
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: true
-    - Attached Body Color: 150; 50; 150
-      Class: moveit_rviz_plugin/RobotState
-      Collision Enabled: false
-      Enabled: false
-      Links:
-        All Links Enabled: true
-        Expand Joint Details: false
-        Expand Link Details: false
-        Expand Tree: false
-        Link Tree Style: Links in Alphabetic Order
-        base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+    - Class: rviz/Group
+      Displays:
+        - Attached Body Color: 150; 50; 150
+          Class: moveit_rviz_plugin/RobotState
+          Collision Enabled: false
+          Enabled: true
+          Links:
+            All Links Enabled: true
+            Expand Joint Details: false
+            Expand Link Details: false
+            Expand Tree: false
+            Link Tree Style: Links in Alphabetic Order
+            base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_base:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_ee_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_forearm_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_gripper_target:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_robotiq_85_adapter_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_left_finger_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_left_finger_tip_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_left_inner_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_left_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_right_finger_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_right_finger_tip_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_right_inner_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_right_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_shoulder:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_shoulder_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_tool0:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_upper_arm_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_wrist_1_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_wrist_2_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_wrist_3_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_base:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            right_base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_ee_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_forearm_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_gripper_target:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            right_robotiq_85_adapter_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_left_finger_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_left_finger_tip_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_left_inner_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_left_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_right_finger_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_right_finger_tip_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_right_inner_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_right_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_shoulder:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            right_shoulder_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_tool0:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            right_upper_arm_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_wrist_1_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_wrist_2_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_wrist_3_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+          Name: ompl1 - start
+          Robot Alpha: 1
+          Robot Description: /hilgendorf/robot_description
+          Robot State Topic: /hilgendorf/robot_state1
+          Show All Links: true
+          Show Highlights: true
           Value: true
-        left_base:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Visual Enabled: true
+        - Class: rviz/MarkerArray
+          Enabled: true
+          Marker Topic: /hilgendorf/ompl_visual1
+          Name: ompl1 - markers
+          Namespaces:
+            {}
+          Queue Size: 100
           Value: true
-        left_ee_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+        - Attached Body Color: 150; 50; 150
+          Class: moveit_rviz_plugin/RobotState
+          Collision Enabled: false
+          Enabled: true
+          Links:
+            All Links Enabled: true
+            Expand Joint Details: false
+            Expand Link Details: false
+            Expand Tree: false
+            Link Tree Style: Links in Alphabetic Order
+            base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_base:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_ee_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_forearm_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_gripper_target:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_robotiq_85_adapter_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_left_finger_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_left_finger_tip_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_left_inner_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_left_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_right_finger_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_right_finger_tip_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_right_inner_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_right_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_shoulder:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_shoulder_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_tool0:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_upper_arm_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_wrist_1_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_wrist_2_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_wrist_3_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_base:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            right_base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_ee_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_forearm_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_gripper_target:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            right_robotiq_85_adapter_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_left_finger_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_left_finger_tip_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_left_inner_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_left_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_right_finger_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_right_finger_tip_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_right_inner_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_right_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_shoulder:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            right_shoulder_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_tool0:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            right_upper_arm_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_wrist_1_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_wrist_2_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_wrist_3_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+          Name: ompl2 - goal
+          Robot Alpha: 1
+          Robot Description: hilgendorf/robot_description
+          Robot State Topic: /hilgendorf/robot_state2
+          Show All Links: true
+          Show Highlights: true
           Value: true
-        left_forearm_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Visual Enabled: true
+        - Class: rviz/MarkerArray
+          Enabled: true
+          Marker Topic: /hilgendorf/ompl_visual2
+          Name: ompl2 - markers
+          Namespaces:
+            {}
+          Queue Size: 100
           Value: true
-        left_gripper_target:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_robotiq_85_adapter_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+        - Attached Body Color: 150; 50; 150
+          Class: moveit_rviz_plugin/RobotState
+          Collision Enabled: false
+          Enabled: true
+          Links:
+            All Links Enabled: true
+            Expand Joint Details: false
+            Expand Link Details: false
+            Expand Tree: false
+            Link Tree Style: Links in Alphabetic Order
+            base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_base:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_ee_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_forearm_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_gripper_target:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_robotiq_85_adapter_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_left_finger_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_left_finger_tip_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_left_inner_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_left_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_right_finger_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_right_finger_tip_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_right_inner_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_right_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_shoulder:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_shoulder_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_tool0:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_upper_arm_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_wrist_1_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_wrist_2_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_wrist_3_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_base:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            right_base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_ee_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_forearm_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_gripper_target:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            right_robotiq_85_adapter_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_left_finger_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_left_finger_tip_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_left_inner_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_left_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_right_finger_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_right_finger_tip_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_right_inner_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_right_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_shoulder:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            right_shoulder_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_tool0:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            right_upper_arm_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_wrist_1_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_wrist_2_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_wrist_3_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+          Name: ompl3
+          Robot Alpha: 1
+          Robot Description: hilgendorf/robot_description
+          Robot State Topic: /hilgendorf/robot_state3
+          Show All Links: true
+          Show Highlights: true
           Value: true
-        left_robotiq_85_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Visual Enabled: true
+        - Class: rviz/MarkerArray
+          Enabled: true
+          Marker Topic: /hilgendorf/ompl_visual3
+          Name: ompl3 - markers
+          Namespaces:
+            {}
+          Queue Size: 100
           Value: true
-        left_robotiq_85_left_finger_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+        - Attached Body Color: 150; 50; 150
+          Class: moveit_rviz_plugin/RobotState
+          Collision Enabled: false
+          Enabled: true
+          Links:
+            All Links Enabled: true
+            Expand Joint Details: false
+            Expand Link Details: false
+            Expand Tree: false
+            Link Tree Style: Links in Alphabetic Order
+            base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_base:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_ee_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_forearm_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_gripper_target:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_robotiq_85_adapter_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_left_finger_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_left_finger_tip_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_left_inner_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_left_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_right_finger_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_right_finger_tip_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_right_inner_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_right_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_shoulder:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_shoulder_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_tool0:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_upper_arm_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_wrist_1_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_wrist_2_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_wrist_3_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_base:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            right_base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_ee_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_forearm_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_gripper_target:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            right_robotiq_85_adapter_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_left_finger_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_left_finger_tip_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_left_inner_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_left_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_right_finger_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_right_finger_tip_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_right_inner_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_right_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_shoulder:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            right_shoulder_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_tool0:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            right_upper_arm_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_wrist_1_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_wrist_2_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_wrist_3_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+          Name: RobotState
+          Robot Alpha: 1
+          Robot Description: /hilgendorf/robot_description
+          Robot State Topic: /hilgendorf/robot_state4
+          Show All Links: true
+          Show Highlights: true
           Value: true
-        left_robotiq_85_left_finger_tip_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Visual Enabled: true
+        - Class: rviz/MarkerArray
+          Enabled: true
+          Marker Topic: /hilgendorf/ompl_visual4
+          Name: ompl4 - markers
+          Namespaces:
+            {}
+          Queue Size: 100
           Value: true
-        left_robotiq_85_left_inner_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+        - Attached Body Color: 150; 50; 150
+          Class: moveit_rviz_plugin/RobotState
+          Collision Enabled: false
+          Enabled: true
+          Links:
+            All Links Enabled: true
+            Expand Joint Details: false
+            Expand Link Details: false
+            Expand Tree: false
+            Link Tree Style: Links in Alphabetic Order
+            base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_base:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_ee_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_forearm_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_gripper_target:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_robotiq_85_adapter_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_left_finger_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_left_finger_tip_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_left_inner_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_left_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_right_finger_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_right_finger_tip_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_right_inner_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_right_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_shoulder:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_shoulder_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_tool0:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_upper_arm_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_wrist_1_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_wrist_2_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_wrist_3_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_base:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            right_base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_ee_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_forearm_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_gripper_target:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            right_robotiq_85_adapter_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_left_finger_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_left_finger_tip_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_left_inner_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_left_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_right_finger_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_right_finger_tip_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_right_inner_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_right_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_shoulder:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            right_shoulder_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_tool0:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            right_upper_arm_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_wrist_1_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_wrist_2_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_wrist_3_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+          Name: RobotState
+          Robot Alpha: 1
+          Robot Description: /hilgendorf/robot_description
+          Robot State Topic: /hilgendorf/robot_state5
+          Show All Links: true
+          Show Highlights: true
           Value: true
-        left_robotiq_85_left_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Visual Enabled: true
+        - Class: rviz/MarkerArray
+          Enabled: true
+          Marker Topic: /hilgendorf/ompl_visual5
+          Name: ompl5 - markers
+          Namespaces:
+            {}
+          Queue Size: 100
           Value: true
-        left_robotiq_85_right_finger_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+        - Attached Body Color: 150; 50; 150
+          Class: moveit_rviz_plugin/RobotState
+          Collision Enabled: false
+          Enabled: true
+          Links:
+            All Links Enabled: true
+            Expand Joint Details: false
+            Expand Link Details: false
+            Expand Tree: false
+            Link Tree Style: Links in Alphabetic Order
+            base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_base:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_ee_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_forearm_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_gripper_target:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_robotiq_85_adapter_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_left_finger_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_left_finger_tip_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_left_inner_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_left_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_right_finger_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_right_finger_tip_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_right_inner_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_robotiq_85_right_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_shoulder:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_shoulder_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_tool0:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_upper_arm_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_wrist_1_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_wrist_2_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            left_wrist_3_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_base:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            right_base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_ee_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_forearm_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_gripper_target:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            right_robotiq_85_adapter_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_left_finger_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_left_finger_tip_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_left_inner_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_left_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_right_finger_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_right_finger_tip_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_right_inner_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_robotiq_85_right_knuckle_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_shoulder:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            right_shoulder_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_tool0:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            right_upper_arm_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_wrist_1_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_wrist_2_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_wrist_3_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+          Name: RobotState
+          Robot Alpha: 1
+          Robot Description: /hilgendorf/robot_description
+          Robot State Topic: /hilgendorf/robot_state6
+          Show All Links: true
+          Show Highlights: true
           Value: true
-        left_robotiq_85_right_finger_tip_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Visual Enabled: true
+        - Class: rviz/MarkerArray
+          Enabled: true
+          Marker Topic: /hilgendorf/ompl_visual6
+          Name: ompl6 - markers
+          Namespaces:
+            {}
+          Queue Size: 100
           Value: true
-        left_robotiq_85_right_inner_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_right_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_shoulder:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_shoulder_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_tool0:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_upper_arm_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_wrist_1_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_wrist_2_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_wrist_3_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_base:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_ee_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_forearm_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_gripper_target:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_robotiq_85_adapter_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_left_finger_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_left_finger_tip_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_left_inner_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_left_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_right_finger_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_right_finger_tip_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_right_inner_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_right_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_shoulder:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_shoulder_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_tool0:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_upper_arm_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_wrist_1_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_wrist_2_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_wrist_3_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-      Name: visual_tools
-      Robot Alpha: 1
-      Robot Description: hilgendorf/robot_description
-      Robot State Topic: /hilgendorf/robot_state
-      Show All Links: true
-      Show Highlights: true
-      Value: false
-      Visual Enabled: true
-    - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /hilgendorf/markers
-      Name: visual_tools
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: true
-    - Attached Body Color: 150; 50; 150
-      Class: moveit_rviz_plugin/RobotState
-      Collision Enabled: false
-      Enabled: true
-      Links:
-        All Links Enabled: true
-        Expand Joint Details: false
-        Expand Link Details: false
-        Expand Tree: false
-        Link Tree Style: Links in Alphabetic Order
-        base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_base:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_ee_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_forearm_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_gripper_target:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_robotiq_85_adapter_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_left_finger_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_left_finger_tip_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_left_inner_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_left_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_right_finger_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_right_finger_tip_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_right_inner_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_right_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_shoulder:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_shoulder_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_tool0:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_upper_arm_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_wrist_1_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_wrist_2_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_wrist_3_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_base:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_ee_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_forearm_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_gripper_target:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_robotiq_85_adapter_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_left_finger_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_left_finger_tip_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_left_inner_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_left_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_right_finger_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_right_finger_tip_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_right_inner_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_right_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_shoulder:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_shoulder_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_tool0:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_upper_arm_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_wrist_1_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_wrist_2_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_wrist_3_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-      Name: ompl1 - start
-      Robot Alpha: 1
-      Robot Description: /hilgendorf/robot_description
-      Robot State Topic: /hilgendorf/start_state
-      Show All Links: true
-      Show Highlights: true
-      Value: true
-      Visual Enabled: true
-    - Class: rviz/MarkerArray
-      Enabled: true
-      Marker Topic: /hilgendorf/start_markers
-      Name: ompl1 - markers
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: true
-    - Attached Body Color: 150; 50; 150
-      Class: moveit_rviz_plugin/RobotState
-      Collision Enabled: false
-      Enabled: false
-      Links:
-        All Links Enabled: true
-        Expand Joint Details: false
-        Expand Link Details: false
-        Expand Tree: false
-        Link Tree Style: Links in Alphabetic Order
-        base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_base:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_ee_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_forearm_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_gripper_target:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_robotiq_85_adapter_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_left_finger_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_left_finger_tip_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_left_inner_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_left_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_right_finger_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_right_finger_tip_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_right_inner_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_right_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_shoulder:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_shoulder_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_tool0:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_upper_arm_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_wrist_1_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_wrist_2_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_wrist_3_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_base:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_ee_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_forearm_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_gripper_target:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_robotiq_85_adapter_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_left_finger_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_left_finger_tip_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_left_inner_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_left_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_right_finger_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_right_finger_tip_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_right_inner_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_right_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_shoulder:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_shoulder_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_tool0:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_upper_arm_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_wrist_1_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_wrist_2_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_wrist_3_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-      Name: ompl2 - goal
-      Robot Alpha: 1
-      Robot Description: hilgendorf/robot_description
-      Robot State Topic: /hilgendorf/goal_state
-      Show All Links: true
-      Show Highlights: true
-      Value: false
-      Visual Enabled: true
-    - Class: rviz/MarkerArray
-      Enabled: true
-      Marker Topic: /hilgendorf/goal_markers
-      Name: ompl2 - markers
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: true
-    - Attached Body Color: 150; 50; 150
-      Class: moveit_rviz_plugin/RobotState
-      Collision Enabled: false
-      Enabled: true
-      Links:
-        All Links Enabled: true
-        Expand Joint Details: false
-        Expand Link Details: false
-        Expand Tree: false
-        Link Tree Style: Links in Alphabetic Order
-        base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_base:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_ee_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_forearm_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_gripper_target:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_robotiq_85_adapter_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_left_finger_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_left_finger_tip_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_left_inner_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_left_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_right_finger_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_right_finger_tip_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_right_inner_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_right_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_shoulder:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_shoulder_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_tool0:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_upper_arm_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_wrist_1_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_wrist_2_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_wrist_3_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_base:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_ee_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_forearm_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_gripper_target:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_robotiq_85_adapter_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_left_finger_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_left_finger_tip_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_left_inner_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_left_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_right_finger_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_right_finger_tip_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_right_inner_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_right_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_shoulder:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_shoulder_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_tool0:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_upper_arm_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_wrist_1_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_wrist_2_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_wrist_3_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-      Name: ompl3
-      Robot Alpha: 1
-      Robot Description: hilgendorf/robot_description
-      Robot State Topic: /hilgendorf/ompl_state
-      Show All Links: true
-      Show Highlights: true
-      Value: true
-      Visual Enabled: true
-    - Class: rviz/MarkerArray
-      Enabled: true
-      Marker Topic: /hilgendorf/ompl_markers
-      Name: ompl3 - markers
-      Namespaces:
-        Cylinder: true
-        Sphere: true
-      Queue Size: 100
-      Value: true
-    - Attached Body Color: 150; 50; 150
-      Class: moveit_rviz_plugin/RobotState
-      Collision Enabled: false
-      Enabled: false
-      Links:
-        All Links Enabled: true
-        Expand Joint Details: false
-        Expand Link Details: false
-        Expand Tree: false
-        Link Tree Style: Links in Alphabetic Order
-        base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_base:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_ee_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_forearm_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_gripper_target:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_robotiq_85_adapter_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_left_finger_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_left_finger_tip_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_left_inner_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_left_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_right_finger_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_right_finger_tip_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_right_inner_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_robotiq_85_right_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_shoulder:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_shoulder_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_tool0:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_upper_arm_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_wrist_1_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_wrist_2_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_wrist_3_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_base:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_ee_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_forearm_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_gripper_target:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_robotiq_85_adapter_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_left_finger_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_left_finger_tip_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_left_inner_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_left_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_right_finger_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_right_finger_tip_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_right_inner_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_robotiq_85_right_knuckle_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_shoulder:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_shoulder_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_tool0:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_upper_arm_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_wrist_1_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_wrist_2_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_wrist_3_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-      Name: moveit_ompl
-      Robot Alpha: 1
-      Robot Description: /hilgendorf/robot_description
-      Robot State Topic: /moveit_ompl/display_robot_state
-      Show All Links: true
-      Show Highlights: true
-      Value: false
-      Visual Enabled: true
+      Name: Viz1to6
     - Class: moveit_rviz_plugin/Trajectory
       Enabled: true
       Interrupt Display: false
@@ -1486,14 +1739,6 @@ Visualization Manager:
       Show Trail: false
       State Display Time: REALTIME
       Trajectory Topic: /hilgendorf/display_trajectory
-      Value: true
-    - Class: rviz/MarkerArray
-      Enabled: true
-      Marker Topic: /hilgendorf/cartesian_trajectory
-      Name: Cartesian Trajectory
-      Namespaces:
-        Arrow: true
-      Queue Size: 100
       Value: true
     - Class: moveit_rviz_plugin/PlanningScene
       Enabled: true
@@ -2473,6 +2718,195 @@ Visualization Manager:
           Visual Enabled: true
       Enabled: true
       Name: InteractiveMarkers
+    - Class: rviz/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+        base_link:
+          Value: true
+        left_base:
+          Value: true
+        left_base_link:
+          Value: true
+        left_ee_link:
+          Value: true
+        left_forearm_link:
+          Value: true
+        left_gripper_target:
+          Value: true
+        left_robotiq_85_adapter_link:
+          Value: true
+        left_robotiq_85_base_link:
+          Value: true
+        left_robotiq_85_left_finger_link:
+          Value: true
+        left_robotiq_85_left_finger_tip_link:
+          Value: true
+        left_robotiq_85_left_inner_knuckle_link:
+          Value: true
+        left_robotiq_85_left_knuckle_link:
+          Value: true
+        left_robotiq_85_right_finger_link:
+          Value: true
+        left_robotiq_85_right_finger_tip_link:
+          Value: true
+        left_robotiq_85_right_inner_knuckle_link:
+          Value: true
+        left_robotiq_85_right_knuckle_link:
+          Value: true
+        left_shoulder:
+          Value: true
+        left_shoulder_link:
+          Value: true
+        left_tool0:
+          Value: true
+        left_upper_arm_link:
+          Value: true
+        left_wrist_1_link:
+          Value: true
+        left_wrist_2_link:
+          Value: true
+        left_wrist_3_link:
+          Value: true
+        right_base:
+          Value: true
+        right_base_link:
+          Value: true
+        right_ee_link:
+          Value: true
+        right_forearm_link:
+          Value: true
+        right_gripper_target:
+          Value: true
+        right_robotiq_85_adapter_link:
+          Value: true
+        right_robotiq_85_base_link:
+          Value: true
+        right_robotiq_85_left_finger_link:
+          Value: true
+        right_robotiq_85_left_finger_tip_link:
+          Value: true
+        right_robotiq_85_left_inner_knuckle_link:
+          Value: true
+        right_robotiq_85_left_knuckle_link:
+          Value: true
+        right_robotiq_85_right_finger_link:
+          Value: true
+        right_robotiq_85_right_finger_tip_link:
+          Value: true
+        right_robotiq_85_right_inner_knuckle_link:
+          Value: true
+        right_robotiq_85_right_knuckle_link:
+          Value: true
+        right_shoulder:
+          Value: true
+        right_shoulder_link:
+          Value: true
+        right_tool0:
+          Value: true
+        right_upper_arm_link:
+          Value: true
+        right_wrist_1_link:
+          Value: true
+        right_wrist_2_link:
+          Value: true
+        right_wrist_3_link:
+          Value: true
+        world:
+          Value: true
+        world_visual1:
+          Value: true
+        world_visual2:
+          Value: true
+        world_visual3:
+          Value: true
+        world_visual4:
+          Value: true
+        world_visual5:
+          Value: true
+        world_visual6:
+          Value: true
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Tree:
+        world:
+          base_link:
+            left_shoulder:
+              left_base_link:
+                left_base:
+                  {}
+                left_shoulder_link:
+                  left_upper_arm_link:
+                    left_forearm_link:
+                      left_wrist_1_link:
+                        left_wrist_2_link:
+                          left_wrist_3_link:
+                            left_ee_link:
+                              left_robotiq_85_adapter_link:
+                                left_robotiq_85_base_link:
+                                  left_gripper_target:
+                                    {}
+                                  left_robotiq_85_left_inner_knuckle_link:
+                                    left_robotiq_85_left_finger_tip_link:
+                                      {}
+                                  left_robotiq_85_left_knuckle_link:
+                                    left_robotiq_85_left_finger_link:
+                                      {}
+                                  left_robotiq_85_right_inner_knuckle_link:
+                                    left_robotiq_85_right_finger_tip_link:
+                                      {}
+                                  left_robotiq_85_right_knuckle_link:
+                                    left_robotiq_85_right_finger_link:
+                                      {}
+                            left_tool0:
+                              {}
+            right_shoulder:
+              right_base_link:
+                right_base:
+                  {}
+                right_shoulder_link:
+                  right_upper_arm_link:
+                    right_forearm_link:
+                      right_wrist_1_link:
+                        right_wrist_2_link:
+                          right_wrist_3_link:
+                            right_ee_link:
+                              right_robotiq_85_adapter_link:
+                                right_robotiq_85_base_link:
+                                  right_gripper_target:
+                                    {}
+                                  right_robotiq_85_left_inner_knuckle_link:
+                                    right_robotiq_85_left_finger_tip_link:
+                                      {}
+                                  right_robotiq_85_left_knuckle_link:
+                                    right_robotiq_85_left_finger_link:
+                                      {}
+                                  right_robotiq_85_right_inner_knuckle_link:
+                                    right_robotiq_85_right_finger_tip_link:
+                                      {}
+                                  right_robotiq_85_right_knuckle_link:
+                                    right_robotiq_85_right_finger_link:
+                                      {}
+                            right_tool0:
+                              {}
+          world_visual1:
+            {}
+          world_visual2:
+            {}
+          world_visual3:
+            {}
+          world_visual4:
+            {}
+          world_visual5:
+            {}
+          world_visual6:
+            {}
+      Update Interval: 0
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 45; 53; 53
@@ -2487,27 +2921,27 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 2.27359
+      Distance: 5.05365
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.430926
-        Y: -0.281319
-        Z: -1.11759e-06
+        X: 0.294407
+        Y: 1.64479
+        Z: -1.35601e-06
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.244797
+      Pitch: 0.199798
       Target Frame: robot_table_link
       Value: XYOrbit (rviz)
-      Yaw: 5.46827
+      Yaw: 0.180074
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 979
+  Height: 1017
   Help:
     collapsed: false
   Hide Left Dock: false
@@ -2516,9 +2950,9 @@ Window Geometry:
     collapsed: false
   MoveItDashboard:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd00000001000000000000018c0000038dfc0200000011fb0000000a0049006d00610067006500000000280000010d0000000000000000fb0000000a0049006d0061006700650000000041000002090000000000000000fb0000000a0049006d00610067006500000001700000015c0000000000000000fb000000100044006900730070006c006100790073010000002800000301000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a00560069006500770073000000024d000000b0000000b000fffffffb0000000c00430061006d0065007200610000000369000000160000000000000000fb0000000c00430061006d006500720061000000038f000000160000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000230000001b60000000000000000fb0000000c00540065006c0065006f00700000000331000000b50000000000000000fb0000000c00430061006d00650072006100000003d0000000160000000000000000fb0000000c00430061006d00650072006101000002d6000001100000000000000000fb00000024004d006f0076006500490074004d0061006e006900700075006c006100740069006f006e000000032d000000d10000000000000000fb0000000e005000690063006b004e0069006b0100000334000000b20000000000000000fb0000000a0049006d006100670065010000031a000000cc0000000000000000fb0000000c004d006f007600650049007400000002e60000007d0000007d00fffffffb0000001e004d006f007600650049007400440061007300680062006f006100720064010000032f000000860000007d00ffffff0000056a0000038d00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000001c5000003b3fc0200000011fb0000000a0049006d00610067006500000000280000010d0000000000000000fb0000000a0049006d0061006700650000000041000002090000000000000000fb0000000a0049006d00610067006500000001700000015c0000000000000000fb000000100044006900730070006c006100790073010000002800000322000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a00560069006500770073000000024d000000b0000000b000fffffffb0000000c00430061006d0065007200610000000369000000160000000000000000fb0000000c00430061006d006500720061000000038f000000160000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000230000001b60000000000000000fb0000000c00540065006c0065006f00700000000331000000b50000000000000000fb0000000c00430061006d00650072006100000003d0000000160000000000000000fb0000000c00430061006d00650072006101000002d6000001100000000000000000fb00000024004d006f0076006500490074004d0061006e006900700075006c006100740069006f006e000000032d000000d10000000000000000fb0000000e005000690063006b004e0069006b0100000334000000b20000000000000000fb0000000a0049006d006100670065010000031a000000cc0000000000000000fb0000000c004d006f007600650049007400000002e60000007d0000007d00fffffffb0000001e004d006f007600650049007400440061007300680062006f00610072006401000003500000008b0000007d00ffffff000005ac000003b300000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
-  Width: 1788
-  X: 836
+  Width: 1911
+  X: 754
   Y: 14
