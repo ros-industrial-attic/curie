@@ -231,7 +231,7 @@ bool CurieDemos::loadOMPL()
   ROS_INFO_STREAM_NAMED(name_, "Current memory diff - VM: " << vm2 - vm1 << " MB | RSS: " << rss2 - rss1 << " MB");
 
   // Create SPARs graph using popularity
-  if (!skip_solving_)
+  //if (!skip_solving_)
   {
     bolt_setup_->getDenseDB()->getSparseDB()->createSPARS();
   }
@@ -640,8 +640,6 @@ void CurieDemos::deleteAllMarkers(bool clearDatabase)
 
 void CurieDemos::loadVisualTools()
 {
-  // Note: these are in addition to the moveit_boilerplate visual_tools
-
   using namespace ompl_visual_tools;
   Eigen::Affine3d offset;
   std::string namesp = nh_.getNamespace();
@@ -654,13 +652,18 @@ void CurieDemos::loadVisualTools()
     OmplVisualToolsPtr visual = OmplVisualToolsPtr(new OmplVisualTools(
         "world_visual" + std::to_string(i), namesp + "/ompl_visual" + std::to_string(i), robot_model_));
     visual->setPlanningSceneMonitor(planning_scene_monitor_);
-    visual->loadRobotStatePub(namesp + "/robot_state" + std::to_string(i));
     visual->setManualSceneUpdating(true);
-    visual->loadMarkerPub(true);
     //visual->hideRobot();  // show that things have been reset
+
+    // Get TF
     getTFTransform("world", "world_visual" + std::to_string(i), offset);
     visual->enableRobotStateRootOffet(offset);
 
+    // Load publishers
+    visual->loadRobotStatePub(namesp + "/robot_state" + std::to_string(i));
+    visual->loadMarkerPub(true);
+
+    // Show the initial robot state
     boost::dynamic_pointer_cast<moveit_visual_tools::MoveItVisualTools>(visual)->publishRobotState(moveit_start_);
 
     ros::spinOnce();

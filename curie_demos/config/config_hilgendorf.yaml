@@ -4,6 +4,7 @@ curie_demos:
   auto_run: true # do not wait to move interactive markers
   experience_planner: bolt
   skip_solving: true  # just load/generate database
+  #planning_group_name: both_arms #right_arm
   planning_group_name: right_arm
   use_task_planning: false  # cartesian hybrid planning
   post_processing_interval: 20 # how often (in runs) to adjust the graphs
@@ -20,9 +21,9 @@ curie_demos:
 
 # ====================================================
 discretizer:
-  discretization: 1 #0.5235 # -3.14 to 3.15
+  discretization: 0.5235 # -3.14 to 3.15
   visualize:
-    grid_generation: false # if discretizing from scratch, visualize
+    grid_generation: true # if discretizing from scratch, visualize
 
 # ====================================================
 dense_db:

@@ -67,7 +67,9 @@ int main(int argc, char **argv)
 
   // Shutdown
   ROS_INFO_STREAM_NAMED("main", "Shutting down.");
-  ros::Duration(1.0).sleep();
+  ros::spinOnce();
+  ros::Duration(2.0).sleep();
+  ros::spinOnce();
   ros::shutdown();
 
   return 0;
