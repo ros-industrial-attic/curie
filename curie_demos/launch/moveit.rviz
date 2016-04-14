@@ -8,6 +8,7 @@ Panels:
         - /Viz1to61
         - /PlanningScene1/Scene Geometry1
         - /PlanningScene1/Scene Robot1
+        - /InteractiveMarkers1
       Splitter Ratio: 0.561969
     Tree Height: 737
   - Class: rviz/Help
@@ -284,7 +285,8 @@ Visualization Manager:
           Marker Topic: /hilgendorf/ompl_visual1
           Name: ompl1 - markers
           Namespaces:
-            {}
+            Cylinder: true
+            Sphere: true
           Queue Size: 100
           Value: true
         - Attached Body Color: 150; 50; 150
@@ -2716,6 +2718,14 @@ Visualization Manager:
           Show Highlights: true
           Value: true
           Visual Enabled: true
+        - Class: rviz/MarkerArray
+          Enabled: true
+          Marker Topic: /hilgendorf/cartesian_trajectory
+          Name: Cart
+          Namespaces:
+            {}
+          Queue Size: 100
+          Value: true
       Enabled: true
       Name: InteractiveMarkers
     - Class: rviz/TF
@@ -2921,22 +2931,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 5.05365
+      Distance: 7.10002
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.294407
-        Y: 1.64479
-        Z: -1.35601e-06
+        X: -1.01381
+        Y: -2.21131
+        Z: -1.47522e-06
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.199798
+      Pitch: 0.219798
       Target Frame: robot_table_link
       Value: XYOrbit (rviz)
-      Yaw: 0.180074
+      Yaw: 6.25826
     Saved: ~
 Window Geometry:
   Displays:

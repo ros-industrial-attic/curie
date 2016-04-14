@@ -81,9 +81,6 @@ CurieDemos::CurieDemos()
   // Initialize MoveIt base
   MoveItBase::init(nh_);
 
-  // Load more visual tool objects
-  loadVisualTools();
-
   // Load 2 more robot states
   moveit_start_.reset(new moveit::core::RobotState(*current_state_));
   moveit_goal_.reset(new moveit::core::RobotState(*current_state_));
@@ -91,6 +88,9 @@ CurieDemos::CurieDemos()
   // Get the two arms jmg
   jmg_ = robot_model_->getJointModelGroup(planning_group_name_);
   ee_link_ = robot_model_->getLinkModel("right_gripper_target");
+
+  // Load more visual tool objects
+  loadVisualTools();
 
   // Add a collision objects
   visual_moveit_start_->publishCollisionFloor(0.001, "floor", rvt::TRANSLUCENT);
@@ -192,7 +192,7 @@ bool CurieDemos::loadOMPL()
                                              viz6_->getVizPathCallback(), viz6_->getVizTriggerCallback());
 
   // TODO(davetcoleman): not here
-  bolt_setup_->getExperienceDB()->setUseTaskPlanning(false);
+  bolt_setup_->getDenseDB()->setUseTaskPlanning(false);
 
   // Calibrate the color scale for visualization
   const bool invert_colors = true;
@@ -234,13 +234,16 @@ bool CurieDemos::loadOMPL()
   ROS_INFO_STREAM_NAMED(name_, "Current memory diff - VM: " << vm2 - vm1 << " MB | RSS: " << rss2 - rss1 << " MB");
 
   // Create SPARs graph using popularity
-  bolt_setup_->getExperienceDB()->getSparseDB()->createSPARS();
+  if (!skip_solving_)
+  {
+    bolt_setup_->getDenseDB()->getSparseDB()->createSPARS();
+  }
 
   // Add hybrid cartesian planning / task planning
   if (use_task_planning_)
   {
     // Clone the graph to have second and third layers for task planning then free space planning
-    bolt_setup_->getExperienceDB()->generateTaskSpace();
+    bolt_setup_->getDenseDB()->generateTaskSpace();
   }
 
   // Show database
@@ -378,12 +381,12 @@ bool CurieDemos::plan(robot_state::RobotStatePtr start_state, robot_state::Robot
   og::PathGeometric path = bolt_setup_->getSolutionPath();
 
   // Add start to solution
-  path.prepend(ompl_start_); // necessary?
+  path.prepend(ompl_start_);  // necessary?
 
   // Check/test the solution for errors
   if (use_task_planning_)
   {
-    bolt_setup_->getExperienceDB()->checkTaskPathSolution(path, ompl_start_, ompl_goal_);
+    bolt_setup_->getDenseDB()->checkTaskPathSolution(path, ompl_start_, ompl_goal_);
   }
 
   /*
@@ -508,7 +511,7 @@ bool CurieDemos::simplifyPath(og::PathGeometric &path)
 void CurieDemos::generateRandCartesianPath()
 {
   // First cleanup previous cartesian paths
-  bolt_setup_->getExperienceDB()->cleanupTemporaryVerticies();
+  bolt_setup_->getDenseDB()->cleanupTemporaryVerticies();
 
   // Get MoveIt path
   std::vector<moveit::core::RobotStatePtr> trajectory;
@@ -532,7 +535,7 @@ void CurieDemos::generateRandCartesianPath()
 
   // Insert into graph
   std::cout << "adding path --------------------- " << std::endl;
-  if (!bolt_setup_->getExperienceDB()->addCartPath(ompl_path))
+  if (!bolt_setup_->getDenseDB()->addCartPath(ompl_path))
   {
     ROS_ERROR_STREAM_NAMED(name_, "Unable to add cartesian path");
     exit(-1);
@@ -624,70 +627,68 @@ bool CurieDemos::getRandomState(moveit::core::RobotStatePtr &robot_state)
   return false;
 }
 
+void CurieDemos::deleteAllMarkers(bool clearDatabase)
+{
+  // Reset rviz markers
+  if (clearDatabase)
+  {
+    viz1_->deleteAllMarkers();
+    viz2_->deleteAllMarkers();
+    viz3_->deleteAllMarkers();
+  }
+  viz4_->deleteAllMarkers();
+  viz5_->deleteAllMarkers();
+  viz6_->deleteAllMarkers();
+}
+
 void CurieDemos::loadVisualTools()
 {
-  // Note: this is in addition to the moveit_boilerplate visual_tools
+  // Note: these are in addition to the moveit_boilerplate visual_tools
 
+  using namespace ompl_visual_tools;
+  Eigen::Affine3d offset;
   std::string namesp = nh_.getNamespace();
-  viz1_.reset(
-      new ompl_visual_tools::OmplVisualTools("world_visual1", namesp + "/ompl_visual1", robot_model_));
-  viz1_->setPlanningSceneMonitor(planning_scene_monitor_);
-  viz1_->loadRobotStatePub(namesp + "/robot_state1");
-  viz1_->hideRobot();  // show that things have been reset
-  viz1_->setManualSceneUpdating(true);
-  visual_moveit_start_ = viz1_;
 
-  viz2_.reset(
-      new ompl_visual_tools::OmplVisualTools("world_visual2", namesp + "/ompl_visual2", robot_model_));
-  viz2_->setPlanningSceneMonitor(planning_scene_monitor_);
-  viz2_->loadRobotStatePub(namesp + "/robot_state2");
-  viz2_->setManualSceneUpdating(true);
-  viz2_->hideRobot();           // show that things have been reset
-  visual_moveit_goal_ = viz2_;  // copy for use by Moveit
+  std::size_t num_visuals = 6;
+  for (std::size_t i = 1; i <= num_visuals; ++i)
+  {
+    OmplVisualToolsPtr visual = OmplVisualToolsPtr(new OmplVisualTools(
+        "world_visual" + std::to_string(i), namesp + "/ompl_visual" + std::to_string(i), robot_model_));
+    visual->setPlanningSceneMonitor(planning_scene_monitor_);
+    visual->loadRobotStatePub(namesp + "/robot_state" + std::to_string(i));
+    visual->setManualSceneUpdating(true);
+    visual->loadMarkerPub(true);
+    // visual->hideRobot();  // show that things have been reset
+    getTFTransform("world", "world_visual" + std::to_string(i), offset);
+    visual->enableRobotStateRootOffet(offset);
 
-  viz3_.reset(
-      new ompl_visual_tools::OmplVisualTools("world_visual3", namesp + "/ompl_visual3", robot_model_));
-  //viz3_->loadTrajectoryPub(namesp + "/display_trajectory");
-  viz3_->setPlanningSceneMonitor(planning_scene_monitor_);
-  viz3_->loadRobotStatePub(namesp + "/robot_state3");
-  viz3_->setManualSceneUpdating(true);
-  viz3_->hideRobot();  // show that things have been reset
+    // Testing temp
+    moveit_start_->setToRandomPositions(jmg_);
+    boost::dynamic_pointer_cast<moveit_visual_tools::MoveItVisualTools>(visual)->publishRobotState(moveit_start_);
 
-  viz4_.reset(
-      new ompl_visual_tools::OmplVisualTools("world_visual4", namesp + "/ompl_visual4", robot_model_));
-  //viz4_->loadTrajectoryPub(namesp + "/display_trajectory");
-  viz4_->setPlanningSceneMonitor(planning_scene_monitor_);
-  viz4_->loadRobotStatePub(namesp + "/robot_state4");
-  viz4_->setManualSceneUpdating(true);
-  viz4_->hideRobot();  // show that things have been reset
+    ros::spinOnce();
 
-  viz5_.reset(
-      new ompl_visual_tools::OmplVisualTools("world_visual5", namesp + "/ompl_visual5", robot_model_));
-  //viz5_->loadTrajectoryPub(namesp + "/display_trajectory");
-  viz5_->setPlanningSceneMonitor(planning_scene_monitor_);
-  viz5_->loadRobotStatePub(namesp + "/robot_state5");
-  viz5_->setManualSceneUpdating(true);
-  viz5_->hideRobot();  // show that things have been reset
+    // Copy pointers over
+    // clang-format off
+    switch (i)
+    {
+      case 1: viz1_ = visual; break;
+      case 2: viz2_ = visual; break;
+      case 3: viz3_ = visual; break;
+      case 4: viz4_ = visual; break;
+      case 5: viz5_ = visual; break;
+      case 6: viz6_ = visual; break;
+    }
+    // clang-format on
+  }
 
-  viz6_.reset(
-      new ompl_visual_tools::OmplVisualTools("world_visual6", namesp + "/ompl_visual6", robot_model_));
-  //viz6_->loadTrajectoryPub(namesp + "/display_trajectory");
-  viz6_->setPlanningSceneMonitor(planning_scene_monitor_);
-  viz6_->loadRobotStatePub(namesp + "/robot_state6");
-  viz6_->setManualSceneUpdating(true);
-  viz6_->hideRobot();  // show that things have been reset
-
-  viz1_->loadMarkerPub(true);
-  viz2_->loadMarkerPub(true);
-  viz3_->loadMarkerPub(true);
-  viz4_->loadMarkerPub(true);
-  viz5_->loadMarkerPub(true);
-  viz6_->loadMarkerPub(true);
-  ros::spinOnce();
+  viz6_->setBaseFrame("world");
+  visual_moveit_start_ = viz6_;
+  visual_moveit_goal_ = viz2_;  // TODO goal arm is in different window
 
   deleteAllMarkers();
 
-  ros::Duration(1).sleep();
+  ros::Duration(0.1).sleep();
 }
 
 void CurieDemos::visualizeStartGoal()

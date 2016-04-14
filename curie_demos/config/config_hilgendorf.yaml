@@ -4,7 +4,7 @@ curie_demos:
   auto_run: true # do not wait to move interactive markers
   experience_planner: bolt
   save_database: false
-  skip_solving: false  # just load/generate database
+  skip_solving: true  # just load/generate database
   planning_group_name: right_arm
   use_task_planning: false  # cartesian hybrid planning
   post_processing_interval: 20 # how often (in runs) to adjust the graphs
@@ -20,8 +20,13 @@ curie_demos:
     verbose: true
 
 # ====================================================
+discretizer:
+  discretization: 2.0
+  visualize:
+    grid_generation: false # if discretizing from scratch, visualize
+
+# ====================================================
 dense_db:
-  discretization: 2
   desired_average_cost: 90 # most things are of low value
   save_database: true
   popularity_bias_enabled: true
@@ -29,7 +34,6 @@ dense_db:
   debug:
     snap_path_verbose: false
   visualize:
-    grid_generation: false # if discretizing from scratch, visualize
     cart_path: true
     cart_neighbors: true
     snap_path: false # show the insertion of a smoothed path into the dense graph as popularity

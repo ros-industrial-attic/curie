@@ -58,6 +58,12 @@ include_directories(
 )
 
 ## Library
+add_library(${PROJECT_NAME}_moveit_base
+  src/moveit_base.cpp
+)
+target_link_libraries(${PROJECT_NAME}_moveit_base ${catkin_LIBRARIES})
+
+## Library
 add_library(${PROJECT_NAME}_ur5_descartes_app
   src/ur5_descartes_app.cpp
 )
@@ -92,6 +98,7 @@ add_library(${PROJECT_NAME}
 )
 # Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}
+  ${PROJECT_NAME}_moveit_base
   ${PROJECT_NAME}_cart_path_planner
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}

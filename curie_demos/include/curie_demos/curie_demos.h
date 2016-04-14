@@ -46,7 +46,7 @@
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit/kinematic_constraints/utils.h>
-#include <moveit_boilerplate/moveit_base.h>
+#include <curie_demos/moveit_base.h>
 #include <moveit_ompl/model_based_state_space.h>
 
 // OMPL
@@ -64,7 +64,7 @@ namespace mo = moveit_ompl;
 
 namespace curie_demos
 {
-class CurieDemos : public moveit_boilerplate::MoveItBase
+class CurieDemos : public curie_demos::MoveItBase
 {
 public:
 
@@ -97,7 +97,7 @@ public:
    */
   void displayDatabase()
   {
-    bolt_setup_->getExperienceDB()->displayDatabase();
+    bolt_setup_->getDenseDB()->displayDatabase();
   }
 
   bool getShouldSkipSolving()
@@ -108,19 +108,7 @@ public:
   /**
    * \brief Clear all markers displayed in Rviz
    */
-  void deleteAllMarkers(bool clearDatabase = true)
-  {
-    // Reset rviz markers
-    if (clearDatabase)
-    {
-      viz1_->deleteAllMarkers();
-      viz2_->deleteAllMarkers();
-      viz3_->deleteAllMarkers();
-    }
-    viz4_->deleteAllMarkers();
-    viz5_->deleteAllMarkers();
-    viz6_->deleteAllMarkers();
-  }
+  void deleteAllMarkers(bool clearDatabase = true);
 
   void loadVisualTools();
 
