@@ -58,7 +58,6 @@ CurieDemos::CurieDemos()
   error += !rosparam_shortcuts::get(name_, rpnh, "auto_run", auto_run_);
   error += !rosparam_shortcuts::get(name_, rpnh, "experience_planner", experience_planner_);
   error += !rosparam_shortcuts::get(name_, rpnh, "planning_runs", planning_runs_);
-  error += !rosparam_shortcuts::get(name_, rpnh, "save_database", save_database_);
   error += !rosparam_shortcuts::get(name_, rpnh, "skip_solving", skip_solving_);
   error += !rosparam_shortcuts::get(name_, rpnh, "use_task_planning", use_task_planning_);
   error += !rosparam_shortcuts::get(name_, rpnh, "planning_group_name", planning_group_name_);
@@ -108,8 +107,6 @@ CurieDemos::CurieDemos()
   // Create start/goal state imarker
   imarker_start_.reset(new IMarkerRobotState(planning_scene_monitor_, "start", jmg_, ee_link_, rvt::GREEN));
   imarker_goal_.reset(new IMarkerRobotState(planning_scene_monitor_, "goal", jmg_, ee_link_, rvt::ORANGE));
-
-  ros::Duration(0.5).sleep();
 
   // Wait until user does something
   if (!auto_run_)
@@ -649,6 +646,8 @@ void CurieDemos::loadVisualTools()
   Eigen::Affine3d offset;
   std::string namesp = nh_.getNamespace();
 
+  moveit_start_->setToDefaultValues();
+
   std::size_t num_visuals = 6;
   for (std::size_t i = 1; i <= num_visuals; ++i)
   {
@@ -658,12 +657,10 @@ void CurieDemos::loadVisualTools()
     visual->loadRobotStatePub(namesp + "/robot_state" + std::to_string(i));
     visual->setManualSceneUpdating(true);
     visual->loadMarkerPub(true);
-    // visual->hideRobot();  // show that things have been reset
+    //visual->hideRobot();  // show that things have been reset
     getTFTransform("world", "world_visual" + std::to_string(i), offset);
     visual->enableRobotStateRootOffet(offset);
 
-    // Testing temp
-    moveit_start_->setToRandomPositions(jmg_);
     boost::dynamic_pointer_cast<moveit_visual_tools::MoveItVisualTools>(visual)->publishRobotState(moveit_start_);
 
     ros::spinOnce();

@@ -63,7 +63,7 @@ int main(int argc, char **argv)
   }
   // demo.testConnectionToGraphOfRandStates();
 
-  ros::spin();
+  //ros::spin();
 
   // Shutdown
   ROS_INFO_STREAM_NAMED("main", "Shutting down.");

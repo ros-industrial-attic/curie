@@ -165,8 +165,6 @@ public:
   bool auto_run_;
   std::string experience_planner_;
   std::size_t planning_runs_;
-  //double sparse_delta_;
-  bool save_database_;
   bool skip_solving_;
   bool use_task_planning_;
   int post_processing_interval_;

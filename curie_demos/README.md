@@ -49,7 +49,8 @@ Start Rviz:
 
 Start simulated ros_control:
 
-    roslaunch curie_demos hilgendorf_simulation.launch
+    ACTUALLY SKIP THIS STEP, NOT NECESSARY
+    #roslaunch curie_demos hilgendorf_simulation.launch
 
 Run example demo:
 

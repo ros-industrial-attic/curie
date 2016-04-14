@@ -3,7 +3,6 @@ curie_demos:
   planning_runs: 10
   auto_run: true # do not wait to move interactive markers
   experience_planner: bolt
-  save_database: false
   skip_solving: true  # just load/generate database
   planning_group_name: right_arm
   use_task_planning: false  # cartesian hybrid planning
@@ -21,7 +20,7 @@ curie_demos:
 
 # ====================================================
 discretizer:
-  discretization: 2.0
+  discretization: 1 #0.5235 # -3.14 to 3.15
   visualize:
     grid_generation: false # if discretizing from scratch, visualize
 
@@ -41,6 +40,8 @@ dense_db:
     astar: false # NOTE THIS ASTAR IS NOT USED ANYMORE show node expansions and openings
     astar_speed: 0.01 # how many seconds to wait between each visualization
     add_sample: true
+    database_vertices: true
+    database_edges: false
 
 # ====================================================
 sparse_db:
