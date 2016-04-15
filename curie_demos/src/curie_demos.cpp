@@ -138,11 +138,6 @@ bool CurieDemos::loadOMPL()
   bolt_setup_.reset(new ompl::tools::bolt::Bolt(space_));
   si_ = bolt_setup_->getSpaceInformation();
 
-  // Set the database file location
-  std::string file_path;
-  getFilePath(file_path, planning_group_name_, "ros/ompl_storage");
-  bolt_setup_->setFilePath(file_path);  // this is here because its how we do it in moveit_ompl
-
   // Add custom distance function
   // space_->setDistanceFunction(boost::bind(&CurieDemos::customDistanceFunction, this, _1, _2));
 
@@ -157,8 +152,15 @@ bool CurieDemos::loadOMPL()
   // Run interface for loading rosparam settings into OMPL
   ompl_experience_demos::loadOMPLParameters(nh_, name_, bolt_setup_);
 
+  // Set the database file location
+  std::string file_path;
+  std::string file_name = "bolt_" + planning_group_name_ + "_" +
+                          std::to_string(bolt_setup_->getDiscretizer()->discretization_) + ".ompl";
+  ompl_experience_demos::getFilePath(file_path, file_name, "ros/ompl_storage");
+  bolt_setup_->setFilePath(file_path);  // this is here because its how we do it in moveit_ompl
+
   // Setup base OMPL stuff
-  ROS_INFO_STREAM_NAMED(name_, "Setting up OMPL experience");
+  ROS_INFO_STREAM_NAMED(name_, "OMPL SimpleSetup.setup()");
   bolt_setup_->setup();
   assert(si_->isSetup());
 
@@ -231,7 +233,7 @@ bool CurieDemos::loadOMPL()
   ROS_INFO_STREAM_NAMED(name_, "Current memory diff - VM: " << vm2 - vm1 << " MB | RSS: " << rss2 - rss1 << " MB");
 
   // Create SPARs graph using popularity
-  //if (!skip_solving_)
+  // if (!skip_solving_)
   {
     bolt_setup_->getDenseDB()->getSparseDB()->createSPARS();
   }
@@ -636,6 +638,14 @@ void CurieDemos::deleteAllMarkers(bool clearDatabase)
   viz4_->deleteAllMarkers();
   viz5_->deleteAllMarkers();
   viz6_->deleteAllMarkers();
+
+  // Publish
+  viz1_->triggerBatchPublish();
+  viz2_->triggerBatchPublish();
+  viz3_->triggerBatchPublish();
+  viz4_->triggerBatchPublish();
+  viz5_->triggerBatchPublish();
+  viz6_->triggerBatchPublish();
 }
 
 void CurieDemos::loadVisualTools()
@@ -653,15 +663,15 @@ void CurieDemos::loadVisualTools()
         "world_visual" + std::to_string(i), namesp + "/ompl_visual" + std::to_string(i), robot_model_));
     visual->setPlanningSceneMonitor(planning_scene_monitor_);
     visual->setManualSceneUpdating(true);
-    //visual->hideRobot();  // show that things have been reset
-
-    // Get TF
-    getTFTransform("world", "world_visual" + std::to_string(i), offset);
-    visual->enableRobotStateRootOffet(offset);
+    // visual->hideRobot();  // show that things have been reset
 
     // Load publishers
     visual->loadRobotStatePub(namesp + "/robot_state" + std::to_string(i));
     visual->loadMarkerPub(true);
+
+    // Get TF
+    getTFTransform("world", "world_visual" + std::to_string(i), offset);
+    visual->enableRobotStateRootOffet(offset);
 
     // Show the initial robot state
     boost::dynamic_pointer_cast<moveit_visual_tools::MoveItVisualTools>(visual)->publishRobotState(moveit_start_);
@@ -733,44 +743,6 @@ void CurieDemos::testConnectionToGraphOfRandStates()
   }
 
   space_->freeState(random_state);
-}
-
-bool CurieDemos::getFilePath(std::string &file_path, const std::string &database_name,
-                             const std::string &database_directory) const
-
-{
-  namespace fs = boost::filesystem;
-
-  // Check that the directory exists, if not, create it
-  fs::path rootPath;
-  if (!std::string(getenv("HOME")).empty())
-    rootPath = fs::path(getenv("HOME"));  // Support Linux/Mac
-  else if (!std::string(getenv("HOMEPATH")).empty())
-    rootPath = fs::path(getenv("HOMEPATH"));  // Support Windows
-  else
-  {
-    ROS_WARN("Unable to find a home path for this computer");
-    rootPath = fs::path("");
-  }
-
-  rootPath = rootPath / fs::path(database_directory);
-
-  boost::system::error_code returnedError;
-  fs::create_directories(rootPath, returnedError);
-
-  if (returnedError)
-  {
-    // did not successfully create directories
-    ROS_ERROR("Unable to create directory %s", database_directory.c_str());
-    return false;
-  }
-
-  // directories successfully created, append the group name as the file name
-  rootPath = rootPath / fs::path("bolt_" + database_name + "_database.ompl");
-  file_path = rootPath.string();
-  ROS_INFO_STREAM_NAMED("planning_context_manager", "Setting database to " << file_path);
-
-  return true;
 }
 
 }  // namespace curie_demos

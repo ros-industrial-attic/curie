@@ -4,8 +4,8 @@ curie_demos:
   auto_run: true # do not wait to move interactive markers
   experience_planner: bolt
   skip_solving: true  # just load/generate database
-  #planning_group_name: both_arms #right_arm
-  planning_group_name: right_arm
+  planning_group_name: both_arms
+  #planning_group_name: right_arm
   use_task_planning: false  # cartesian hybrid planning
   post_processing_interval: 20 # how often (in runs) to adjust the graphs
   seed_random: true
@@ -46,19 +46,22 @@ dense_db:
 
 # ====================================================
 sparse_db:
-  sparse_delta_fraction: 0.1
+  #sparse_delta_fraction: 0.5235 # same as discretization
+  sparse_delta_fraction: 3
   dense_delta: 0.05
-  sparse_creation_insertion_order: 0 # 0 - popularity, 1 - default, 2 - random
+  sparse_creation_insertion_order: 2 # 0 - popularity, 1 - default, 2 - random
   percent_max_extent_underestimate: 1.5 # 0 to 1
   debug:
     checks_verbose: false
   visualize:
-    spars_graph: true
+    spars_graph: false
     spars_graph_speed: 0 # if 0, does not animate but only single image draw
+    database_vertices: true
+    database_edges: true
     dense_representatives: false
-    astar: true # show node expansions and openings
+    astar: false # show node expansions and openings
     astar_speed: 0.1 # how many seconds to wait between each vertex
-    node_popularity: true
+    node_popularity: false
 
 # ====================================================
 bolt_retrieve_repair:
