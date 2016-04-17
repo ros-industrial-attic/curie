@@ -32,7 +32,6 @@
   <depend>descartes_planner</depend>
   <depend>descartes_moveit</depend>
   <depend>ur5_demo_descartes</depend>
-  <depend>ompl_experience_demos</depend>
 
   <export>
   </export>

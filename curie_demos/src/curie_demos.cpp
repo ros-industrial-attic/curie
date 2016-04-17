@@ -37,7 +37,7 @@
 */
 
 // Interface for loading rosparam settings into OMPL
-#include <ompl_experience_demos/ompl_rosparam.h>
+#include <moveit_ompl/ompl_rosparam.h>
 
 // ROS parameter loading
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
@@ -155,7 +155,7 @@ bool CurieDemos::loadOMPL()
   // Set the database file location
   std::string file_path;
   std::string file_name = "bolt_" + planning_group_name_ + "_" +
-                          std::to_string(bolt_setup_->getDiscretizer()->discretization_) + ".ompl";
+    std::to_string(bolt_setup_->getDenseDB()->getDiscretizer()->discretization_);
   ompl_experience_demos::getFilePath(file_path, file_name, "ros/ompl_storage");
   bolt_setup_->setFilePath(file_path);  // this is here because its how we do it in moveit_ompl
 
@@ -215,6 +215,9 @@ bool CurieDemos::loadOMPL()
   viz4_->setMinMaxStateRadius(0.2, 1.4);
   viz5_->setMinMaxStateRadius(0.2, 1.4);
   viz6_->setMinMaxStateRadius(0.2, 1.4);
+
+  // Optional benchmark
+  //benchmarkStateCheck();
 
   // Track memory usage
   double vm1, rss1;
@@ -507,6 +510,11 @@ bool CurieDemos::simplifyPath(og::PathGeometric &path)
   return true;
 }
 
+void CurieDemos::benchmarkStateCheck()
+{
+  bolt_setup_->benchmarkStateCheck();
+}
+
 void CurieDemos::generateRandCartesianPath()
 {
   // First cleanup previous cartesian paths
@@ -661,23 +669,18 @@ void CurieDemos::loadVisualTools()
   {
     OmplVisualToolsPtr visual = OmplVisualToolsPtr(new OmplVisualTools(
         "world_visual" + std::to_string(i), namesp + "/ompl_visual" + std::to_string(i), robot_model_));
+    visual->loadMarkerPub(true /*wait_for_subscriber*/);
     visual->setPlanningSceneMonitor(planning_scene_monitor_);
     visual->setManualSceneUpdating(true);
     // visual->hideRobot();  // show that things have been reset
-
     // Load publishers
     visual->loadRobotStatePub(namesp + "/robot_state" + std::to_string(i));
-    visual->loadMarkerPub(true);
-
     // Get TF
     getTFTransform("world", "world_visual" + std::to_string(i), offset);
     visual->enableRobotStateRootOffet(offset);
-
     // Show the initial robot state
     boost::dynamic_pointer_cast<moveit_visual_tools::MoveItVisualTools>(visual)->publishRobotState(moveit_start_);
-
     ros::spinOnce();
-
     // Copy pointers over
     // clang-format off
     switch (i)

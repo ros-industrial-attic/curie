@@ -121,6 +121,7 @@ public:
 
   bool simplifyPath(og::PathGeometric& path);
 
+  void benchmarkStateCheck();
   // --------------------------------------------------------
 
   // A shared node handle

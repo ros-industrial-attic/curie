@@ -21,9 +21,9 @@ curie_demos:
 
 # ====================================================
 discretizer:
-  discretization: 0.5235 # -3.14 to 3.15
+  discretization: 2 #0.5235 # -3.14 to 3.15
   visualize:
-    grid_generation: true # if discretizing from scratch, visualize
+    grid_generation: false # if discretizing from scratch, visualize
 
 # ====================================================
 dense_db:
@@ -49,7 +49,7 @@ sparse_db:
   #sparse_delta_fraction: 0.5235 # same as discretization
   sparse_delta_fraction: 3
   dense_delta: 0.05
-  sparse_creation_insertion_order: 2 # 0 - popularity, 1 - default, 2 - random
+  sparse_creation_insertion_order: 1 # 0 - popularity, 1 - default, 2 - random
   percent_max_extent_underestimate: 1.5 # 0 to 1
   debug:
     checks_verbose: false
