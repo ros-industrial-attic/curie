@@ -133,11 +133,8 @@ bool CurieDemos::loadOMPL()
 {
   moveit_ompl::ModelBasedStateSpaceSpecification mbss_spec(robot_model_, jmg_);
 
-  ROS_ERROR_STREAM_NAMED(name_, "Simple test");
-  std::cout << "space_: " << space_ << std::endl;
   // Construct the state space we are planning in
   space_.reset(new moveit_ompl::ModelBasedStateSpace(mbss_spec));
-  std::cout << "space_: " << space_ << std::endl;
 
   // Create SimpleSetup
   bolt_setup_.reset(new ompl::tools::bolt::Bolt(space_));
@@ -658,7 +655,7 @@ void CurieDemos::loadVisualTools()
   {
     OmplVisualToolsPtr visual = OmplVisualToolsPtr(new OmplVisualTools(
         "world_visual" + std::to_string(i), namesp + "/ompl_visual" + std::to_string(i), robot_model_));
-    visual->loadMarkerPub(true /*wait_for_subscriber*/);
+    visual->loadMarkerPub(false /*wait_for_subscriber*/);
     visual->setPlanningSceneMonitor(planning_scene_monitor_);
     visual->setManualSceneUpdating(true);
 
@@ -676,7 +673,6 @@ void CurieDemos::loadVisualTools()
 
     // Show the initial robot state
     boost::dynamic_pointer_cast<moveit_visual_tools::MoveItVisualTools>(visual)->publishRobotState(moveit_start_);
-    ros::spinOnce();
 
     // Calibrate the color scale for visualization
     const bool invert_colors = true;
