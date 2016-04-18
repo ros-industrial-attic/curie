@@ -224,7 +224,7 @@ bool CurieDemos::loadOMPL()
   if (use_task_planning_)
   {
     // Clone the graph to have second and third layers for task planning then free space planning
-    bolt_setup_->getDenseDB()->generateTaskSpace();
+    //bolt_setup_->getDenseDB()->generateTaskSpace();
   }
 
   // Show database
@@ -371,7 +371,7 @@ bool CurieDemos::plan(robot_state::RobotStatePtr start_state, robot_state::Robot
   // Check/test the solution for errors
   if (use_task_planning_)
   {
-    bolt_setup_->getDenseDB()->checkTaskPathSolution(path, ompl_start_, ompl_goal_);
+    //bolt_setup_->getDenseDB()->checkTaskPathSolution(path, ompl_start_, ompl_goal_);
   }
 
   /*
@@ -525,11 +525,11 @@ void CurieDemos::generateRandCartesianPath()
 
   // Insert into graph
   std::cout << "adding path --------------------- " << std::endl;
-  if (!bolt_setup_->getDenseDB()->addCartPath(ompl_path))
-  {
-    ROS_ERROR_STREAM_NAMED(name_, "Unable to add cartesian path");
-    exit(-1);
-  }
+  // if (!bolt_setup_->getDenseDB()->addCartPath(ompl_path))
+  // {
+  //   ROS_ERROR_STREAM_NAMED(name_, "Unable to add cartesian path");
+  //   exit(-1);
+  // }
 }
 
 bool CurieDemos::checkMoveItPathSolution(robot_trajectory::RobotTrajectoryPtr traj)
