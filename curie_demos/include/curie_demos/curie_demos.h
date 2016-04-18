@@ -156,8 +156,10 @@ public:
   std::string experience_planner_;
   std::size_t planning_runs_;
   bool skip_solving_;
+  int problem_type_;
   bool use_task_planning_;
   int post_processing_interval_;
+  bool post_processing_;
 
   // Debug and display preferences
   bool visualize_display_database_;

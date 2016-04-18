@@ -395,7 +395,7 @@ bool IMarkerRobotState::getFilePath(std::string &file_path, const std::string &f
 
 bool IMarkerRobotState::setToRandomState()
 {
-  static const std::size_t MAX_ATTEMPTS = 100;
+  static const std::size_t MAX_ATTEMPTS = 1000;
   for (std::size_t i = 0; i < MAX_ATTEMPTS; ++i)
   {
     imarker_state_->setToRandomPositions(jmg_);
@@ -409,11 +409,11 @@ bool IMarkerRobotState::setToRandomState()
     ls.reset(new psm::LockedPlanningSceneRO(planning_scene_monitor_));
 
     // which planning group to collision check, "" is everything
-    static const std::string planning_group = "";
+    static const std::string planning_group = jmg_->getName();
     if (static_cast<const planning_scene::PlanningSceneConstPtr &>(*ls)
         ->isStateValid(*imarker_state_, planning_group, check_verbose))
     {
-      ROS_DEBUG_STREAM_NAMED(name_, "Found valid random robot state after " << i << " attempts");
+      //ROS_DEBUG_STREAM_NAMED(name_, "Found valid random robot state after " << i << " attempts");
 
       // Get pose from robot state
       setPoseFromRobotState();
@@ -426,6 +426,9 @@ bool IMarkerRobotState::setToRandomState()
 
       return true;
     }
+
+    if (i == 100)
+      ROS_WARN_STREAM_NAMED(name_, "Taking long time to find valid random state");
   }
 
   ROS_ERROR_STREAM_NAMED(name_, "Unable to find valid random robot state for imarker");

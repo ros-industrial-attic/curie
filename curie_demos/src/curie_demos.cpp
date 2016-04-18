@@ -59,9 +59,11 @@ CurieDemos::CurieDemos()
   error += !rosparam_shortcuts::get(name_, rpnh, "experience_planner", experience_planner_);
   error += !rosparam_shortcuts::get(name_, rpnh, "planning_runs", planning_runs_);
   error += !rosparam_shortcuts::get(name_, rpnh, "skip_solving", skip_solving_);
+  error += !rosparam_shortcuts::get(name_, rpnh, "problem_type", problem_type_);
   error += !rosparam_shortcuts::get(name_, rpnh, "use_task_planning", use_task_planning_);
   error += !rosparam_shortcuts::get(name_, rpnh, "planning_group_name", planning_group_name_);
   error += !rosparam_shortcuts::get(name_, rpnh, "seed_random", seed_random);
+    error += !rosparam_shortcuts::get(name_, rpnh, "post_processing", post_processing_);
   error += !rosparam_shortcuts::get(name_, rpnh, "post_processing_interval", post_processing_interval_);
   // Visualize
   error += !rosparam_shortcuts::get(name_, rpnh, "visualize/display_database", visualize_display_database_);
@@ -131,8 +133,11 @@ bool CurieDemos::loadOMPL()
 {
   moveit_ompl::ModelBasedStateSpaceSpecification mbss_spec(robot_model_, jmg_);
 
+  ROS_ERROR_STREAM_NAMED(name_, "Simple test");
+  std::cout << "space_: " << space_ << std::endl;
   // Construct the state space we are planning in
   space_.reset(new moveit_ompl::ModelBasedStateSpace(mbss_spec));
+  std::cout << "space_: " << space_ << std::endl;
 
   // Create SimpleSetup
   bolt_setup_.reset(new ompl::tools::bolt::Bolt(space_));
@@ -193,29 +198,6 @@ bool CurieDemos::loadOMPL()
   // TODO(davetcoleman): not here
   bolt_setup_->getDenseDB()->setUseTaskPlanning(false);
 
-  // Calibrate the color scale for visualization
-  const bool invert_colors = true;
-  viz1_->setMinMaxEdgeCost(0, 110, invert_colors);
-  viz2_->setMinMaxEdgeCost(0, 110, invert_colors);
-  viz3_->setMinMaxEdgeCost(0, 110, invert_colors);
-  viz4_->setMinMaxEdgeCost(0, 110, invert_colors);
-  viz5_->setMinMaxEdgeCost(0, 110, invert_colors);
-  viz6_->setMinMaxEdgeCost(0, 110, invert_colors);
-
-  viz1_->setMinMaxEdgeRadius(0.001, 0.005);
-  viz2_->setMinMaxEdgeRadius(0.001, 0.005);
-  viz3_->setMinMaxEdgeRadius(0.001, 0.005);
-  viz4_->setMinMaxEdgeRadius(0.001, 0.005);
-  viz5_->setMinMaxEdgeRadius(0.001, 0.005);
-  viz6_->setMinMaxEdgeRadius(0.001, 0.005);
-
-  viz1_->setMinMaxStateRadius(0.2, 1.4);
-  viz2_->setMinMaxStateRadius(0.2, 1.4);
-  viz3_->setMinMaxStateRadius(0.2, 1.4);
-  viz4_->setMinMaxStateRadius(0.2, 1.4);
-  viz5_->setMinMaxStateRadius(0.2, 1.4);
-  viz6_->setMinMaxStateRadius(0.2, 1.4);
-
   // Optional benchmark
   //benchmarkStateCheck();
 
@@ -272,8 +254,11 @@ void CurieDemos::runProblems()
     std::cout << "------------------------------------------------------------------------" << std::endl;
 
     // Generate start/goal pair
-    // imarker_start_->setToRandomState();
-    // imarker_goal_->setToRandomState();
+    if (problem_type_ == 0)
+    {
+      imarker_start_->setToRandomState();
+      imarker_goal_->setToRandomState();
+    }
     moveit_start_ = imarker_start_->getRobotState();
     moveit_goal_ = imarker_goal_->getRobotState();
 
@@ -294,7 +279,7 @@ void CurieDemos::runProblems()
     }
 
     // Regenerate Sparse Graph
-    if (run_id % post_processing_interval_ == 0 && run_id > 0)  // every x runs
+    if (post_processing_ && run_id % post_processing_interval_ == 0 && run_id > 0)  // every x runs
     {
       ROS_INFO_STREAM_NAMED(name_, "Performing post processing every " << post_processing_interval_ << " intervals");
       bolt_setup_->doPostProcessing();
@@ -309,7 +294,8 @@ void CurieDemos::runProblems()
   }
 
   // Save experience
-  bolt_setup_->doPostProcessing();
+  if (post_processing_)
+    bolt_setup_->doPostProcessing();
 
   // Finishing up
   ROS_INFO_STREAM_NAMED(name_, "Saving experience db...");
@@ -613,7 +599,7 @@ bool CurieDemos::checkMoveItPathSolution(robot_trajectory::RobotTrajectoryPtr tr
 
 bool CurieDemos::getRandomState(moveit::core::RobotStatePtr &robot_state)
 {
-  static const std::size_t MAX_ATTEMPTS = 100;
+  static const std::size_t MAX_ATTEMPTS = 1000;
   for (std::size_t i = 0; i < MAX_ATTEMPTS; ++i)
   {
     robot_state->setToRandomPositions(jmg_);
@@ -627,6 +613,9 @@ bool CurieDemos::getRandomState(moveit::core::RobotStatePtr &robot_state)
       // ROS_DEBUG_STREAM_NAMED(name_, "Found valid random robot state after " << i << " attempts");
       return true;
     }
+
+    if (i == 100)
+      ROS_WARN_STREAM_NAMED(name_, "Taking long time to find valid random state");
   }
 
   ROS_ERROR_STREAM_NAMED(name_, "Unable to find valid random robot state");
@@ -672,15 +661,29 @@ void CurieDemos::loadVisualTools()
     visual->loadMarkerPub(true /*wait_for_subscriber*/);
     visual->setPlanningSceneMonitor(planning_scene_monitor_);
     visual->setManualSceneUpdating(true);
-    // visual->hideRobot();  // show that things have been reset
+
+    // Load trajectory publisher - ONLY for viz6
+    if (i == 6)
+      visual->loadTrajectoryPub("/hilgendorf/display_trajectory");
+
     // Load publishers
     visual->loadRobotStatePub(namesp + "/robot_state" + std::to_string(i));
     // Get TF
     getTFTransform("world", "world_visual" + std::to_string(i), offset);
     visual->enableRobotStateRootOffet(offset);
+    // Set moveit stats
+    visual->setJointModelGroup(jmg_);
+
     // Show the initial robot state
     boost::dynamic_pointer_cast<moveit_visual_tools::MoveItVisualTools>(visual)->publishRobotState(moveit_start_);
     ros::spinOnce();
+
+    // Calibrate the color scale for visualization
+    const bool invert_colors = true;
+    visual->setMinMaxEdgeCost(0, 110, invert_colors);
+    visual->setMinMaxEdgeRadius(0.001, 0.005);
+    visual->setMinMaxStateRadius(0.2, 1.4);
+
     // Copy pointers over
     // clang-format off
     switch (i)

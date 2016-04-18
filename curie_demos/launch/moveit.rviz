@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Grid1/Offset1
         - /Viz1to61
-        - /PlanningScene1
         - /PlanningScene1/Scene Geometry1
         - /PlanningScene1/Scene Robot1
         - /InteractiveMarkers1
@@ -286,7 +285,8 @@ Visualization Manager:
           Marker Topic: /hilgendorf/ompl_visual1
           Name: ompl1 - markers
           Namespaces:
-            Arrow: true
+            Line: true
+            Sphere: true
           Queue Size: 100
           Value: true
         - Attached Body Color: 150; 50; 150
@@ -529,7 +529,8 @@ Visualization Manager:
           Marker Topic: /hilgendorf/ompl_visual2
           Name: ompl2 - markers
           Namespaces:
-            {}
+            Line: true
+            Sphere: true
           Queue Size: 100
           Value: true
         - Attached Body Color: 150; 50; 150
@@ -1015,7 +1016,7 @@ Visualization Manager:
           Marker Topic: /hilgendorf/ompl_visual4
           Name: ompl4 - markers
           Namespaces:
-            {}
+            Sphere: true
           Queue Size: 100
           Value: true
         - Attached Body Color: 150; 50; 150
@@ -1258,7 +1259,9 @@ Visualization Manager:
           Marker Topic: /hilgendorf/ompl_visual5
           Name: ompl5 - markers
           Namespaces:
-            {}
+            Cylinder: true
+            Sphere: true
+            path_spheres: true
           Queue Size: 100
           Value: true
         - Attached Body Color: 150; 50; 150
@@ -1501,7 +1504,8 @@ Visualization Manager:
           Marker Topic: /hilgendorf/ompl_visual6
           Name: ompl6 - markers
           Namespaces:
-            {}
+            Cylinder: true
+            path_spheres: true
           Queue Size: 100
           Value: true
       Enabled: true
@@ -1732,14 +1736,14 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-      Loop Animation: false
+      Loop Animation: true
       Name: Trajectory
       Robot Alpha: 0.5
       Robot Description: hilgendorf/robot_description
       Show Robot Collision: false
       Show Robot Visual: true
       Show Trail: false
-      State Display Time: REALTIME
+      State Display Time: 0.05 s
       Trajectory Topic: /hilgendorf/display_trajectory
       Value: true
     - Class: moveit_rviz_plugin/PlanningScene
@@ -2726,7 +2730,7 @@ Visualization Manager:
             {}
           Queue Size: 100
           Value: true
-      Enabled: false
+      Enabled: true
       Name: InteractiveMarkers
     - Class: rviz/TF
       Enabled: false
@@ -2756,22 +2760,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 8.02319
+      Distance: 6.51497
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.70468
-        Y: -1.83786
-        Z: -1.95206e-06
+        X: -0.882432
+        Y: -1.51425
+        Z: -3.50178e-06
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.164798
+      Pitch: 0.254798
       Target Frame: robot_table_link
       Value: XYOrbit (rviz)
-      Yaw: 6.24828
+      Yaw: 6.18826
     Saved: ~
 Window Geometry:
   Displays:
