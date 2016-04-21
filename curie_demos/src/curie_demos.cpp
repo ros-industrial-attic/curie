@@ -63,6 +63,8 @@ CurieDemos::CurieDemos()
   error += !rosparam_shortcuts::get(name_, rpnh, "eliminate_dense_disjoint_sets", eliminate_dense_disjoint_sets_);
   error += !rosparam_shortcuts::get(name_, rpnh, "check_valid_vertices", check_valid_vertices_);
   error += !rosparam_shortcuts::get(name_, rpnh, "display_disjoint_sets", display_disjoint_sets_);
+  error += !rosparam_shortcuts::get(name_, rpnh, "benchmark_performance", benchmark_performance_);
+  error += !rosparam_shortcuts::get(name_, rpnh, "headless", headless_);
   error += !rosparam_shortcuts::get(name_, rpnh, "problem_type", problem_type_);
   error += !rosparam_shortcuts::get(name_, rpnh, "use_task_planning", use_task_planning_);
   error += !rosparam_shortcuts::get(name_, rpnh, "planning_group_name", planning_group_name_);
@@ -107,12 +109,15 @@ CurieDemos::CurieDemos()
   process_mem_usage(vm1, rss1);
   ROS_INFO_STREAM_NAMED(name_, "Current memory consumption - VM: " << vm1 << " MB | RSS: " << rss1 << " MB");
 
-  // Create cartesian planner
-  cart_path_planner_.reset(new CartPathPlanner(this));
-
   // Create start/goal state imarker
-  imarker_start_.reset(new IMarkerRobotState(planning_scene_monitor_, "start", jmg_, ee_link_, rvt::GREEN));
-  imarker_goal_.reset(new IMarkerRobotState(planning_scene_monitor_, "goal", jmg_, ee_link_, rvt::ORANGE));
+  if (!headless_)
+  {
+    // Create cartesian planner
+    cart_path_planner_.reset(new CartPathPlanner(this));
+
+    imarker_start_.reset(new IMarkerRobotState(planning_scene_monitor_, "start", jmg_, ee_link_, rvt::GREEN));
+    imarker_goal_.reset(new IMarkerRobotState(planning_scene_monitor_, "goal", jmg_, ee_link_, rvt::ORANGE));
+  }
 
   // Wait until user does something
   if (!auto_run_)
@@ -186,29 +191,34 @@ bool CurieDemos::loadOMPL()
   viz6_->setStateSpace(space_);
 
   // Add visualization hooks into OMPL
-  bolt_setup_->getVisual()->setViz1Callbacks(viz1_->getVizStateCallback(), viz1_->getVizEdgeCallback(),
-                                             viz1_->getVizPathCallback(), viz1_->getVizTriggerCallback());
-  bolt_setup_->getVisual()->setViz2Callbacks(viz2_->getVizStateCallback(), viz2_->getVizEdgeCallback(),
-                                             viz2_->getVizPathCallback(), viz2_->getVizTriggerCallback());
-  bolt_setup_->getVisual()->setViz3Callbacks(viz3_->getVizStateCallback(), viz3_->getVizEdgeCallback(),
-                                             viz3_->getVizPathCallback(), viz3_->getVizTriggerCallback());
-  bolt_setup_->getVisual()->setViz4Callbacks(viz4_->getVizStateCallback(), viz4_->getVizEdgeCallback(),
-                                             viz4_->getVizPathCallback(), viz4_->getVizTriggerCallback());
-  bolt_setup_->getVisual()->setViz5Callbacks(viz5_->getVizStateCallback(), viz5_->getVizEdgeCallback(),
-                                             viz5_->getVizPathCallback(), viz5_->getVizTriggerCallback());
-  bolt_setup_->getVisual()->setViz6Callbacks(viz6_->getVizStateCallback(), viz6_->getVizEdgeCallback(),
-                                             viz6_->getVizPathCallback(), viz6_->getVizTriggerCallback());
+  if (!headless_)
+  {
+    bolt_setup_->getVisual()->setViz1Callbacks(viz1_->getVizStateCallback(), viz1_->getVizEdgeCallback(),
+                                               viz1_->getVizPathCallback(), viz1_->getVizTriggerCallback());
+    bolt_setup_->getVisual()->setViz2Callbacks(viz2_->getVizStateCallback(), viz2_->getVizEdgeCallback(),
+                                               viz2_->getVizPathCallback(), viz2_->getVizTriggerCallback());
+    bolt_setup_->getVisual()->setViz3Callbacks(viz3_->getVizStateCallback(), viz3_->getVizEdgeCallback(),
+                                               viz3_->getVizPathCallback(), viz3_->getVizTriggerCallback());
+    bolt_setup_->getVisual()->setViz4Callbacks(viz4_->getVizStateCallback(), viz4_->getVizEdgeCallback(),
+                                               viz4_->getVizPathCallback(), viz4_->getVizTriggerCallback());
+    bolt_setup_->getVisual()->setViz5Callbacks(viz5_->getVizStateCallback(), viz5_->getVizEdgeCallback(),
+                                               viz5_->getVizPathCallback(), viz5_->getVizTriggerCallback());
+    bolt_setup_->getVisual()->setViz6Callbacks(viz6_->getVizStateCallback(), viz6_->getVizEdgeCallback(),
+                                               viz6_->getVizPathCallback(), viz6_->getVizTriggerCallback());
+  }
 
   // TODO(davetcoleman): not here
   bolt_setup_->getDenseDB()->setUseTaskPlanning(false);
 
-  // Optional benchmark
-  //benchmarkStateCheck();
+  return true;
+}
 
+void CurieDemos::loadData()
+{
   // Track memory usage
   double vm1, rss1;
   process_mem_usage(vm1, rss1);
-  ROS_INFO_STREAM_NAMED(name_, "Current memory consumption - VM: " << vm1 << " MB | RSS: " << rss1 << " MB");
+  //ROS_INFO_STREAM_NAMED(name_, "Current memory consumption - VM: " << vm1 << " MB | RSS: " << rss1 << " MB");
 
   // Load database or generate new grid
   ROS_INFO_STREAM_NAMED(name_, "Loading or generating grid");
@@ -217,8 +227,8 @@ bool CurieDemos::loadOMPL()
   // Track memory usage
   double vm2, rss2;
   process_mem_usage(vm2, rss2);
-  ROS_INFO_STREAM_NAMED(name_, "Current memory consumption - VM: " << vm2 << " MB | RSS: " << rss2 << " MB");
-  ROS_INFO_STREAM_NAMED(name_, "Current memory diff - VM: " << vm2 - vm1 << " MB | RSS: " << rss2 - rss1 << " MB");
+  //ROS_INFO_STREAM_NAMED(name_, "Current memory consumption - VM: " << vm2 << " MB | RSS: " << rss2 << " MB");
+  ROS_INFO_STREAM_NAMED(name_, "RAM usage diff - VM: " << vm2 - vm1 << " MB | RSS: " << rss2 - rss1 << " MB");
 
   // Add hybrid cartesian planning / task planning
   if (use_task_planning_)
@@ -232,12 +242,19 @@ bool CurieDemos::loadOMPL()
   {
     displayDatabase();
   }
-
-  return true;
 }
 
 void CurieDemos::run()
 {
+  // Benchmark performance
+  if (benchmark_performance_)
+  {
+    bolt_setup_->benchmarkPerformance();
+  }
+
+  // Load from file or generate graph
+  loadData();
+
   // Display disconnected components
   if (display_disjoint_sets_)
   {
@@ -292,6 +309,9 @@ void CurieDemos::runProblems()
     std::cout << "------------------------------------------------------------------------" << std::endl;
     ROS_INFO_STREAM_NAMED("plan", "Planning " << run_id + 1 << " out of " << planning_runs_);
     std::cout << "------------------------------------------------------------------------" << std::endl;
+
+    if (headless_)
+      ROS_WARN_STREAM_NAMED(name_, "imarker start/goal not loaded");
 
     // Generate start/goal pair
     if (problem_type_ == 0)
@@ -536,11 +556,6 @@ bool CurieDemos::simplifyPath(og::PathGeometric &path)
   return true;
 }
 
-void CurieDemos::benchmarkStateCheck()
-{
-  bolt_setup_->benchmarkStateCheck();
-}
-
 void CurieDemos::generateRandCartesianPath()
 {
   // First cleanup previous cartesian paths
@@ -665,6 +680,9 @@ bool CurieDemos::getRandomState(moveit::core::RobotStatePtr &robot_state)
 
 void CurieDemos::deleteAllMarkers(bool clearDatabase)
 {
+  if (headless_)
+    return;
+
   // Reset rviz markers
   if (clearDatabase)
   {
@@ -702,20 +720,25 @@ void CurieDemos::loadVisualTools()
     visual->setPlanningSceneMonitor(planning_scene_monitor_);
     visual->setManualSceneUpdating(true);
 
-    // Load trajectory publisher - ONLY for viz6
-    if (i == 6)
-      visual->loadTrajectoryPub("/hilgendorf/display_trajectory");
-
-    // Load publishers
-    visual->loadRobotStatePub(namesp + "/robot_state" + std::to_string(i));
-    // Get TF
-    getTFTransform("world", "world_visual" + std::to_string(i), offset);
-    visual->enableRobotStateRootOffet(offset);
     // Set moveit stats
     visual->setJointModelGroup(jmg_);
 
-    // Show the initial robot state
-    boost::dynamic_pointer_cast<moveit_visual_tools::MoveItVisualTools>(visual)->publishRobotState(moveit_start_);
+    if (!headless_)
+    {
+      // Load trajectory publisher - ONLY for viz6
+      if (i == 6)
+        visual->loadTrajectoryPub("/hilgendorf/display_trajectory");
+
+      // Load publishers
+      visual->loadRobotStatePub(namesp + "/robot_state" + std::to_string(i));
+
+      // Get TF
+      getTFTransform("world", "world_visual" + std::to_string(i), offset);
+      visual->enableRobotStateRootOffet(offset);
+
+      // Show the initial robot state
+      boost::dynamic_pointer_cast<moveit_visual_tools::MoveItVisualTools>(visual)->publishRobotState(moveit_start_);
+    }
 
     // Calibrate the color scale for visualization
     const bool invert_colors = true;

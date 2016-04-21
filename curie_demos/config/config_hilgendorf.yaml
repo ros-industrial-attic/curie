@@ -1,12 +1,15 @@
 # Main program
 curie_demos:
   # run mode
+  benchmark_performance: false
   display_disjoint_sets: false
-  run_problems: true  # just load/generate database
   check_valid_vertices: false
-  create_spars: true
   eliminate_dense_disjoint_sets: false
+  create_spars: true
+  run_problems: true
+
   # run type
+  headless: false
   planning_runs: 10
   problem_type: 0 # 0 - random, 1 - imarkers
   auto_run: true # do not wait to move interactive markers
@@ -46,8 +49,6 @@ dense_db:
     cart_neighbors: true
     snap_path: false # show the insertion of a smoothed path into the dense graph as popularity
     snap_path_speed: 1 # how many seconds to wait between each visualization
-    astar: false # NOTE THIS ASTAR IS NOT USED ANYMORE show node expansions and openings
-    astar_speed: 0.01 # how many seconds to wait between each visualization
     add_sample: false
     database_vertices: true
     database_edges: false
@@ -77,6 +78,8 @@ bolt_retrieve_repair:
     verbose: false
   visualize:
     raw_trajectory: true
+    astar: false # NOTE THIS ASTAR IS NOT USED ANYMORE show node expansions and openings
+    astar_speed: 0.01 # how many seconds to wait between each visualization
 
 # ====================================================
 # for ur5_demo_descartes/src/ur_moveit_plugin.cpp TODO: this is crappy code

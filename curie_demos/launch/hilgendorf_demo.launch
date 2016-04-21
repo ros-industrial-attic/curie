@@ -2,7 +2,7 @@
 <launch>
 
   <!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
-  <include ns="hilgendorf" file="$(find hilgendorf_moveit_config)/launch/planning_context.launch">
+  <include file="$(find hilgendorf_moveit_config)/launch/planning_context.launch">
     <arg name="load_robot_description" value="true"/>
     <arg name="robot_description" value="hilgendorf/robot_description"/>
   </include>

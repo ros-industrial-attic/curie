@@ -80,6 +80,8 @@ public:
   /** \brief Generate states for testing */
   void testConnectionToGraphOfRandStates();
 
+  void loadData();
+
   void run();
 
   void runProblems();
@@ -118,7 +120,6 @@ public:
 
   bool simplifyPath(og::PathGeometric& path);
 
-  void benchmarkStateCheck();
   // --------------------------------------------------------
 
   // A shared node handle
@@ -148,15 +149,19 @@ public:
   moveit::core::JointModelGroup *jmg_;
   moveit::core::LinkModel *ee_link_;
 
-  // Operation settings
-  bool auto_run_;
-  std::string experience_planner_;
-  std::size_t planning_runs_;
+  // Modes
   bool run_problems_;
   bool create_spars_;
   bool eliminate_dense_disjoint_sets_;
   bool check_valid_vertices_;
   bool display_disjoint_sets_;
+  bool benchmark_performance_;
+
+  // Operation settings
+  bool headless_;
+  bool auto_run_;
+  std::string experience_planner_;
+  std::size_t planning_runs_;
   int problem_type_;
   bool use_task_planning_;
   int post_processing_interval_;
