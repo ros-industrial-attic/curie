@@ -58,12 +58,16 @@ CurieDemos::CurieDemos()
   error += !rosparam_shortcuts::get(name_, rpnh, "auto_run", auto_run_);
   error += !rosparam_shortcuts::get(name_, rpnh, "experience_planner", experience_planner_);
   error += !rosparam_shortcuts::get(name_, rpnh, "planning_runs", planning_runs_);
-  error += !rosparam_shortcuts::get(name_, rpnh, "skip_solving", skip_solving_);
+  error += !rosparam_shortcuts::get(name_, rpnh, "run_problems", run_problems_);
+  error += !rosparam_shortcuts::get(name_, rpnh, "create_spars", create_spars_);
+  error += !rosparam_shortcuts::get(name_, rpnh, "eliminate_dense_disjoint_sets", eliminate_dense_disjoint_sets_);
+  error += !rosparam_shortcuts::get(name_, rpnh, "check_valid_vertices", check_valid_vertices_);
+  error += !rosparam_shortcuts::get(name_, rpnh, "display_disjoint_sets", display_disjoint_sets_);
   error += !rosparam_shortcuts::get(name_, rpnh, "problem_type", problem_type_);
   error += !rosparam_shortcuts::get(name_, rpnh, "use_task_planning", use_task_planning_);
   error += !rosparam_shortcuts::get(name_, rpnh, "planning_group_name", planning_group_name_);
   error += !rosparam_shortcuts::get(name_, rpnh, "seed_random", seed_random);
-    error += !rosparam_shortcuts::get(name_, rpnh, "post_processing", post_processing_);
+  error += !rosparam_shortcuts::get(name_, rpnh, "post_processing", post_processing_);
   error += !rosparam_shortcuts::get(name_, rpnh, "post_processing_interval", post_processing_interval_);
   // Visualize
   error += !rosparam_shortcuts::get(name_, rpnh, "visualize/display_database", visualize_display_database_);
@@ -120,6 +124,9 @@ CurieDemos::CurieDemos()
     ROS_ERROR_STREAM_NAMED(name_, "Unable to load planning context");
     exit(-1);
   }
+
+  // Run application
+  run();
 }
 
 CurieDemos::~CurieDemos()
@@ -206,19 +213,12 @@ bool CurieDemos::loadOMPL()
   // Load database or generate new grid
   ROS_INFO_STREAM_NAMED(name_, "Loading or generating grid");
   bolt_setup_->loadOrGenerate();
-  bolt_setup_->saveIfChanged();
 
   // Track memory usage
   double vm2, rss2;
   process_mem_usage(vm2, rss2);
   ROS_INFO_STREAM_NAMED(name_, "Current memory consumption - VM: " << vm2 << " MB | RSS: " << rss2 << " MB");
   ROS_INFO_STREAM_NAMED(name_, "Current memory diff - VM: " << vm2 - vm1 << " MB | RSS: " << rss2 - rss1 << " MB");
-
-  // Create SPARs graph using popularity
-  // if (!skip_solving_)
-  {
-    bolt_setup_->getDenseDB()->getSparseDB()->createSPARS();
-  }
 
   // Add hybrid cartesian planning / task planning
   if (use_task_planning_)
@@ -234,6 +234,49 @@ bool CurieDemos::loadOMPL()
   }
 
   return true;
+}
+
+void CurieDemos::run()
+{
+  // Display disconnected components
+  if (display_disjoint_sets_)
+  {
+    ROS_INFO_STREAM_NAMED(name_, "Displaying disjoint sets");
+    ompl::tools::bolt::DisjointSetsParentKey disjointSets;
+    bolt_setup_->getDenseDB()->getDisjointSets(disjointSets);
+    bolt_setup_->getDenseDB()->printDisjointSets(disjointSets);
+    bolt_setup_->getDenseDB()->visualizeDisjointSets(disjointSets);
+  }
+
+  // Remove verticies that are somehow in collision
+  if (check_valid_vertices_)
+  {
+    bolt_setup_->getDenseDB()->removeInvalidVertices();
+    bolt_setup_->getDenseDB()->saveIfChanged();
+  }
+
+  // Repair missing coverage in the dense graph
+  if (eliminate_dense_disjoint_sets_)
+  {
+    bolt_setup_->getDenseDB()->getDiscretizer()->eliminateDisjointSets();
+  }
+
+  // Create SPARs graph using popularity
+  if (create_spars_)
+  {
+    bolt_setup_->getDenseDB()->getSparseDB()->createSPARS();
+  }
+
+  // Run the demo
+  if (!run_problems_)
+    ROS_INFO_STREAM("Solving requested to be skipped by config file");
+  else
+  {
+    runProblems();
+    //runPopularityExperiement();
+    //runSparseFactorExperiment();
+  }
+  // testConnectionToGraphOfRandStates();
 }
 
 void CurieDemos::runProblems()

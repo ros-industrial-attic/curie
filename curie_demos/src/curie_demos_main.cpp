@@ -52,17 +52,6 @@ int main(int argc, char **argv)
   // Initialize main class
   curie_demos::CurieDemos demo;
 
-  // Run the demo
-  if (demo.getShouldSkipSolving())
-    ROS_INFO_STREAM("Solving requested to be skipped by config file");
-  else
-  {
-    demo.runProblems();
-    // demo.runPopularityExperiement();
-    //demo.runSparseFactorExperiment();
-  }
-  // demo.testConnectionToGraphOfRandStates();
-
   //ros::spin();
 
   // Shutdown

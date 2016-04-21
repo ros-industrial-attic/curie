@@ -1,12 +1,18 @@
 # Main program
 curie_demos:
+  # run mode
+  display_disjoint_sets: false
+  run_problems: true  # just load/generate database
+  check_valid_vertices: false
+  create_spars: true
+  eliminate_dense_disjoint_sets: false
+  # run type
   planning_runs: 10
   problem_type: 0 # 0 - random, 1 - imarkers
   auto_run: true # do not wait to move interactive markers
   experience_planner: bolt
-  skip_solving: false  # just load/generate database
-  #planning_group_name: both_arms
-  planning_group_name: right_arm
+  planning_group_name: both_arms
+  #planning_group_name: right_arm
   use_task_planning: false  # cartesian hybrid planning
   post_processing: false
   post_processing_interval: 20 # how often (in runs) to adjust the graphs
@@ -23,7 +29,7 @@ curie_demos:
 
 # ====================================================
 discretizer:
-  discretization: 1 #0.5235 # -3.14 to 3.15
+  discretization: 2 #0.5235 # -3.14 to 3.15
   visualize:
     grid_generation: false # if discretizing from scratch, visualize
 

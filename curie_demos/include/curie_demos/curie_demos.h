@@ -80,6 +80,8 @@ public:
   /** \brief Generate states for testing */
   void testConnectionToGraphOfRandStates();
 
+  void run();
+
   void runProblems();
 
   bool plan(robot_state::RobotStatePtr start_state, robot_state::RobotStatePtr goal_state);
@@ -98,11 +100,6 @@ public:
   void displayDatabase()
   {
     bolt_setup_->getDenseDB()->displayDatabase();
-  }
-
-  bool getShouldSkipSolving()
-  {
-    return skip_solving_;
   }
 
   /**
@@ -155,7 +152,11 @@ public:
   bool auto_run_;
   std::string experience_planner_;
   std::size_t planning_runs_;
-  bool skip_solving_;
+  bool run_problems_;
+  bool create_spars_;
+  bool eliminate_dense_disjoint_sets_;
+  bool check_valid_vertices_;
+  bool display_disjoint_sets_;
   int problem_type_;
   bool use_task_planning_;
   int post_processing_interval_;
