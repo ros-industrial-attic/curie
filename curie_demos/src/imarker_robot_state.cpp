@@ -80,6 +80,7 @@ IMarkerRobotState::IMarkerRobotState(psm::PlanningSceneMonitorPtr planning_scene
   // Load robot state
   imarker_state_.reset(new moveit::core::RobotState(planning_scene_monitor_->getRobotModel()));
   imarker_state_->setToDefaultValues();
+  //imarker_state_->printStatePositions();
 
   // Get file name
   if (!getFilePath(file_path_, "imarker_" + name_ + ".csv", "config/imarkers"))
@@ -89,7 +90,7 @@ IMarkerRobotState::IMarkerRobotState(psm::PlanningSceneMonitorPtr planning_scene
   if (!loadFromFile(file_path_))
   {
     ROS_INFO_STREAM_NAMED(name_, "Unable to find state from file, setting to default");
-    imarker_state_->setToDefaultValues();
+    //imarker_state_->printStatePositions();
 
     // Get pose from robot state
     setPoseFromRobotState();
@@ -138,6 +139,7 @@ bool IMarkerRobotState::loadFromFile(const std::string &file_name)
 
   // Get robot state from file
   moveit::core::streamToRobotState(*imarker_state_, line);
+  //imarker_state_->printStatePositions();
 
   // Get pose from robot state
   setPoseFromRobotState();
@@ -167,8 +169,8 @@ void IMarkerRobotState::iMarkerCallback(const visualization_msgs::InteractiveMar
 
   // Only allow one feedback to be processed at a time
   {
-    boost::unique_lock<boost::mutex> scoped_lock(imarker_mutex_);
-    if (!imarker_ready_to_process_)
+    //boost::unique_lock<boost::mutex> scoped_lock(imarker_mutex_);
+    if (imarker_ready_to_process_ == false)
     {
       return;
     }
@@ -178,13 +180,6 @@ void IMarkerRobotState::iMarkerCallback(const visualization_msgs::InteractiveMar
   // Convert
   Eigen::Affine3d robot_ee_pose;
   tf::poseMsgToEigen(feedback->pose, robot_ee_pose);
-
-  // Save pose to file if its been long enough
-  if (time_since_last_save_ < ros::Time::now() - ros::Duration(1.0))
-  {
-    saveToFile(file_path_);
-    time_since_last_save_ = ros::Time::now();
-  }
 
   // Offset ee pose forward, because interactive marker is a special thing in front of hand
   robot_ee_pose = robot_ee_pose * imarker_offset_;
@@ -198,7 +193,7 @@ void IMarkerRobotState::iMarkerCallback(const visualization_msgs::InteractiveMar
 
   // Allow next feedback to be processed
   {
-    boost::unique_lock<boost::mutex> scoped_lock(imarker_mutex_);
+    //boost::unique_lock<boost::mutex> scoped_lock(imarker_mutex_);
     imarker_ready_to_process_ = true;
   }
 }
@@ -208,14 +203,15 @@ void IMarkerRobotState::solveIK(Eigen::Affine3d &pose)
   // Cartesian settings
   const bool collision_checking_verbose = false;
   const bool only_check_self_collision = false;
-  const bool use_collision_checking_ = true;
+  const bool use_collision_checking_ = false;
   const std::size_t attempts = 3;
-  const double timeout = 1.0 / 30;  // 30 fps?
+  const double timeout = 1.0 / 30.0;  // 30 fps
 
   // Optionally collision check
   moveit::core::GroupStateValidityCallbackFn constraint_fn;
   if (use_collision_checking_)
   {
+    // TODO(davetcoleman): this is currently not working, the locking seems to cause segfaults
     boost::scoped_ptr<psm::LockedPlanningSceneRO> ls;
     ls.reset(new psm::LockedPlanningSceneRO(planning_scene_monitor_));
     constraint_fn = boost::bind(&isStateValid, static_cast<const planning_scene::PlanningSceneConstPtr &>(*ls).get(),
@@ -223,14 +219,21 @@ void IMarkerRobotState::solveIK(Eigen::Affine3d &pose)
   }
 
   // Attempt to set robot to new pose
-  // ROS_DEBUG_STREAM_THROTTLE_NAMED(1, name_, "Setting from IK");
+  //ROS_DEBUG_STREAM_THROTTLE_NAMED(1, name_, "Setting from IK");
   if (imarker_state_->setFromIK(jmg_, pose, attempts, timeout, constraint_fn))
   {
-    //ROS_INFO_STREAM_NAMED(name_, "Solved IK - viz temp disabled");
+    //ROS_INFO_STREAM_NAMED(name_, "Solved IK");
     visual_tools_->publishRobotState(imarker_state_, color_);
+
+    // Save pose to file if its been long enough
+    if (time_since_last_save_ < ros::Time::now() - ros::Duration(1.0))
+    {
+      saveToFile(file_path_);
+      time_since_last_save_ = ros::Time::now();
+    }
   }
   // else
-  // ROS_DEBUG_STREAM_NAMED(name_, "Failed to set IK");
+  //   ROS_DEBUG_STREAM_NAMED(name_, "Failed to set IK");
 }
 
 void IMarkerRobotState::initializeInteractiveMarkers(const Eigen::Affine3d &pose)
@@ -438,6 +441,7 @@ bool IMarkerRobotState::setToRandomState()
 
 moveit_visual_tools::MoveItVisualToolsPtr IMarkerRobotState::getVisualTools()
 {
+  ROS_WARN_STREAM_NAMED(name_, "someone is getting visual tools from imarker");
   return visual_tools_;
 }
 

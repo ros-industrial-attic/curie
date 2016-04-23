@@ -2,20 +2,22 @@
 curie_demos:
   # run mode
   benchmark_performance: false
+  # this line is where it loads/generates graph
   display_disjoint_sets: false
-  check_valid_vertices: false
   eliminate_dense_disjoint_sets: false
+  check_valid_vertices: false
+  preprocess_spars: false
   create_spars: true
   run_problems: true
 
   # run type
   headless: false
-  planning_runs: 10
-  problem_type: 0 # 0 - random, 1 - imarkers
+  planning_runs: 100
+  problem_type: 1 # 0 - random, 1 - imarkers
   auto_run: true # do not wait to move interactive markers
   experience_planner: bolt
-  planning_group_name: both_arms
-  #planning_group_name: right_arm
+  #planning_group_name: both_arms
+  planning_group_name: right_arm
   use_task_planning: false  # cartesian hybrid planning
   post_processing: false
   post_processing_interval: 20 # how often (in runs) to adjust the graphs
@@ -24,7 +26,7 @@ curie_demos:
     display_database: false # does not display database as it is built, however
     start_goal_states: false
     interpolated_traj: true
-    time_between_plans: 1
+    time_between_plans: 2
     database_every_plan: false
   debug:
     print_trajectory: false
@@ -32,7 +34,8 @@ curie_demos:
 
 # ====================================================
 discretizer:
-  discretization: 2 #0.5235 # -3.14 to 3.15
+  discretization: 2 # -3.14 to 3.15
+  #discretization: 0.5235
   visualize:
     grid_generation: false # if discretizing from scratch, visualize
 
@@ -50,6 +53,8 @@ dense_db:
     snap_path: false # show the insertion of a smoothed path into the dense graph as popularity
     snap_path_speed: 1 # how many seconds to wait between each visualization
     add_sample: false
+    astar: false # NOT USED show node expansions and openings
+    astar_speed: 0.01 # how many seconds to wait between each vertex
     database_vertices: true
     database_edges: false
 
@@ -68,8 +73,6 @@ sparse_db:
     database_vertices: true
     database_edges: true
     dense_representatives: false
-    astar: false # show node expansions and openings
-    astar_speed: 0.1 # how many seconds to wait between each vertex
     node_popularity: false
 
 # ====================================================
@@ -77,9 +80,12 @@ bolt_retrieve_repair:
   debug:
     verbose: false
   visualize:
-    raw_trajectory: true
     astar: false # NOTE THIS ASTAR IS NOT USED ANYMORE show node expansions and openings
     astar_speed: 0.01 # how many seconds to wait between each visualization
+
+bolt:
+  visualize:
+    raw_trajectory: true
 
 # ====================================================
 # for ur5_demo_descartes/src/ur_moveit_plugin.cpp TODO: this is crappy code

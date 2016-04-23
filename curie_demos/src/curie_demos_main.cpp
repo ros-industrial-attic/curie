@@ -49,10 +49,26 @@ int main(int argc, char **argv)
   ros::AsyncSpinner spinner(2);
   spinner.start();
 
-  // Initialize main class
-  curie_demos::CurieDemos demo;
+  // Get name of this computer
+  char hostname[1024];
+  gethostname(hostname, 1024);
+  std::cout << "hostname: " << hostname << std::endl;
 
-  //ros::spin();
+  // std::cout << "before get env " << std::endl;
+  // const std::string hostname2 = hostname;
+  // const std::string home = getenv("HOME");
+  // std::cout << "getEnv: " << home << std::endl;
+
+  // if (hostname2 != "ros-monster" && home.empty())
+  //   std::cout << "its true! " << std::endl;
+
+  // {
+  //   setenv("HOME", "/home/dave", 1);
+  // }
+
+
+  // Initialize main class
+  curie_demos::CurieDemos demo(hostname);
 
   // Shutdown
   ROS_INFO_STREAM_NAMED("main", "Shutting down.");

@@ -69,7 +69,7 @@ class CurieDemos : public curie_demos::MoveItBase
 public:
 
   /** \brief Constructor */
-  CurieDemos();
+  CurieDemos(const std::string& hostname);
 
   /** \brief Destructor */
   ~CurieDemos();
@@ -126,7 +126,7 @@ public:
   ros::NodeHandle nh_;
 
   // The short name of this class
-  std::string name_;
+  std::string name_ = "curie_demos";
 
   // For visualizing things in rviz
   ompl_visual_tools::OmplVisualToolsPtr viz1_;
@@ -151,6 +151,7 @@ public:
 
   // Modes
   bool run_problems_;
+  bool preprocess_spars_;
   bool create_spars_;
   bool eliminate_dense_disjoint_sets_;
   bool check_valid_vertices_;
@@ -187,9 +188,9 @@ public:
   ompl::tools::bolt::BoltPtr bolt_setup_;
 
   // Average planning time
-  double total_duration_;
-  std::size_t total_runs_;
-  std::size_t total_failures_;
+  double total_duration_ = 0;
+  std::size_t total_runs_ = 0;
+  std::size_t total_failures_ = 0;
 
   // Create constrained paths
   CartPathPlannerPtr cart_path_planner_;

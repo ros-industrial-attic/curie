@@ -47,23 +47,27 @@
 
 namespace curie_demos
 {
-CurieDemos::CurieDemos()
-  : MoveItBase(), nh_("~"), name_("curie_demos"), total_duration_(0.0), total_runs_(0), total_failures_(0)
+CurieDemos::CurieDemos(const std::string& hostname)
+  : MoveItBase(), nh_("~")
 
 {
   bool seed_random;
   // Load rosparams
   ros::NodeHandle rpnh(nh_, name_);
   std::size_t error = 0;
-  error += !rosparam_shortcuts::get(name_, rpnh, "auto_run", auto_run_);
-  error += !rosparam_shortcuts::get(name_, rpnh, "experience_planner", experience_planner_);
-  error += !rosparam_shortcuts::get(name_, rpnh, "planning_runs", planning_runs_);
+  // run mode
   error += !rosparam_shortcuts::get(name_, rpnh, "run_problems", run_problems_);
   error += !rosparam_shortcuts::get(name_, rpnh, "create_spars", create_spars_);
+  error += !rosparam_shortcuts::get(name_, rpnh, "preprocess_spars", preprocess_spars_);
   error += !rosparam_shortcuts::get(name_, rpnh, "eliminate_dense_disjoint_sets", eliminate_dense_disjoint_sets_);
   error += !rosparam_shortcuts::get(name_, rpnh, "check_valid_vertices", check_valid_vertices_);
   error += !rosparam_shortcuts::get(name_, rpnh, "display_disjoint_sets", display_disjoint_sets_);
   error += !rosparam_shortcuts::get(name_, rpnh, "benchmark_performance", benchmark_performance_);
+
+  // run type
+  error += !rosparam_shortcuts::get(name_, rpnh, "auto_run", auto_run_);
+  error += !rosparam_shortcuts::get(name_, rpnh, "experience_planner", experience_planner_);
+  error += !rosparam_shortcuts::get(name_, rpnh, "planning_runs", planning_runs_);
   error += !rosparam_shortcuts::get(name_, rpnh, "headless", headless_);
   error += !rosparam_shortcuts::get(name_, rpnh, "problem_type", problem_type_);
   error += !rosparam_shortcuts::get(name_, rpnh, "use_task_planning", use_task_planning_);
@@ -80,6 +84,13 @@ CurieDemos::CurieDemos()
   // Debug
   error += !rosparam_shortcuts::get(name_, rpnh, "debug/print_trajectory", debug_print_trajectory_);
   rosparam_shortcuts::shutdownIfError(name_, error);
+
+  // Auto-set headless if not on developer PC, assume we are on server
+  if (hostname != "ros-monster")
+  {
+    OMPL_WARN("Auto-setting to headless mode because hostname is %s", hostname.c_str());
+    headless_ = true;
+  }
 
   // Seed random
   if (seed_random)
@@ -113,7 +124,7 @@ CurieDemos::CurieDemos()
   if (!headless_)
   {
     // Create cartesian planner
-    cart_path_planner_.reset(new CartPathPlanner(this));
+    //cart_path_planner_.reset(new CartPathPlanner(this));
 
     imarker_start_.reset(new IMarkerRobotState(planning_scene_monitor_, "start", jmg_, ee_link_, rvt::GREEN));
     imarker_goal_.reset(new IMarkerRobotState(planning_scene_monitor_, "goal", jmg_, ee_link_, rvt::ORANGE));
@@ -121,7 +132,11 @@ CurieDemos::CurieDemos()
 
   // Wait until user does something
   if (!auto_run_)
+  {
+    std::cout << "spinning... " << std::endl;
     ros::spin();
+    exit(0);
+  }
 
   // Load planning
   if (!loadOMPL())
@@ -154,6 +169,11 @@ bool CurieDemos::loadOMPL()
 
   // Add custom distance function
   // space_->setDistanceFunction(boost::bind(&CurieDemos::customDistanceFunction, this, _1, _2));
+
+  // Clone the planning scene
+  //planning_scene::PlanningScenePtr planning_scene_copy;
+  //planning_scene_copy.reset(new planning_scene::PlanningScene(robot_model_));
+  //planning_scene_copy->clone(planning_scene_);
 
   // Set state validity checking for this space
   bolt_setup_->setStateValidityChecker(ob::StateValidityCheckerPtr(
@@ -265,6 +285,12 @@ void CurieDemos::run()
     bolt_setup_->getDenseDB()->visualizeDisjointSets(disjointSets);
   }
 
+  // Repair missing coverage in the dense graph
+  if (eliminate_dense_disjoint_sets_)
+  {
+    bolt_setup_->getDenseDB()->getDiscretizer()->eliminateDisjointSets();
+  }
+
   // Remove verticies that are somehow in collision
   if (check_valid_vertices_)
   {
@@ -272,10 +298,11 @@ void CurieDemos::run()
     bolt_setup_->getDenseDB()->saveIfChanged();
   }
 
-  // Repair missing coverage in the dense graph
-  if (eliminate_dense_disjoint_sets_)
+  // Pre-process SPARs graph
+  if (preprocess_spars_)
   {
-    bolt_setup_->getDenseDB()->getDiscretizer()->eliminateDisjointSets();
+    bolt_setup_->getDenseDB()->getSparseDB()->preprocessSPARS();
+    bolt_setup_->getDenseDB()->saveIfChanged();
   }
 
   // Create SPARs graph using popularity
@@ -351,7 +378,7 @@ void CurieDemos::runProblems()
     // Reset marker if this is not our last run
     if (run_id < planning_runs_ - 1)
       deleteAllMarkers(false);
-  }
+  } // for each run
 
   // Save experience
   if (post_processing_)
@@ -362,7 +389,8 @@ void CurieDemos::runProblems()
   bolt_setup_->saveIfChanged();
 
   // Stats
-  ROS_ERROR_STREAM_NAMED(name_, "Average solving time: " << (total_duration_ / total_runs_));
+  if (total_runs_ > 0)
+    ROS_ERROR_STREAM_NAMED(name_, "Average solving time: " << total_duration_ / total_runs_);
 }
 
 bool CurieDemos::plan(robot_state::RobotStatePtr start_state, robot_state::RobotStatePtr goal_state)
@@ -401,17 +429,22 @@ bool CurieDemos::plan(robot_state::RobotStatePtr start_state, robot_state::Robot
   // Solve -----------------------------------------------------------
 
   // Create the termination condition
-  double seconds = 60;
+  double seconds = 10;
   ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition(seconds, 0.1);
 
-  // Attempt to solve the problem within x seconds of planning time
+  // Benchmark runtime
+  ros::Time start_time = ros::Time::now();
+
+  // SOLVE
   ob::PlannerStatus solved = bolt_setup_->solve(ptc);
+
+  // Benchmark runtime
+  total_duration_ = (ros::Time::now() - start_time).toSec();
 
   // Check for error
   if (!solved)
   {
     ROS_ERROR("No Solution Found");
-    exit(-1);
     return false;
   }
 
@@ -803,7 +836,7 @@ void CurieDemos::testConnectionToGraphOfRandStates()
 
     // Test
     const ompl::base::PlannerTerminationCondition ptc = ompl::base::timedPlannerTerminationCondition(60.0);
-    bool result = bolt_setup_->getRetrieveRepairPlanner().canConnect(random_state, ptc);
+    bool result = bolt_setup_->getRetrieveRepairPlanner()->canConnect(random_state, ptc);
     if (result)
       successful_connections++;
 
