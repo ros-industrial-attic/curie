@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ompl
   rosparam_shortcuts
   ompl_visual_tools
+  ompl_bolt
   tf_conversions
   descartes_core
   descartes_planner
@@ -32,6 +33,7 @@ catkin_package(
     moveit_ompl
     rosparam_shortcuts
     ompl_visual_tools
+    ompl_bolt
   DEPENDS
     Eigen
   INCLUDE_DIRS

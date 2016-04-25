@@ -285,8 +285,7 @@ Visualization Manager:
           Marker Topic: /hilgendorf/ompl_visual1
           Name: ompl1 - markers
           Namespaces:
-            Line: true
-            Sphere: true
+            {}
           Queue Size: 100
           Value: true
         - Attached Body Color: 150; 50; 150
@@ -1016,6 +1015,7 @@ Visualization Manager:
           Marker Topic: /hilgendorf/ompl_visual4
           Name: ompl4 - markers
           Namespaces:
+            Line: true
             Sphere: true
           Queue Size: 100
           Value: true
@@ -1260,7 +1260,6 @@ Visualization Manager:
           Name: ompl5 - markers
           Namespaces:
             Cylinder: true
-            Sphere: true
             path_spheres: true
           Queue Size: 100
           Value: true
@@ -1736,7 +1735,7 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-      Loop Animation: true
+      Loop Animation: false
       Name: Trajectory
       Robot Alpha: 0.5
       Robot Description: hilgendorf/robot_description
@@ -2760,22 +2759,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 6.51497
+      Distance: 2.89675
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.882432
-        Y: -1.51425
-        Z: -3.50178e-06
+        X: 0.0638117
+        Y: -0.0740472
+        Z: -3.26336e-06
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.254798
+      Pitch: 0.489798
       Target Frame: robot_table_link
       Value: XYOrbit (rviz)
-      Yaw: 6.18826
+      Yaw: 6.21827
     Saved: ~
 Window Geometry:
   Displays:

@@ -2,7 +2,6 @@
 curie_demos:
   # run mode
   benchmark_performance: false
-  # this line is where it loads/generates graph
   display_disjoint_sets: false
   eliminate_dense_disjoint_sets: false
   check_valid_vertices: false
@@ -15,7 +14,8 @@ curie_demos:
   planning_runs: 100
   problem_type: 1 # 0 - random, 1 - imarkers
   auto_run: true # do not wait to move interactive markers
-  experience_planner: bolt
+  #experience_planner: bolt
+  experience_planner: thunder
   #planning_group_name: both_arms
   planning_group_name: right_arm
   use_task_planning: false  # cartesian hybrid planning
