@@ -62,6 +62,8 @@ dense_db:
 sparse_db:
   sparse_delta_fraction: 3
   dense_delta: 0.05
+  near_sample_points_multiple: 2
+  stretch_factor: 5
   sparse_creation_insertion_order: 2 # 0 - popularity, 1 - default, 2 - random
   percent_max_extent_underestimate: 1.5 # 0 to 1
   testing_bool: true # save to file
@@ -72,16 +74,14 @@ sparse_db:
     spars_graph_speed: 0 # if 0, does not animate but only single image draw
     database_vertices: true
     database_edges: true
-    dense_representatives: false
     node_popularity: false
+    astar: false # NOTE THIS ASTAR IS NOT USED ANYMORE show node expansions and openings
+    astar_speed: 0.01 # how many seconds to wait between each visualization
 
 # ====================================================
 bolt_retrieve_repair:
   debug:
     verbose: false
-  visualize:
-    astar: false # NOTE THIS ASTAR IS NOT USED ANYMORE show node expansions and openings
-    astar_speed: 0.01 # how many seconds to wait between each visualization
 
 bolt:
   visualize:
