@@ -1,3 +1,4 @@
+# ====================================================
 # Main program
 curie_demos:
   # run mode
@@ -7,15 +8,16 @@ curie_demos:
   check_valid_vertices: false
   preprocess_spars: false
   create_spars: true
-  run_problems: true
+  continue_spars: true # even if a file has been saved, randomly sample for more coverage
+  run_problems: false
 
   # run type
   headless: false
   planning_runs: 100
   problem_type: 1 # 0 - random, 1 - imarkers
   auto_run: true # do not wait to move interactive markers
-  #experience_planner: bolt
-  experience_planner: thunder
+  experience_planner: bolt
+  #experience_planner: thunder
   #planning_group_name: both_arms
   planning_group_name: right_arm
   use_task_planning: false  # cartesian hybrid planning
@@ -33,56 +35,95 @@ curie_demos:
     verbose: false
 
 # ====================================================
-discretizer:
-  discretization: 2 # -3.14 to 3.15
-  #discretization: 0.5235
-  visualize:
-    grid_generation: false # if discretizing from scratch, visualize
+debug_interface:
+  autonomous: false
+  full_autonomous: false
 
 # ====================================================
-dense_db:
-  desired_average_cost: 90 # most things are of low value
-  save_database: true
-  popularity_bias_enabled: true
-  popularity_bias: 5 # how much popularity (0-100) affects the edge weights
+sparse_graph:
+  saving_enabled: false
+  super_debug: false # run more checks and tests that slow down speed
   debug:
-    snap_path_verbose: false
-  visualize:
-    cart_path: true
-    cart_neighbors: true
-    snap_path: false # show the insertion of a smoothed path into the dense graph as popularity
-    snap_path_speed: 1 # how many seconds to wait between each visualization
-    add_sample: false
-    astar: false # NOT USED show node expansions and openings
-    astar_speed: 0.01 # how many seconds to wait between each vertex
-    database_vertices: true
-    database_edges: false
-
-# ====================================================
-sparse_db:
-  sparse_delta_fraction: 3
-  dense_delta: 0.05
-  near_sample_points_multiple: 2
-  stretch_factor: 5
-  sparse_creation_insertion_order: 2 # 0 - popularity, 1 - default, 2 - random
-  percent_max_extent_underestimate: 1.5 # 0 to 1
-  testing_bool: true # save to file
-  debug:
-    checks_verbose: false
+    add_verbose: false # debug when addVertex() and addEdge() are called
   visualize:
     spars_graph: false
-    spars_graph_speed: 0 # if 0, does not animate but only single image draw
+    spars_graph_speed: 0 #.00001 # if 0, does not animate but only single image draw
     database_vertices: true
     database_edges: true
-    node_popularity: false
-    astar: false # NOTE THIS ASTAR IS NOT USED ANYMORE show node expansions and openings
+    database_coverage: true # the grey circles around vertices
+    quality_path_simp: true # simplification
+    astar: true # show node expansions and openings
     astar_speed: 0.01 # how many seconds to wait between each visualization
 
 # ====================================================
-bolt_retrieve_repair:
+sparse_criteria:
+  sparse_delta_fraction: 0.1
+  dense_delta_fraction: 0.01
+  near_sample_points_multiple: 2
+  stretch_factor: 5 # 0 means auto set
+  discretize_penetration_dist: 0.01 #0.001
+  obstacle_clearance: 0.006 #0.0035 # max before gripper piece is in collision
+  fourth_criteria_after_failures: 1000 # mode change to 4th criteria after this many failures
+  terminate_after_failures: 1000 # total failures, including 4th criteria
+  sparse_creation_insertion_order: 1 # 0 - popularity, 1 - default, 2 - random
+  percent_max_extent_underestimate: 1.5 # 0 to 1
+  use_discretized_samples: true
+  use_random_samples: true
+  use_check_remove_close_vertices: true # Experimental feature that allows very closeby vertices to be merged with newly added ones
+  use_clear_edges_near_vertex: true # When adding a quality vertex, remove nearby edges
+  use_original_smoother: false # original is bad
+  save_interval: 5 # how often to save during randmo sampling
   debug:
-    verbose: false
+    added_reason_verbose: true # print when adding vertices & edges, and the reason why
+    criteria_verbose: false
+    quality_verbose: false
+    remove_close_verbose: false
+  visualize:
+    attempted_states: false # show the current sampled state before its added
+    connectivity: false # show states in different connected components for connectivity criteria
+    quality_criteria: false
+    remove_close_vertices: false
+    voronoi_diagram: false
+    voronoi_diagram_animated: false
+    node_popularity: false
 
+# ====================================================
+vertex_discretizer:
+  debug:
+    verbose: true
+    verbose_thread: false # output within threading (very verbose)
+  visualize:
+    grid_generation: false
+
+# ====================================================
+task_graph:
+  debug:
+    add_verbose: true # debug when addVertex() and addEdge() are called
+    search_verbose: true
+    visualize_verbose: true
+    verbose: true
+  visualize:
+    task_graph: true
+    task_graph_speed: 0.00001 # if 0, does not animate but only single image draw
+    database_vertices: true
+    database_edges: true
+    astar: true # show node expansions and openings
+    astar_speed: 0.01 # how many seconds to wait between each visualization
+
+# ====================================================
+dense_cache:
+  disable_cache: false
+  enable_cache_saving: false
+  save_every_n_edges: 50000
+
+# ====================================================
+bolt_planner:
+  debug:
+    verbose: true
+  visualize:
+    raw_trajectory: true
+
+# ====================================================
 bolt:
   visualize:
     raw_trajectory: true

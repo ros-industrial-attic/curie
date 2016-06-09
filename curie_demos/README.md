@@ -54,7 +54,7 @@ Start simulated ros_control:
 
 Run example demo:
 
-    roslaunch curie_demos hilgendorf_demo.launch
+    wmctrl -a RViz && roslaunch curie_demos hilgendorf_demo.launch
 
 Note: the first time you run the program, it will discretize the configuration space in a brute-force manner, using the ``sparse_delta`` config. This will likely take ~1 hour. It will then save the database in the folder:
 

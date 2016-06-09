@@ -47,7 +47,10 @@
 #include <moveit/robot_state/conversions.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <curie_demos/moveit_base.h>
+
+// moveit_ompl
 #include <moveit_ompl/model_based_state_space.h>
+#include <moveit_ompl/remote_control.h>
 
 // OMPL
 #include <ompl/tools/thunder/Thunder.h>
@@ -80,13 +83,15 @@ public:
   /** \brief Generate states for testing */
   void testConnectionToGraphOfRandStates();
 
-  void loadData();
+  void loadCollisionChecker();
+
+  bool loadData();
 
   void run();
 
-  void runProblems();
+  bool runProblems();
 
-  bool plan(robot_state::RobotStatePtr start_state, robot_state::RobotStatePtr goal_state);
+  bool plan();
 
   /** \brief Create multiple dummy cartesian paths */
   void generateRandCartesianPath();
@@ -95,14 +100,6 @@ public:
   bool checkMoveItPathSolution(robot_trajectory::RobotTrajectoryPtr traj);
 
   bool getRandomState(moveit::core::RobotStatePtr &robot_state);
-
-  /**
-   * \brief Dump the entire database contents to Rviz
-   */
-  void displayDatabase()
-  {
-    bolt_setup_->getDenseDB()->displayDatabase();
-  }
 
   /**
    * \brief Clear all markers displayed in Rviz
@@ -115,10 +112,9 @@ public:
 
   void visualizeRawTrajectory(og::PathGeometric& path);
 
-  /** \brief Smooths the free space components of a trajectory, but not the cartesian components */
-  void smoothFreeSpace(og::PathGeometric& path);
+  void displayWaitingState(bool waiting);
 
-  bool simplifyPath(og::PathGeometric& path);
+  void waitForNextStep(const std::string &msg);
 
   // --------------------------------------------------------
 
@@ -128,7 +124,18 @@ public:
   // The short name of this class
   std::string name_ = "curie_demos";
 
-  // For visualizing things in rviz
+  // Recieve input from Rviz
+  moveit_ompl::RemoteControl remote_control_;
+
+  // Save the experience setup until the program ends so that the planner data is not lost
+  ompl::tools::ExperienceSetupPtr experience_setup_;
+  ompl::tools::bolt::BoltPtr bolt_;
+
+  // Configuration space
+  moveit_ompl::ModelBasedStateSpacePtr space_;
+  ompl::base::SpaceInformationPtr si_;
+
+  // The visual tools for interfacing with Rviz
   ompl_visual_tools::OmplVisualToolsPtr viz1_;
   ompl_visual_tools::OmplVisualToolsPtr viz2_;
   ompl_visual_tools::OmplVisualToolsPtr viz3_;
@@ -151,41 +158,41 @@ public:
 
   // Modes
   bool run_problems_;
-  bool preprocess_spars_;
   bool create_spars_;
+  bool continue_spars_;
   bool eliminate_dense_disjoint_sets_;
   bool check_valid_vertices_;
   bool display_disjoint_sets_;
   bool benchmark_performance_;
+  bool post_processing_;
+  int post_processing_interval_;
+
+  // Type of planner
+  std::string experience_planner_;
+  bool is_bolt_ = false;
+  bool is_thunder_ = false;
 
   // Operation settings
-  bool headless_;
-  bool auto_run_;
-  std::string experience_planner_;
   std::size_t planning_runs_;
   int problem_type_;
   bool use_task_planning_;
-  int post_processing_interval_;
-  bool post_processing_;
+  bool headless_;
+  bool auto_run_;
+  bool track_memory_consumption_ = false;
 
-  // Debug and display preferences
-  bool visualize_display_database_;
-  bool visualize_interpolated_traj_;
-  //bool visualize_raw_trajectory_;
-  bool visualize_grid_generation_;
-  bool visualize_start_goal_states_;
-  //bool visualize_astar_;
-  bool visualize_cart_neighbors_;
-  bool visualize_cart_path_;
-  double visualize_time_between_plans_;
-  bool visualize_database_every_plan_;
+  // Verbosity levels
   bool debug_print_trajectory_;
 
-  // Configuration space
-  ompl::base::SpaceInformationPtr si_;
-
-  moveit_ompl::ModelBasedStateSpacePtr space_;
-  ompl::tools::bolt::BoltPtr bolt_setup_;
+  // Display preferences
+  bool visualize_display_database_;
+  bool visualize_interpolated_traj_;
+  bool visualize_grid_generation_;
+  bool visualize_start_goal_states_;
+  bool visualize_cart_neighbors_;
+  bool visualize_cart_path_;
+  bool visualize_wait_between_plans_;
+  double visualize_time_between_plans_;
+  bool visualize_database_every_plan_;
 
   // Average planning time
   double total_duration_ = 0;
