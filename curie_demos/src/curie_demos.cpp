@@ -39,9 +39,6 @@
 // Interface for loading rosparam settings into OMPL
 #include <moveit_ompl/ompl_rosparam.h>
 
-// Display in Rviz tool
-#include <ompl_visual_tools/ros_viz_window.h>
-
 // ROS parameter loading
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 
@@ -576,7 +573,7 @@ void CurieDemos::loadVisualTools()
     moveit_visual->loadMarkerPub();
     ros::spinOnce();
 
-    ROSVizWindowPtr viz = ROSVizWindowPtr(new ROSVizWindow(moveit_visual, si_));
+    MoveItVizWindowPtr viz = MoveItVizWindowPtr(new MoveItVizWindow(moveit_visual, si_));
     viz->getVisualTools()->setGlobalScale(100);
 
 
