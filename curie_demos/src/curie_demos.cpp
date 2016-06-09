@@ -40,9 +40,7 @@
 #include <moveit_ompl/ompl_rosparam.h>
 
 // Display in Rviz tool
-#include <ompl_visual_tools/ompl_visual_tools.h>
 #include <ompl_visual_tools/ros_viz_window.h>
-#include <ompl/tools/debug/VizWindow.h>
 
 // ROS parameter loading
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
@@ -92,7 +90,7 @@ CurieDemos::CurieDemos(const std::string &hostname) : MoveItBase(), nh_("~"), re
   error += !rosparam_shortcuts::get(name_, rpnh, "visualize/time_between_plans", visualize_time_between_plans_);
   error += !rosparam_shortcuts::get(name_, rpnh, "visualize/database_every_plan", visualize_database_every_plan_);
   // Debug
-  error += !rosparam_shortcuts::get(name_, rpnh, "debug/print_trajectory", debug_print_trajectory_);
+  error += !rosparam_shortcuts::get(name_, rpnh, "verbose/print_trajectory", debug_print_trajectory_);
   rosparam_shortcuts::shutdownIfError(name_, error);
 
   // Auto-set headless if not on developer PC, assume we are on server
@@ -139,7 +137,7 @@ CurieDemos::CurieDemos(const std::string &hostname) : MoveItBase(), nh_("~"), re
   if (!headless_)
   {
     // Create cartesian planner
-    // cart_path_planner_.reset(new CartPathPlanner(this));
+    cart_path_planner_.reset(new CartPathPlanner(this));
 
     imarker_start_.reset(new IMarkerRobotState(planning_scene_monitor_, "start", jmg_, ee_link_, rvt::GREEN));
     imarker_goal_.reset(new IMarkerRobotState(planning_scene_monitor_, "goal", jmg_, ee_link_, rvt::ORANGE));
@@ -230,12 +228,12 @@ bool CurieDemos::loadOMPL()
   // Set Rviz visuals in OMPL planner
   ompl::tools::VisualizerPtr visual = experience_setup_->getVisual();
 
-  visual->setVizWindow(1, ompl::tools::VizWindowPtr(new ompl_visual_tools::ROSVizWindow(viz1_)));
-  visual->setVizWindow(2, ompl::tools::VizWindowPtr(new ompl_visual_tools::ROSVizWindow(viz2_)));
-  visual->setVizWindow(3, ompl::tools::VizWindowPtr(new ompl_visual_tools::ROSVizWindow(viz3_)));
-  visual->setVizWindow(4, ompl::tools::VizWindowPtr(new ompl_visual_tools::ROSVizWindow(viz4_)));
-  visual->setVizWindow(5, ompl::tools::VizWindowPtr(new ompl_visual_tools::ROSVizWindow(viz5_)));
-  visual->setVizWindow(6, ompl::tools::VizWindowPtr(new ompl_visual_tools::ROSVizWindow(viz6_)));
+  visual->setVizWindow(1, viz1_);
+  visual->setVizWindow(2, viz2_);
+  visual->setVizWindow(3, viz3_);
+  visual->setVizWindow(4, viz4_);
+  visual->setVizWindow(5, viz5_);
+  visual->setVizWindow(6, viz6_);
 
   // Set other hooks
   visual->setWaitForUserFeedback(boost::bind(&CurieDemos::waitForNextStep, this, _1));
@@ -554,76 +552,80 @@ void CurieDemos::deleteAllMarkers(bool clearDatabase)
   viz6_->deleteAllMarkers();
 
   // Publish
-  viz1_->triggerBatchPublish();
-  viz2_->triggerBatchPublish();
-  viz3_->triggerBatchPublish();
-  viz4_->triggerBatchPublish();
-  viz5_->triggerBatchPublish();
-  viz6_->triggerBatchPublish();
+  viz1_->trigger();
+  viz2_->trigger();
+  viz3_->trigger();
+  viz4_->trigger();
+  viz5_->trigger();
+  viz6_->trigger();
 }
 
 void CurieDemos::loadVisualTools()
 {
   using namespace ompl_visual_tools;
+
   Eigen::Affine3d offset;
   std::string namesp = nh_.getNamespace();
-
   moveit_start_->setToDefaultValues();
 
   const std::size_t NUM_VISUALS = 6;
   for (std::size_t i = 1; i <= NUM_VISUALS; ++i)
   {
-    OmplVisualToolsPtr visual = OmplVisualToolsPtr(new OmplVisualTools(
-        "world_visual" + std::to_string(i), namesp + "/ompl_visual" + std::to_string(i), robot_model_));
-    visual->setSpaceInformation(si_);
-    //visual->setGlobalScale(100);
-    visual->loadMarkerPub();
-    visual->setPlanningSceneMonitor(planning_scene_monitor_);
-    visual->setManualSceneUpdating(true);
+    moveit_visual_tools::MoveItVisualToolsPtr moveit_visual = moveit_visual_tools::MoveItVisualToolsPtr(
+                                                                                                        new moveit_visual_tools::MoveItVisualTools("/world_visual" + std::to_string(i), "/ompl_visual" + std::to_string(i), robot_model_));
+    moveit_visual->loadMarkerPub();
+    ros::spinOnce();
+
+    ROSVizWindowPtr viz = ROSVizWindowPtr(new ROSVizWindow(moveit_visual, si_));
+    viz->getVisualTools()->setGlobalScale(100);
+
+
+    moveit_visual->setPlanningSceneMonitor(planning_scene_monitor_);
+    moveit_visual->setManualSceneUpdating(true);
 
     // Set moveit stats
-    visual->setJointModelGroup(jmg_);
+    viz->setJointModelGroup(jmg_);
 
     if (!headless_)
     {
       // Load trajectory publisher - ONLY for viz6
       if (i == 6)
-        visual->loadTrajectoryPub("/hilgendorf/display_trajectory");
+        moveit_visual->loadTrajectoryPub("/hilgendorf/display_trajectory");
 
       // Load publishers
-      visual->loadRobotStatePub(namesp + "/robot_state" + std::to_string(i));
+      moveit_visual->loadRobotStatePub(namesp + "/robot_state" + std::to_string(i));
 
       // Get TF
       getTFTransform("world", "world_visual" + std::to_string(i), offset);
-      visual->enableRobotStateRootOffet(offset);
+      moveit_visual->enableRobotStateRootOffet(offset);
 
       // Show the initial robot state
-      boost::dynamic_pointer_cast<moveit_visual_tools::MoveItVisualTools>(visual)->publishRobotState(moveit_start_);
+      boost::dynamic_pointer_cast<moveit_visual_tools::MoveItVisualTools>(moveit_visual)->publishRobotState(moveit_start_);
     }
 
     // Calibrate the color scale for visualization
     const bool invert_colors = true;
-    visual->setMinMaxEdgeCost(0, 110, invert_colors);
-    visual->setMinMaxEdgeRadius(0.001, 0.005);
-    visual->setMinMaxStateRadius(0.2, 1.4);
+    viz->setMinMaxEdgeCost(0, 110, invert_colors);
+    viz->setMinMaxEdgeRadius(0.001, 0.005);
+    viz->setMinMaxStateRadius(0.2, 1.4);
 
     // Copy pointers over
     // clang-format off
     switch (i)
     {
-      case 1: viz1_ = visual; break;
-      case 2: viz2_ = visual; break;
-      case 3: viz3_ = visual; break;
-      case 4: viz4_ = visual; break;
-      case 5: viz5_ = visual; break;
-      case 6: viz6_ = visual; break;
+      case 1: viz1_ = viz; break;
+      case 2: viz2_ = viz; break;
+      case 3: viz3_ = viz; break;
+      case 4: viz4_ = viz; break;
+      case 5: viz5_ = viz; break;
+      case 6: viz6_ = viz; break;
     }
     // clang-format on
   }
 
-  viz6_->setBaseFrame("world");
-  visual_moveit_start_ = viz6_;
-  visual_moveit_goal_ = viz2_;  // TODO goal arm is in different window
+  viz6_->getVisualTools()->setBaseFrame("world");
+  visual_moveit_start_ = viz6_->getVisualTools();
+  visual_moveit_goal_ = viz2_->getVisualTools();  // TODO goal arm is in different window
 
   deleteAllMarkers();
 
@@ -650,7 +652,7 @@ void CurieDemos::displayWaitingState(bool waiting)
   // else
   //   publishViewFinderFrame(rvt::XSMALL);
 
-  // viz_bg_->triggerBatchPublish();
+  // viz_bg_->trigger();
 }
 
 void CurieDemos::waitForNextStep(const std::string &msg)
@@ -701,9 +703,8 @@ void CurieDemos::visualizeRawTrajectory(og::PathGeometric &path)
   viz3_->convertPath(path, jmg_, traj, speed);
 
   // Show trajectory line
-  mvt::MoveItVisualToolsPtr visual_moveit3 = boost::dynamic_pointer_cast<mvt::MoveItVisualTools>(viz3_);
-  visual_moveit3->publishTrajectoryLine(traj, ee_link_, rvt::GREY);
-  visual_moveit3->triggerBatchPublish();
+  viz3_->getVisualTools()->publishTrajectoryLine(traj, ee_link_, rvt::GREY);
+  viz3_->trigger();
 }
 
 void CurieDemos::generateRandCartesianPath()
@@ -733,11 +734,12 @@ void CurieDemos::generateRandCartesianPath()
 
   // Insert into graph
   std::cout << "adding path --------------------- " << std::endl;
-  // if (!experience_setup_->getSparseGraph()->addCartPath(ompl_path))
-  // {
-  //   ROS_ERROR_STREAM_NAMED(name_, "Unable to add cartesian path");
-  //   exit(-1);
-  // }
+  std::size_t indent = 0;
+  if (!bolt_->getTaskGraph()->addCartPath(ompl_path, indent))
+  {
+    ROS_ERROR_STREAM_NAMED(name_, "Unable to add cartesian path");
+    exit(-1);
+  }
 }
 
 bool CurieDemos::checkMoveItPathSolution(robot_trajectory::RobotTrajectoryPtr traj)

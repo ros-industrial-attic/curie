@@ -8,8 +8,8 @@ curie_demos:
   check_valid_vertices: false
   preprocess_spars: false
   create_spars: true
-  continue_spars: true # even if a file has been saved, randomly sample for more coverage
-  run_problems: false
+  continue_spars: false # even if a file has been saved, randomly sample for more coverage
+  run_problems: true
 
   # run type
   headless: false
@@ -20,7 +20,7 @@ curie_demos:
   #experience_planner: thunder
   #planning_group_name: both_arms
   planning_group_name: right_arm
-  use_task_planning: false  # cartesian hybrid planning
+  use_task_planning: true  # cartesian hybrid planning
   post_processing: false
   post_processing_interval: 20 # how often (in runs) to adjust the graphs
   seed_random: true
@@ -30,7 +30,7 @@ curie_demos:
     interpolated_traj: true
     time_between_plans: 2
     database_every_plan: false
-  debug:
+  verbose:
     print_trajectory: false
     verbose: false
 
@@ -41,10 +41,10 @@ debug_interface:
 
 # ====================================================
 sparse_graph:
-  saving_enabled: false
+  save_enabled: true
   super_debug: false # run more checks and tests that slow down speed
-  debug:
-    add_verbose: false # debug when addVertex() and addEdge() are called
+  verbose:
+    add: false # debug when addVertex() and addEdge() are called
   visualize:
     spars_graph: false
     spars_graph_speed: 0 #.00001 # if 0, does not animate but only single image draw
@@ -72,12 +72,12 @@ sparse_criteria:
   use_check_remove_close_vertices: true # Experimental feature that allows very closeby vertices to be merged with newly added ones
   use_clear_edges_near_vertex: true # When adding a quality vertex, remove nearby edges
   use_original_smoother: false # original is bad
-  save_interval: 5 # how often to save during randmo sampling
-  debug:
-    added_reason_verbose: true # print when adding vertices & edges, and the reason why
-    criteria_verbose: false
-    quality_verbose: false
-    remove_close_verbose: false
+  save_interval: 100 # how often to save during randmo sampling
+  verbose:
+    added_reason: true # print when adding vertices & edges, and the reason why
+    criteria: false
+    quality: false
+    remove_close: false
   visualize:
     attempted_states: false # show the current sampled state before its added
     connectivity: false # show states in different connected components for connectivity criteria
@@ -89,21 +89,21 @@ sparse_criteria:
 
 # ====================================================
 vertex_discretizer:
-  debug:
+  verbose:
     verbose: true
-    verbose_thread: false # output within threading (very verbose)
+    thread: false # output within threading (very verbose)
   visualize:
     grid_generation: false
 
 # ====================================================
 task_graph:
-  debug:
-    add_verbose: true # debug when addVertex() and addEdge() are called
-    search_verbose: true
-    visualize_verbose: true
+  verbose:
+    add: false # debug when addVertex() and addEdge() are called
+    search: true
+    visualize: true
     verbose: true
   visualize:
-    task_graph: true
+    task_graph: false
     task_graph_speed: 0.00001 # if 0, does not animate but only single image draw
     database_vertices: true
     database_edges: true
@@ -118,7 +118,7 @@ dense_cache:
 
 # ====================================================
 bolt_planner:
-  debug:
+  verbose:
     verbose: true
   visualize:
     raw_trajectory: true
