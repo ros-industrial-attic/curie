@@ -441,7 +441,7 @@ bool IMarkerRobotState::setToRandomState()
 
 moveit_visual_tools::MoveItVisualToolsPtr IMarkerRobotState::getVisualTools()
 {
-  ROS_WARN_STREAM_NAMED(name_, "someone is getting visual tools from imarker");
+  //ROS_WARN_STREAM_NAMED(name_, "someone is getting visual tools from imarker");
   return visual_tools_;
 }
 

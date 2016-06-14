@@ -9,7 +9,7 @@ curie_demos:
   preprocess_spars: false
   create_spars: true
   continue_spars: false # even if a file has been saved, randomly sample for more coverage
-  run_problems: false # do plans?
+  run_problems: true # do plans?
 
   # run type
   headless: false
@@ -36,12 +36,12 @@ curie_demos:
 
 # ====================================================
 debug_interface:
-  autonomous: false
-  full_autonomous: false
+  autonomous: true
+  full_autonomous: false # TODO this is not used
 
 # ====================================================
 sparse_graph:
-  save_enabled: true
+  save_enabled: false
   super_debug: false # run more checks and tests that slow down speed
   verbose:
     add: false # debug when addVertex() and addEdge() are called
@@ -108,7 +108,7 @@ task_graph:
     task_graph_speed: 0.00001 # if 0, does not animate but only single image draw
     database_vertices: true
     database_edges: true
-    astar: true # show node expansions and openings
+    astar: false # show node expansions and openings
     astar_speed: 0.01 # how many seconds to wait between each visualization
 
 # ====================================================
