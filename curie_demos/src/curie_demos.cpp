@@ -563,9 +563,9 @@ void CurieDemos::loadVisualTools()
     moveit_visual->loadMarkerPub(false);
     moveit_visual->setPlanningSceneMonitor(planning_scene_monitor_);
     moveit_visual->setManualSceneUpdating(true);
+    moveit_visual->setGlobalScale(1.0);
 
     MoveItVizWindowPtr viz = MoveItVizWindowPtr(new MoveItVizWindow(moveit_visual, si_));
-    viz->getVisualTools()->setGlobalScale(100);
     viz->setJointModelGroup(jmg_);
 
     bool blocking = false;
