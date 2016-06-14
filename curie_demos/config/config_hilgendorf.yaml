@@ -9,7 +9,7 @@ curie_demos:
   preprocess_spars: false
   create_spars: true
   continue_spars: false # even if a file has been saved, randomly sample for more coverage
-  run_problems: true
+  run_problems: false # do plans?
 
   # run type
   headless: false
@@ -17,13 +17,13 @@ curie_demos:
   problem_type: 1 # 0 - random, 1 - imarkers
   auto_run: true # do not wait to move interactive markers
   experience_planner: bolt
-  #experience_planner: thunder
   #planning_group_name: both_arms
   planning_group_name: right_arm
   use_task_planning: true  # cartesian hybrid planning
   post_processing: false
   post_processing_interval: 20 # how often (in runs) to adjust the graphs
   seed_random: true
+  use_logging: false # write to file log info
   visualize:
     display_database: false # does not display database as it is built, however
     start_goal_states: false
@@ -47,10 +47,11 @@ sparse_graph:
     add: false # debug when addVertex() and addEdge() are called
   visualize:
     spars_graph: false
-    spars_graph_speed: 0 #.00001 # if 0, does not animate but only single image draw
+    spars_graph_speed: 0.1 #.00001 # if 0, does not animate but only single image draw
     database_vertices: true
     database_edges: true
     database_coverage: true # the grey circles around vertices
+    graph_after_loading: false
     quality_path_simp: true # simplification
     astar: true # show node expansions and openings
     astar_speed: 0.01 # how many seconds to wait between each visualization
@@ -68,7 +69,7 @@ sparse_criteria:
   sparse_creation_insertion_order: 1 # 0 - popularity, 1 - default, 2 - random
   percent_max_extent_underestimate: 1.5 # 0 to 1
   use_discretized_samples: true
-  use_random_samples: true
+  use_random_samples: false
   use_check_remove_close_vertices: true # Experimental feature that allows very closeby vertices to be merged with newly added ones
   use_clear_edges_near_vertex: true # When adding a quality vertex, remove nearby edges
   use_original_smoother: false # original is bad

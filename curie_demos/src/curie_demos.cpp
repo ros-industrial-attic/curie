@@ -80,6 +80,7 @@ CurieDemos::CurieDemos(const std::string &hostname) : MoveItBase(), nh_("~"), re
   error += !rosparam_shortcuts::get(name_, rpnh, "seed_random", seed_random);
   error += !rosparam_shortcuts::get(name_, rpnh, "post_processing", post_processing_);
   error += !rosparam_shortcuts::get(name_, rpnh, "post_processing_interval", post_processing_interval_);
+  error += !rosparam_shortcuts::get(name_, rpnh, "use_logging", use_logging_);
   // Visualize
   error += !rosparam_shortcuts::get(name_, rpnh, "visualize/display_database", visualize_display_database_);
   error += !rosparam_shortcuts::get(name_, rpnh, "visualize/interpolated_traj", visualize_interpolated_traj_);
@@ -114,6 +115,13 @@ CurieDemos::CurieDemos(const std::string &hostname) : MoveItBase(), nh_("~"), re
   jmg_ = robot_model_->getJointModelGroup(planning_group_name_);
   ee_link_ = robot_model_->getLinkModel("right_gripper_target");
 
+  // Load planning
+  if (!loadOMPL())
+  {
+    ROS_ERROR_STREAM_NAMED(name_, "Unable to load planning context");
+    exit(-1);
+  }
+
   // Load more visual tool objects
   loadVisualTools();
 
@@ -126,7 +134,7 @@ CurieDemos::CurieDemos(const std::string &hostname) : MoveItBase(), nh_("~"), re
   if (track_memory_consumption_)
   {
     double vm1, rss1;
-    process_mem_usage(vm1, rss1);
+    processMemUsage(vm1, rss1);
     ROS_INFO_STREAM_NAMED(name_, "Current memory consumption - VM: " << vm1 << " MB | RSS: " << rss1 << " MB");
   }
 
@@ -150,13 +158,6 @@ CurieDemos::CurieDemos(const std::string &hostname) : MoveItBase(), nh_("~"), re
 
   // Set remote_control
   remote_control_.setDisplayWaitingState(boost::bind(&CurieDemos::displayWaitingState, this, _1));
-
-  // Load planning
-  if (!loadOMPL())
-  {
-    ROS_ERROR_STREAM_NAMED(name_, "Unable to load planning context");
-    exit(-1);
-  }
 
   // Run application
   run();
@@ -203,9 +204,6 @@ bool CurieDemos::loadOMPL()
   moveit_ompl::getFilePath(file_path, file_name, "ros/ompl_storage");
   experience_setup_->setFilePath(file_path);  // this is here because its how we do it in moveit_ompl
 
-  // Load visual tool objects
-  loadVisualTools();
-
   // Load collision checker
   loadCollisionChecker();
 
@@ -222,19 +220,6 @@ bool CurieDemos::loadOMPL()
   ompl_start_ = space_->allocState();
   ompl_goal_ = space_->allocState();
 
-  // Set Rviz visuals in OMPL planner
-  ompl::tools::VisualizerPtr visual = experience_setup_->getVisual();
-
-  visual->setVizWindow(1, viz1_);
-  visual->setVizWindow(2, viz2_);
-  visual->setVizWindow(3, viz3_);
-  visual->setVizWindow(4, viz4_);
-  visual->setVizWindow(5, viz5_);
-  visual->setVizWindow(6, viz6_);
-
-  // Set other hooks
-  visual->setWaitForUserFeedback(boost::bind(&CurieDemos::waitForNextStep, this, _1));
-
   return true;
 }
 
@@ -243,14 +228,14 @@ bool CurieDemos::loadData()
   std::size_t indent = 0;
 
   double vm1, rss1;
-  if (track_memory_consumption_) // Track memory usage
+  if (track_memory_consumption_)  // Track memory usage
   {
-    process_mem_usage(vm1, rss1);
+    processMemUsage(vm1, rss1);
     // ROS_INFO_STREAM_NAMED(name_, "Current memory consumption - VM: " << vm1 << " MB | RSS: " << rss1 << " MB");
   }
 
-  // Load database or generate new grid
-  ROS_INFO_STREAM_NAMED(name_, "Loading or generating grid");
+  // Load database or generate new roadmap
+  ROS_INFO_STREAM_NAMED(name_, "Loading or generating roadmap");
   if (is_bolt_)
   {
     if (!bolt_->loadOrGenerate())
@@ -267,10 +252,10 @@ bool CurieDemos::loadData()
     }
   }
 
-  if (track_memory_consumption_) // Track memory usage
+  if (track_memory_consumption_)  // Track memory usage
   {
     double vm2, rss2;
-    process_mem_usage(vm2, rss2);
+    processMemUsage(vm2, rss2);
     // ROS_INFO_STREAM_NAMED(name_, "Current memory consumption - VM: " << vm2 << " MB | RSS: " << rss2 << " MB");
     ROS_INFO_STREAM_NAMED(name_, "RAM usage diff - VM: " << vm2 - vm1 << " MB | RSS: " << rss2 - rss1 << " MB");
   }
@@ -280,7 +265,7 @@ bool CurieDemos::loadData()
 
 void CurieDemos::run()
 {
-  deleteAllMarkers(); // again, cause it seems broken
+  deleteAllMarkers();  // again, cause it seems broken
 
   // Benchmark performance
   if (benchmark_performance_ && is_bolt_)
@@ -345,12 +330,13 @@ void CurieDemos::run()
 bool CurieDemos::runProblems()
 {
   // Logging
-  std::string file_path;
-  moveit_ompl::getFilePath(file_path, "bolt_2d_world_logging.csv", "ros/ompl_storage");
-
-  std::ofstream logging_file;                           // open to append
-  logging_file.open(file_path.c_str(), std::ios::out);  // no append | std::ios::app);
-
+  std::ofstream logging_file;  // open to append
+  if (use_logging_)
+  {
+    std::string file_path;
+    moveit_ompl::getFilePath(file_path, "bolt_2d_world_logging.csv", "ros/ompl_storage");
+    logging_file.open(file_path.c_str(), std::ios::out);  // no append | std::ios::app);
+  }
   // Run the demo the desired number of times
   for (std::size_t run_id = 0; run_id < planning_runs_; ++run_id)
   {
@@ -386,8 +372,11 @@ bool CurieDemos::runProblems()
     experience_setup_->printLogs();
 
     // Logging
-    experience_setup_->saveDataLog(logging_file);
-    logging_file.flush();
+    if (use_logging_)
+    {
+      experience_setup_->saveDataLog(logging_file);
+      logging_file.flush();
+    }
 
     // Regenerate Sparse Graph
     if (post_processing_ && run_id % post_processing_interval_ == 0 && run_id > 0)  // every x runs
@@ -398,7 +387,7 @@ bool CurieDemos::runProblems()
 
     if (visualize_wait_between_plans_)
       waitForNextStep("run next problem");
-    else // Main pause between planning instances - allows user to analyze
+    else  // Main pause between planning instances - allows user to analyze
       ros::Duration(visualize_time_between_plans_).sleep();
 
     // Reset marker if this is not our last run
@@ -478,7 +467,7 @@ bool CurieDemos::plan()
   og::PathGeometric path = experience_setup_->getSolutionPath();
 
   // Add start to solution
-  //path.prepend(ompl_start_);  // necessary?
+  // path.prepend(ompl_start_);  // necessary?
 
   // Check/test the solution for errors
   if (use_task_planning_)
@@ -560,6 +549,7 @@ void CurieDemos::deleteAllMarkers(bool clearDatabase)
 void CurieDemos::loadVisualTools()
 {
   using namespace ompl_visual_tools;
+  using namespace moveit_visual_tools;
 
   Eigen::Affine3d offset;
   std::string namesp = nh_.getNamespace();
@@ -568,36 +558,25 @@ void CurieDemos::loadVisualTools()
   const std::size_t NUM_VISUALS = 6;
   for (std::size_t i = 1; i <= NUM_VISUALS; ++i)
   {
-    moveit_visual_tools::MoveItVisualToolsPtr moveit_visual = moveit_visual_tools::MoveItVisualToolsPtr(
-                                                                                                        new moveit_visual_tools::MoveItVisualTools("/world_visual" + std::to_string(i), "/ompl_visual" + std::to_string(i), robot_model_));
-    moveit_visual->loadMarkerPub();
-    ros::spinOnce();
-
-    MoveItVizWindowPtr viz = MoveItVizWindowPtr(new MoveItVizWindow(moveit_visual, si_));
-    viz->getVisualTools()->setGlobalScale(100);
-
-
+    MoveItVisualToolsPtr moveit_visual = MoveItVisualToolsPtr(
+        new MoveItVisualTools("/world_visual" + std::to_string(i), namesp + "/ompl_visual" + std::to_string(i), robot_model_));
+    moveit_visual->loadMarkerPub(false);
     moveit_visual->setPlanningSceneMonitor(planning_scene_monitor_);
     moveit_visual->setManualSceneUpdating(true);
 
-    // Set moveit stats
+    MoveItVizWindowPtr viz = MoveItVizWindowPtr(new MoveItVizWindow(moveit_visual, si_));
+    viz->getVisualTools()->setGlobalScale(100);
     viz->setJointModelGroup(jmg_);
 
+    bool blocking = false;
     if (!headless_)
     {
+      // Load publishers
+      moveit_visual->loadRobotStatePub(namesp + "/robot_state" + std::to_string(i), blocking);
+
       // Load trajectory publisher - ONLY for viz6
       if (i == 6)
-        moveit_visual->loadTrajectoryPub("/hilgendorf/display_trajectory");
-
-      // Load publishers
-      moveit_visual->loadRobotStatePub(namesp + "/robot_state" + std::to_string(i));
-
-      // Get TF
-      getTFTransform("world", "world_visual" + std::to_string(i), offset);
-      moveit_visual->enableRobotStateRootOffet(offset);
-
-      // Show the initial robot state
-      boost::dynamic_pointer_cast<moveit_visual_tools::MoveItVisualTools>(moveit_visual)->publishRobotState(moveit_start_);
+        moveit_visual->loadTrajectoryPub("/hilgendorf/display_trajectory", blocking);
     }
 
     // Calibrate the color scale for visualization
@@ -618,15 +597,52 @@ void CurieDemos::loadVisualTools()
       case 6: viz6_ = viz; break;
     }
     // clang-format on
+
+    // Index the visualizers
+    vizs_.push_back(viz);
+  }  // for reach visualizer
+
+  ros::spinOnce();
+
+  // Secondary loop to give time for all the publishers to load up
+  for (std::size_t i = 1; i <= NUM_VISUALS; ++i)
+  {
+    MoveItVisualToolsPtr moveit_visual = vizs_[i - 1]->getVisualTools();
+    // Get TF
+    getTFTransform("world", "world_visual" + std::to_string(i), offset);
+    moveit_visual->enableRobotStateRootOffet(offset);
+
+    // Show the initial robot state
+    moveit_visual->publishRobotState(moveit_start_);
   }
 
   viz6_->getVisualTools()->setBaseFrame("world");
   visual_moveit_start_ = viz6_->getVisualTools();
   visual_moveit_goal_ = viz2_->getVisualTools();  // TODO goal arm is in different window
 
+  ros::spinOnce();
+
+  // Block until all visualizers are finished loading
+  for (std::size_t i = 1; i <= NUM_VISUALS; ++i)
+  {
+    vizs_[i - 1]->getVisualTools()->waitForMarkerPub();
+  }
+
   deleteAllMarkers();
 
-  ros::Duration(0.01).sleep();
+
+  // Set Rviz visuals in OMPL planner
+  ompl::tools::VisualizerPtr visual = experience_setup_->getVisual();
+
+  visual->setVizWindow(1, viz1_);
+  visual->setVizWindow(2, viz2_);
+  visual->setVizWindow(3, viz3_);
+  visual->setVizWindow(4, viz4_);
+  visual->setVizWindow(5, viz5_);
+  visual->setVizWindow(6, viz6_);
+
+  // Set other hooks
+  visual->setWaitForUserFeedback(boost::bind(&CurieDemos::waitForNextStep, this, _1));
 }
 
 void CurieDemos::visualizeStartGoal()
@@ -707,7 +723,7 @@ void CurieDemos::visualizeRawTrajectory(og::PathGeometric &path)
 void CurieDemos::generateRandCartesianPath()
 {
   // First cleanup previous cartesian paths
-  //experience_setup_->getSparseGraph()->cleanupTemporaryVerticies();
+  // experience_setup_->getSparseGraph()->cleanupTemporaryVerticies();
 
   // Get MoveIt path
   std::vector<moveit::core::RobotStatePtr> trajectory;

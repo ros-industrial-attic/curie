@@ -36,7 +36,7 @@ int main(int argc, char** argv)
   return 0;
 
   // Get computer's base measure of memory usage
-  process_mem_usage(vm, rss);
+  processMemUsage(vm, rss);
 
   // On first loop, add base memory
   double my_count_mb = vm;
@@ -59,7 +59,7 @@ int main(int argc, char** argv)
     my_count_mb += (array_size_b + state_size_b) / 1048576.0; // convert byte to megabyte
 
     // Get computer's measure of memory usage
-    process_mem_usage(vm, rss);
+    processMemUsage(vm, rss);
 
     // Output
     //std::cout << "VM: " << vm << " MB    |    my_count: " << my_count_mb << " MB" << std::endl;
@@ -76,7 +76,7 @@ int main(int argc, char** argv)
     my_count_mb -= (array_size_b) / 1048576.0; // convert byte to megabyte
 
     // Get computer's measure of memory usage
-    process_mem_usage(vm, rss);
+    processMemUsage(vm, rss);
 
     // Output
     //std::cout << "VM: " << vm << " MB    |    my_count: " << my_count_mb << " MB" << std::endl;
@@ -100,7 +100,7 @@ int main(int argc, char** argv)
     my_count_mb -= (state_size_b + array_size_b) / 1048576.0; // convert byte to megabyte
 
     // Get computer's measure of memory usage
-    process_mem_usage(vm, rss);
+    processMemUsage(vm, rss);
 
     // Output
     std::cout << "VM: " << vm << " MB    |    my_count: " << my_count_mb << " MB" << std::endl;
@@ -109,7 +109,7 @@ int main(int argc, char** argv)
 
   while (true)
   {
-    process_mem_usage(vm, rss);
+    processMemUsage(vm, rss);
     std::cout << "VM: " << vm << " MB \t RSS: " << rss << " MB" << std::endl;
     //std::cout << "Memory usage: " << getValue() << " KB" << std::endl;
 

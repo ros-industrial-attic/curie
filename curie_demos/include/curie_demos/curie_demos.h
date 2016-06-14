@@ -136,6 +136,7 @@ public:
   ompl::base::SpaceInformationPtr si_;
 
   // The visual tools for interfacing with Rviz
+  std::vector<ompl_visual_tools::MoveItVizWindowPtr> vizs_;
   ompl_visual_tools::MoveItVizWindowPtr viz1_;
   ompl_visual_tools::MoveItVizWindowPtr viz2_;
   ompl_visual_tools::MoveItVizWindowPtr viz3_;
@@ -179,6 +180,7 @@ public:
   bool headless_;
   bool auto_run_;
   bool track_memory_consumption_ = false;
+  bool use_logging_ = false;
 
   // Verbosity levels
   bool debug_print_trajectory_;

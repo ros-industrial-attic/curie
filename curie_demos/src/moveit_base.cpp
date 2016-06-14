@@ -221,14 +221,18 @@ moveit::core::RobotStatePtr MoveItBase::getCurrentState()
 bool MoveItBase::getTFTransform(const std::string& from_frame, const std::string& to_frame, Eigen::Affine3d &pose)
 {
   tf::StampedTransform tf_transform;
-  try
+
+  while (true)
   {
-    tf_->lookupTransform(from_frame, to_frame, ros::Time(0), tf_transform);
-  }
-  catch (tf::TransformException ex)
-  {
-    ROS_ERROR("%s", ex.what());
-    return false;
+    try
+    {
+      tf_->lookupTransform(from_frame, to_frame, ros::Time(0), tf_transform);
+      break;
+    }
+    catch (tf::TransformException ex)
+    {
+      ROS_INFO_THROTTLE_NAMED(1, name_, "Waiting on TF: %s", ex.what());
+    }
   }
 
   // Convert to eigen

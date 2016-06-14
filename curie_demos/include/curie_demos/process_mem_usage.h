@@ -10,7 +10,7 @@
 #include <unistd.h>
 
 /**
- * \brief process_mem_usage(double &, double &) - takes two doubles by reference,
+ * \brief processMemUsage(double &, double &) - takes two doubles by reference,
  *        attempts to read the system-dependent data for a process' virtual memory
  *        size and resident set size, and
  * NOTE:
@@ -18,7 +18,7 @@
  *        Virtual Memory - swap space on hard disk, I think
  * \return the results in MB. On failure, returns 0.0, 0.0
  */
-void process_mem_usage(double& vm_usage, double& resident_set)
+void processMemUsage(double& vm_usage, double& resident_set)
 {
   using std::ios_base;
   using std::ifstream;
